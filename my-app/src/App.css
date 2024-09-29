@@ -154,6 +154,18 @@ body{
 
 .navbar-item:hover{
   cursor: pointer;
+  background-color: #f1f1f1;
+
+  box-shadow: inset -5px 0 0 0px #557677;
+}
+
+.navbar-item:active{
+  background-color: #D9D9D9;
+
+  box-shadow: inset -5px 0 0 0px #557677;
+}
+
+.navbar-item:focus{
   background-color: #D9D9D9;
 
   box-shadow: inset -5px 0 0 0px #557677;

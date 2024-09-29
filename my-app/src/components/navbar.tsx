@@ -53,7 +53,11 @@ interface ItemProp {
 
 function NavbarItem(props: ItemProp){
     return(
-        <div className="navbar-item" id={props.id ? props.id: ""} onClick={props.onClick}>
+        <div 
+        className="navbar-item" 
+        id={props.id ? props.id: ""} 
+        onClick={props.onClick}
+        tabIndex={0}>
             <div className="navbar-item-logo">{props.icon}</div>
             <span className="navbar-item-text">{props.text}</span>
         </div>
