@@ -1,9 +1,16 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import logo from "../images/colony-logo-transparent.png";
 import user from "../images/user.png";
 import { DashboardIcon, FileIcon, TransactionIcon, WalletIcon, MiningIcon, SettingsIcon, ExitIcon} from "../images/icons/icons";
+import { Page } from "../App";
 
-export default function Navbar(){
+type Dispatcher<S> = Dispatch<SetStateAction<S>>;
+
+interface NavbarProps{
+    setPage: Dispatcher<Page>;
+}
+
+export default function Navbar(props: NavbarProps){
     return (
         <div className="navbar-box">
             <div className="navbar-banner">
@@ -15,13 +22,13 @@ export default function Navbar(){
             </svg>
             
             <div className="navbar-items">
-                <NavbarItem icon={<DashboardIcon/>} text="Dashboard"/>
-                <NavbarItem icon={<FileIcon/>} text="Files"/>
-                <NavbarItem icon={<TransactionIcon/>} text="Transactions"/>
-                <NavbarItem icon={<WalletIcon/>} text="Wallet"/>
-                <NavbarItem icon={<MiningIcon/>} text="Mining"/>
+                <NavbarItem icon={<DashboardIcon/>} text="Dashboard" onClick={() => props.setPage(Page.Dashboard)}/>
+                <NavbarItem icon={<FileIcon/>} text="Files" onClick={() => props.setPage(Page.Files)}/>
+                <NavbarItem icon={<TransactionIcon/>} text="Transactions" onClick={() => props.setPage(Page.Transactions)}/>
+                <NavbarItem icon={<WalletIcon/>} text="Wallet" onClick={() => props.setPage(Page.Wallet)}/>
+                <NavbarItem icon={<MiningIcon/>} text="Mining" onClick={() => props.setPage(Page.Mining)}/>
             </div>
-            <NavbarItem icon={<SettingsIcon/>} text="Settings" id="navbar-settings"/>
+            <NavbarItem icon={<SettingsIcon/>} text="Settings" id="navbar-settings" onClick={() => props.setPage(Page.Settings)}/>
             <hr style={{width: "90%"}}/>
             <div className="navbar-profile">
                 <img className="navbar-profile-img" src={user} alt="" />
@@ -37,15 +44,16 @@ export default function Navbar(){
     )
 }
 
-interface Props {
+interface ItemProp {
     icon: React.ReactNode;
     text: string;
+    onClick: () => void;
     id?: string;
 }
 
-function NavbarItem(props: Props){
+function NavbarItem(props: ItemProp){
     return(
-        <div className="navbar-item" id={props.id ? props.id: ""}>
+        <div className="navbar-item" id={props.id ? props.id: ""} onClick={props.onClick}>
             <div className="navbar-item-logo">{props.icon}</div>
             <span className="navbar-item-text">{props.text}</span>
         </div>

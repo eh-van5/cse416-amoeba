@@ -96,7 +96,8 @@ body{
 
 /* Navbar */
 .navbar-box{
-  position: fixed;
+  position: sticky;
+  top: 0;
 
   background: white;
   /* width: 17%; */
@@ -198,6 +199,10 @@ body{
 .navbar-profile-exit:hover{
   cursor: pointer;
   color: #abadad;
+}
+
+.page{
+  display: flex;
 }
 
 /* Preset React CSS for reference */

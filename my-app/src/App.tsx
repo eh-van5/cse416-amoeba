@@ -1,32 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Login from './components/login';
 import Navbar from './components/navbar';
+import DashboardPage from './components/pages/dashboard';
+import FilesPage from './components/pages/files';
+import TransactionsPage from './components/pages/transactions';
+import WalletPage from './components/pages/wallet';
+import MiningPage from './components/pages/mining';
+import SettingsPage from './components/pages/settings';
+
+export enum Page{
+  Dashboard,
+  Files,
+  Transactions,
+  Wallet,
+  Mining,
+  Settings
+}
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<Page>(Page.Dashboard);
+
+  console.log('logged in: ' + loggedIn);
   return(
-    <Login></Login>
-    // <Navbar></Navbar>
+    <div>
+      {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
+      {loggedIn && 
+      <div className="page">
+        <Navbar
+          setPage={setCurrentPage}
+        ></Navbar>
+        {
+          ({
+            [Page.Dashboard]: <DashboardPage/> ,
+            [Page.Files]: <FilesPage/>,
+            [Page.Transactions]: <TransactionsPage/>,
+            [Page.Wallet]: <WalletPage/>,
+            [Page.Mining]: <MiningPage/>,
+            [Page.Settings]: <SettingsPage/>,
+          })[currentPage]
+        }
+      </div>}
+    </div>
+    
   )
-  // return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <img src={logo} className="App-logo" alt="logo" />
-  //       <p>
-  //         Edit <code>src/App.tsx</code> and save to reload.
-  //       </p>
-  //       <a
-  //         className="App-link"
-  //         href="https://reactjs.org"
-  //         target="_blank"
-  //         rel="noopener noreferrer"
-  //       >
-  //         Learn React
-  //       </a>
-  //     </header>
-  //   </div>
-  // );
 }
 
 export default App;
