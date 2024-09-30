@@ -101,7 +101,7 @@ body{
 
   background: white;
   /* width: 17%; */
-  width: 260px;
+  max-width: 260px;
   height: 100vh;
 }
 
@@ -215,6 +215,107 @@ body{
 
 .page{
   display: flex;
+  flex-grow: 1;
+  height: 100vh;
+  overflow: auto;
+}
+
+.page > div {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Line Graph */
+.line-graph-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.line-graph-container {
+  border: none;
+  border-radius: 10px;
+  width: 100%;
+  min-width: 400px;
+  padding: 10px 20px;
+  margin: 10px 10px;
+  background-color: white;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.line-graph-container:hover {
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.line-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.line-graph-title {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 20px;
+  margin-left: 10px;
+  color: #747474be;
+}
+
+.line-graph-button {
+  border-radius: 10px;
+  position: relative;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.line-graph-button:hover {
+  background: #abadad3f;
+}
+
+.line-graph-grid {
+  stroke: #e0e0e0;
+  stroke-dasharray: 3 3;
+}
+
+/* Tooltip */
+.custom-tooltip {
+  background-color: #ffffffb0;
+  color: #000000;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-label {
+  font-weight: bold;
+  margin: 0;
+}
+
+.tooltip-line1 {
+  margin: 5px 0;
+}
+
+.tooltip-line2 {
+  margin: 5px 0;
+}
+
+.recharts-cartesian-axis-line {
+  display: none;
+}
+
+.recharts-cartesian-axis-tick-value {
+  display: none;
+}
+
+.recharts-area {
+  fill-opacity: 0.5;
 }
 
 /* Preset React CSS for reference */
