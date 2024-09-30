@@ -4,5 +4,6 @@ peer-to-peer file-sharing network
 # To Run
 ```
 cd my-app
+npm install
 npm start
 ```
