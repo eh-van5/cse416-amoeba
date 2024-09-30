@@ -226,9 +226,8 @@ body{
 }
 
 /* Line Graph */
-.line-graph-row {
+.graph-row {
   display: flex;
-  justify-content: space-between;
   width: 100%;
 }
 
@@ -237,6 +236,7 @@ body{
   border-radius: 10px;
   width: 100%;
   min-width: 400px;
+  max-width: 600px;
   padding: 10px 20px;
   margin: 10px 10px;
   background-color: white;
@@ -306,11 +306,11 @@ body{
   margin: 5px 0;
 }
 
-.recharts-cartesian-axis-line {
-  display: none;
+.line-graph .recharts-cartesian-axis-line {
+  display: true;
 }
 
-.recharts-cartesian-axis-tick-value {
+.line-graph .recharts-cartesian-axis-tick-value {
   display: none;
 }
 

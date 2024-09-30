@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ThreeDotIcon } from '../images/icons/icons';
+import { ThreeDotIcon } from '../../images/icons/icons';
 
 interface lineGraphProps {
     data: { name: string, value1: number, value2?: number}[];
@@ -23,7 +23,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
     line2Name = 'Line 2',
     title = 'Line Graph'
 }) => {
-    const [chartData, setGraphData] = useState(data);
+    const [graphData, setGraphData] = useState(data);
 
     // Use useEffect to listen if data is changed in props
     useEffect(() => {
@@ -51,11 +51,11 @@ const LineGraph: React.FC<lineGraphProps> = ({
                     <ThreeDotIcon />
                 </div>
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={chartData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
+            <ResponsiveContainer className="line-graph" width="100%" height={200}>
+                <LineChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" className="line-graph-grid" />
-                    <XAxis dataKey="name" tick={false} axisLine={false} />
-                    <YAxis width={20}/>
+                    <XAxis dataKey="name" tick={false} axisLine={true} />
+                    <YAxis width={20} tick={false} axisLine={true}/>
                     <Tooltip content={renderTooltip} />
                     <defs>
                         {/* Shadow */}
@@ -67,7 +67,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
                         </filter>
                     </defs>
                     <Line type="monotone" dataKey="value1" stroke={line1Color} strokeWidth={2} dot={false} name={line1Name} style={{ filter: 'url(#shadow1)' }} />
-                    {chartData[0].value2 !== undefined && (
+                    {graphData[0].value2 !== undefined && (
                             <Line type="monotone" dataKey="value2" stroke={line2Color} strokeWidth={2} dot={false} name={line2Name} style={{ filter: 'url(#shadow2)' }} />
                     )}
                     <Legend verticalAlign="bottom" layout="horizontal" align="center" />
