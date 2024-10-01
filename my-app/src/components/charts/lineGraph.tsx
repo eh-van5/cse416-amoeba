@@ -60,10 +60,10 @@ const LineGraph: React.FC<lineGraphProps> = ({
                     <defs>
                         {/* Shadow */}
                         <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="3" dy="3" stdDeviation="2" floodColor={line1Color} />
+                            <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line1Color} />
                         </filter>
                         <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="3" dy="3" stdDeviation="2" floodColor={line2Color} />
+                            <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line2Color} />
                         </filter>
                     </defs>
                     <Line type="monotone" dataKey="value1" stroke={line1Color} strokeWidth={2} dot={false} name={line1Name} style={{ filter: 'url(#shadow1)' }} />
