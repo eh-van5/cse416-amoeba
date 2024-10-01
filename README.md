@@ -7,7 +7,6 @@ cd my-app
 npm install
 
 npm install recharts
-
 ```
 
 # To Run
