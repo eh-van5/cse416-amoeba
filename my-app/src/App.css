@@ -220,7 +220,7 @@ body{
   overflow: auto;
 }
 
-.page > div {
+.page-content {
   flex: 1;
   padding: 20px;
 }

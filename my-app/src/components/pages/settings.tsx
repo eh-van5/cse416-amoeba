@@ -1,6 +1,6 @@
 export default function SettingsPage(){
     return(
-        <div>
+        <div className="page-content">
             Settings
         </div>
     )

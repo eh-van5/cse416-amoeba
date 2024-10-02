@@ -1,6 +1,6 @@
 export default function WalletPage(){
     return(
-        <div>
+        <div className="page-content">
             Wallet
         </div>
     )

@@ -45,7 +45,7 @@ export default function TransactionsPage(){
     const fileTypeData = generateRandomFileTypeData();
 
     return (
-        <div style={{padding: '20px'}}>
+        <div className="page-content" style={{padding: '20px'}}>
             <h1>Transactions</h1>
             <div className="graph-row">
                 <LineGraph

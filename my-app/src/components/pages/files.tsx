@@ -1,6 +1,6 @@
 export default function FilesPage(){
     return(
-        <div>
+        <div className="page-content">
             Files
         </div>
     )

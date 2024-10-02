@@ -1,6 +1,6 @@
 export default function MiningPage(){
     return(
-        <div>
+        <div className="page-content">
             Mining
         </div>
     )
