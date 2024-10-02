@@ -57,6 +57,8 @@ export default function TransactionsPage(){
                     line1Name = "Download"
                     line2Name = "Upload"
                     title="Bandwidth Over Time"
+                    //maxWidth={1220}
+                    //height={200}
                 />
                 <BarGraph
                     data={activityData}

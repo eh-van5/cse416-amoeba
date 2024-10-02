@@ -10,7 +10,9 @@ interface lineGraphProps {
     yAxisLabel?: string;
     line1Name?: string;
     line2Name?: string;
-    title: string;
+    title?: string;
+    maxWidth?: number;
+    height?: number;
 }
 
 const LineGraph: React.FC<lineGraphProps> = ({
@@ -21,7 +23,9 @@ const LineGraph: React.FC<lineGraphProps> = ({
     yAxisLabel = 'Y Axis',
     line1Name = 'Line 1',
     line2Name = 'Line 2',
-    title = 'Line Graph'
+    title = 'Line Graph',
+    maxWidth = 1220,
+    height = 200
 }) => {
     const [graphData, setGraphData] = useState(data);
 
@@ -44,14 +48,14 @@ const LineGraph: React.FC<lineGraphProps> = ({
     };
 
     return (
-        <div className="line-graph-container">
+        <div className="line-graph-container" style={{maxWidth: `${maxWidth}px`}}>
             <div className="line-graph-header">
                 <h3 className="line-graph-title">{title}</h3>
                 <div className="line-graph-button">
                     <ThreeDotIcon />
                 </div>
             </div>
-            <ResponsiveContainer className="line-graph" width="100%" height={200}>
+            <ResponsiveContainer className="line-graph" width="100%" height={height}>
                 <LineChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
                     <CartesianGrid vertical={false} strokeDasharray="3 3" className="line-graph-grid" />
                     <XAxis dataKey="name" tick={false} axisLine={true} />

@@ -229,7 +229,9 @@ body{
 .graph-row {
   display: flex;
   width: 100%;
+  max-width: 1220px;
   gap: 20px;
+  margin: 20px 0px;
 }
 
 .line-graph-container {
@@ -237,9 +239,7 @@ body{
   border-radius: 10px;
   width: 100%;
   min-width: 400px;
-  max-width: 600px;
-  padding: 10px 20px;
-  margin: 10px 0px;
+  padding: 5px 0px;
   background-color: white;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
@@ -260,7 +260,7 @@ body{
   font-weight: 500;
   text-align: left;
   margin-bottom: 20px;
-  margin-left: 10px;
+  margin-left: 20px;
   color: #747474be;
 }
 
@@ -271,6 +271,7 @@ body{
   right: 0;
   cursor: pointer;
   display: flex;
+  margin-right: 10px;
   align-items: center;
   justify-content: center;
 }
@@ -288,8 +289,7 @@ body{
 .pie-chart-container {
   border: none;
   border-radius: 10px;
-  padding: 10px 20px;
-  margin: 10px 0px;
+  padding: 5px 0px;
   background-color: white;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
