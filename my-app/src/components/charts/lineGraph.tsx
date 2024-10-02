@@ -48,10 +48,10 @@ const LineGraph: React.FC<lineGraphProps> = ({
     };
 
     return (
-        <div className="line-graph-container" style={{maxWidth: `${maxWidth}px`}}>
-            <div className="line-graph-header">
-                <h3 className="line-graph-title">{title}</h3>
-                <div className="line-graph-button">
+        <div className="box-container" style={{maxWidth: `${maxWidth}px`}}>
+            <div className="box-header">
+                <h3 className="box-title">{title}</h3>
+                <div className="box-header-button">
                     <ThreeDotIcon />
                 </div>
             </div>

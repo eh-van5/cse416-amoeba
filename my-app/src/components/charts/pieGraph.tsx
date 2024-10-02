@@ -34,10 +34,10 @@ const PieGraph: React.FC<pieGraphProps> = ({
     };
 
     return (
-        <div className="pie-chart-container">
-            <div className="line-graph-header">
-                <h3 className="line-graph-title">{title}</h3>
-                <div className="line-graph-button">
+        <div className="square-box-container">
+            <div className="box-header">
+                <h3 className="box-title">{title}</h3>
+                <div className="box-header-button">
                     <ThreeDotIcon />
                 </div>
             </div>

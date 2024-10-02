@@ -43,10 +43,10 @@ const BarGraph: React.FC<barGraphProps> = ({
     };
 
     return (
-        <div className="line-graph-container">
-            <div className="line-graph-header">
-                <h3 className="line-graph-title">{title}</h3>
-                <div className="line-graph-button">
+        <div className="box-container">
+            <div className="box-header">
+                <h3 className="box-title">{title}</h3>
+                <div className="box-header-button">
                     <ThreeDotIcon />
                 </div>
             </div>

@@ -234,7 +234,7 @@ body{
   margin: 20px 0px;
 }
 
-.line-graph-container {
+.box-container {
   border: none;
   border-radius: 10px;
   width: 100%;
@@ -245,17 +245,17 @@ body{
   transition: box-shadow 0.3s ease;
 }
 
-.line-graph-container:hover {
+.box-container:hover {
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.line-graph-header {
+.box-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.line-graph-title {
+.box-title {
   font-size: 14px;
   font-weight: 500;
   text-align: left;
@@ -264,7 +264,7 @@ body{
   color: #747474be;
 }
 
-.line-graph-button {
+.box-header-button {
   border-radius: 10px;
   position: relative;
   top: 0;
@@ -276,7 +276,7 @@ body{
   justify-content: center;
 }
 
-.line-graph-button:hover {
+.box-header-button:hover {
   background: #abadad3f;
 }
 
@@ -286,7 +286,7 @@ body{
 }
 
 /* Pie graph */
-.pie-chart-container {
+.square-box-container {
   border: none;
   border-radius: 10px;
   padding: 5px 0px;
@@ -295,7 +295,7 @@ body{
   transition: box-shadow 0.3s ease;
 }
 
-.pie-chart-container:hover {
+.square-box-container:hover {
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
