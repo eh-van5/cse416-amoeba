@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dispatcher } from "../../App";
 import { SunIcon, MoonIcon } from "../../images/icons/icons"
+import ToggleSwitch from "../general/toggle";
 
 enum Tab{
     Appearance,
@@ -34,7 +35,7 @@ export default function SettingsPage(props: SettingsProps){
                         ({
                             [Tab.Appearance]: <AppearanceTab isDarkMode={props.isDarkMode} setDarkMode={props.setDarkMode}/>,
                             [Tab.Notifications]: <NotificationTab/>,
-                        }) [currentTab]
+                        })[currentTab]
                     }
                     
                 </div>
@@ -60,7 +61,7 @@ function TabItem(props: TabItemProps){
         className="settings-tab"
         tabIndex={0}
         onClick={() => props.setCurrentTab(Tab[props.text as keyof typeof Tab])}
-        style={{color: Tab[props.currentTab] == props.text ? "black" : "#bdbdb4"}}>{props.text}
+        style={{color: Tab[props.currentTab] === props.text ? "black" : "#bdbdb4"}}>{props.text}
         </span>
     )
     
@@ -90,6 +91,15 @@ function AppearanceTab(props: AppearanceTabProps){
 }
 
 function NotificationTab(){
+    function Checkbox(name: string, idname: string){
+        return (
+        <label style={{display: "flex", alignItems: "center", padding: "5px 30px"}} htmlFor={`notification-${idname}`}>
+            <input type="checkbox" className="notification-checkbox" id={`notification-${idname}`}/>
+            <span style={{padding: "0 5px", fontSize: "12px"}}>{name}</span>
+        </label>
+        )
+    }
+
     return (
         <>
             <span className="settings-text">
@@ -98,9 +108,17 @@ function NotificationTab(){
             </span>
             <span className="settings-subheader">Notifications</span>
             <span className="settings-text">Turn notifications on/off</span>
-
-            <span className="settings-subheader">Notify me about...</span>
-            <span className="settings-text">Choose what notifications you receive</span>
+            <div style={{padding: "10px 30px"}}>
+                <ToggleSwitch name="toggle-notifications" offText="Off" onText="On"/>
+            </div>
+            <div className="notification-choice">
+                <span className="settings-subheader">Notify me about...</span>
+                <span className="settings-text">Choose what notifications you receive</span>
+                {Checkbox("File Updates","file-updates")}
+                {Checkbox("Transactions","transactions")}
+                {Checkbox("Wallet Updates","wallet-updates")}
+                {Checkbox("Coin Mining","coin-mining")}
+            </div>
         </>
     )
 }

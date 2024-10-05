@@ -423,6 +423,57 @@ body{
   transform: scale(1.2);
 }
 
+/* Toggle switch component */
+.toggle-switch {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 34px;
+}
+.toggle-switch-checkbox {
+  display: none;
+}
+.toggle-switch-slider {
+  cursor: pointer;
+  position: absolute;
+
+  background: white;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  border: 1px solid #bdbdb4;
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+}
+
+.toggle-switch-slider:before{
+  content: "";
+  position: absolute;
+  height: 25px;
+  width: 25px;
+  left: 4px;
+  bottom: 4px;
+
+  border-radius: 15px;
+
+  background-color: #bdbdb4;
+  transition: all 0.3s ease-out;
+}
+.toggle-switch-checkbox:checked + .toggle-switch-slider {
+  /* margin-left: 0; */
+  background-color: #effcf2;
+}
+.toggle-switch-checkbox:checked + .toggle-switch-slider:before {
+  transform: translateX(26px);
+  background: #29b63b;
+}
+
+/* Notification Checkbox */
+.notification-checkbox{
+  accent-color: #29b63b;
+}
+
 /* Preset React CSS for reference */
 .App {
   text-align: center;
