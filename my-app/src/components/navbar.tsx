@@ -1,10 +1,8 @@
-import React, { Dispatch, SetStateAction } from "react";
+import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 import user from "../images/user.png";
 import { DashboardIcon, FileIcon, TransactionIcon, WalletIcon, MiningIcon, SettingsIcon, ExitIcon} from "../images/icons/icons";
 import { Page } from "../App";
-
-type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 
 interface NavbarProps{
     setPage: Dispatcher<Page>;
