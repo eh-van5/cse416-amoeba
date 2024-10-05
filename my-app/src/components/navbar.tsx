@@ -6,7 +6,6 @@ import { Page } from "../App";
 
 interface NavbarProps{
     setPage: Dispatcher<Page>;
-    logout: () => void;
 }
 
 export default function Navbar(props: NavbarProps){
@@ -16,8 +15,8 @@ export default function Navbar(props: NavbarProps){
                 <img id="navbar-banner-logo" src={logo} alt="app logo" />
                 <span id="navbar-banner-text">Colony</span>
             </div>
-            <svg className="navbar-burger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="0.5" stroke="#425E5F">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            <svg className="navbar-burger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="0.5" stroke="#425E5F">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
             
             <div className="navbar-items">
@@ -35,7 +34,7 @@ export default function Navbar(props: NavbarProps){
                     <span style={{fontSize: "15px"}}>Colonist</span>
                     <span style={{fontSize: "12px"}}>9ea*************d9e</span>
                 </div>
-                <div className="navbar-profile-exit" onClick={props.logout}>
+                <div className="navbar-profile-exit">
                     <ExitIcon/>
                 </div>
             </div>
