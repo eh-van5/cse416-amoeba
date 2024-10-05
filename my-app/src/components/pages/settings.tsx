@@ -11,6 +11,8 @@ enum Tab{
 interface SettingsProps{
     isDarkMode: boolean;
     setDarkMode: Dispatcher<boolean>;
+    notifications: boolean;
+    setNotifications: Dispatcher<boolean>;
 }
 
 export default function SettingsPage(props: SettingsProps){
@@ -20,6 +22,7 @@ export default function SettingsPage(props: SettingsProps){
     const tabs = Object.keys(Tab).filter((v) => isNaN(Number(v)));
 
     console.log("is dark mode", props.isDarkMode);
+    console.log("has notifications: ", props.notifications);
 
     return(
         <div className="page-content">
@@ -34,7 +37,7 @@ export default function SettingsPage(props: SettingsProps){
                     {
                         ({
                             [Tab.Appearance]: <AppearanceTab isDarkMode={props.isDarkMode} setDarkMode={props.setDarkMode}/>,
-                            [Tab.Notifications]: <NotificationTab/>,
+                            [Tab.Notifications]: <NotificationTab notifications={props.notifications} setNotifications={props.setNotifications}/>,
                         })[currentTab]
                     }
                     
@@ -53,6 +56,11 @@ interface TabItemProps{
 interface AppearanceTabProps{
     isDarkMode: boolean;
     setDarkMode: Dispatcher<boolean>;
+}
+
+interface NotificationsTabProps{
+    notifications: boolean;
+    setNotifications: Dispatcher<boolean>;
 }
 
 function TabItem(props: TabItemProps){
@@ -90,7 +98,7 @@ function AppearanceTab(props: AppearanceTabProps){
     )
 }
 
-function NotificationTab(){
+function NotificationTab(props: NotificationsTabProps){
     function Checkbox(name: string, idname: string){
         return (
         <label style={{display: "flex", alignItems: "center", padding: "5px 30px"}} htmlFor={`notification-${idname}`}>
@@ -109,8 +117,10 @@ function NotificationTab(){
             <span className="settings-subheader">Notifications</span>
             <span className="settings-text">Turn notifications on/off</span>
             <div style={{padding: "10px 30px"}}>
-                <ToggleSwitch name="toggle-notifications" offText="Off" onText="On"/>
+                <ToggleSwitch name="toggle-notifications" offText="Off" onText="On" checked={props.notifications} onClick={() => props.setNotifications(!props.notifications)}/>
             </div>
+            {
+            props.notifications &&
             <div className="notification-choice">
                 <span className="settings-subheader">Notify me about...</span>
                 <span className="settings-text">Choose what notifications you receive</span>
@@ -119,6 +129,7 @@ function NotificationTab(){
                 {Checkbox("Wallet Updates","wallet-updates")}
                 {Checkbox("Coin Mining","coin-mining")}
             </div>
+            }
         </>
     )
 }

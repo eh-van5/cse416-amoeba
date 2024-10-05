@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Login from './components/login';
@@ -28,8 +28,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Dashboard);
 
   const[isDarkMode, setDarkMode] = useState<boolean>(false);
+  const[notifications, setNotifications] = useState<boolean>(true);
+  useEffect(() => {
+    setCurrentPage(Page.Dashboard);
+  }, [loggedIn]);
 
-  console.log('logged in: ' + loggedIn);
   return(
     <div>
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
@@ -37,6 +40,7 @@ function App() {
       <div className="page">
         <Navbar
           setPage={setCurrentPage}
+          logout={() => setLoggedIn(false)}
         ></Navbar>
         {
           ({
@@ -45,8 +49,12 @@ function App() {
             [Page.Transactions]: <TransactionsPage/>,
             [Page.Wallet]: <WalletPage/>,
             [Page.Mining]: <MiningPage/>,
-            [Page.Settings]: <SettingsPage isDarkMode={isDarkMode} setDarkMode={setDarkMode}/>,
-          })[currentPage]
+            [Page.Settings]: <SettingsPage 
+                            isDarkMode={isDarkMode} 
+                            setDarkMode={setDarkMode} 
+                            notifications={notifications} 
+                            setNotifications={setNotifications}
+                            />,          })[currentPage]
         }
       </div>}
     </div>
