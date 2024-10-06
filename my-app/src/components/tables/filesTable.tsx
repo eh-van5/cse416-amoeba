@@ -1,4 +1,4 @@
-import ItemsTable from "../itemsTable"
+import ItemsTable from "./itemsTable"
 
 export default function FileTable () {
     // pull items from backend

@@ -1,4 +1,4 @@
-import FileTable from "../customTables/filesTable";
+import FileTable from "../tables/filesTable";
 
 export default function FilesPage(){
     return(
