@@ -1,8 +1,3 @@
-interface itemsTableProps {
-    headings: string[],
-    items: JSX.Element[],
-}
-
 interface formatItemsProps{
     colNum: number,
     items: JSX.Element[]
@@ -16,6 +11,11 @@ function formatItems({colNum, items}: formatItemsProps){
         )
     }
     return formattedItems;
+}
+
+interface itemsTableProps {
+    headings: string[],
+    items: JSX.Element[],
 }
 export default function ItemsTable ({
     headings,
