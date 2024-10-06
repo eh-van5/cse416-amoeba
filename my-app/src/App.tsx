@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Login from './components/login';
@@ -19,11 +19,20 @@ export enum Page{
   Settings
 }
 
+// This is the type that setState from useState hook uses
+// Simplified as a single type
+export type Dispatcher<S> = Dispatch<SetStateAction<S>>;
+
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Dashboard);
 
-  console.log('logged in: ' + loggedIn);
+  const[isDarkMode, setDarkMode] = useState<boolean>(false);
+  const[notifications, setNotifications] = useState<boolean>(true);
+  useEffect(() => {
+    setCurrentPage(Page.Dashboard);
+  }, [loggedIn]);
+
   return(
     <div>
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
@@ -31,6 +40,7 @@ function App() {
       <div className="page">
         <Navbar
           setPage={setCurrentPage}
+          logout={() => setLoggedIn(false)}
         ></Navbar>
         {
           ({
@@ -39,8 +49,12 @@ function App() {
             [Page.Transactions]: <TransactionsPage/>,
             [Page.Wallet]: <WalletPage/>,
             [Page.Mining]: <MiningPage/>,
-            [Page.Settings]: <SettingsPage/>,
-          })[currentPage]
+            [Page.Settings]: <SettingsPage 
+                            isDarkMode={isDarkMode} 
+                            setDarkMode={setDarkMode} 
+                            notifications={notifications} 
+                            setNotifications={setNotifications}
+                            />,          })[currentPage]
         }
       </div>}
     </div>

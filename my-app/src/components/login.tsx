@@ -1,9 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
-
-// This is the type that setState from useState hook uses
-// Simplified as a single type
-type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 
 interface Props{
     setLoggedIn: Dispatcher<boolean>;
