@@ -378,3 +378,28 @@ body{
     transform: rotate(360deg);
   }
 }
+
+.items-table{
+  display: grid;
+  background-color: white;
+  scroll-behavior: auto;
+}
+
+.items-table-header{
+  grid-row: 1;
+  border-bottom: solid;
+  border-bottom-color: #00000047;
+  border-top: solid;
+  border-top-color: #00000047;
+  font-size: 20px;
+  color: #000000BF;
+  padding: 8px 0px 8px 6px;
+  font-family: inter;
+}
+
+.items-table-items{
+  font-size: 16px;
+  padding: 8px 0px 8px 7px;
+  color: #000000B3;
+  font-family: inter;
+}
