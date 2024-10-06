@@ -559,3 +559,32 @@ body{
   height: 50%;
 }
 
+#file-upload{
+  visibility: hidden;
+}
+
+#file-upload-label{
+  color: #29BE5D;
+  text-align: center;
+}
+
+#file-upload-label:hover{
+  color:#61dafb;
+  cursor: pointer;
+}
+
+#file-drop-zone{
+  background-color: white;
+  width: 25%;
+  height: 25%;
+  min-width: 200px;
+  min-height: 200px;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 0px;
+  background-color: white;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  text-align: center;
+  align-items: center;
+}
