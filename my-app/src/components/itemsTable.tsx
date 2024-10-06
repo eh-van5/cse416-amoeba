@@ -3,18 +3,35 @@ interface itemsTableProps {
     items: JSX.Element[],
 }
 
+interface formatItemsProps{
+    colNum: number,
+    items: JSX.Element[]
+}
+function formatItems({colNum, items}: formatItemsProps){
+    let formattedItems = []
+    for(let i = 0; i < items.length; i+=colNum){
+        formattedItems.push(<div className = "items-table-row">
+            {items.splice(0, colNum)}
+        </div>
+        )
+    }
+    return formattedItems;
+}
 export default function ItemsTable ({
     headings,
     items
 }: itemsTableProps){
     const formattedHeader = headings.map(heading => {
-        return <div className = "items-table-header">{heading}</div>
+        return <span className="items-table-header">{heading}</span>
     });
+    const formattedItems = formatItems({colNum: headings.length, items});
     return (
         <div className="items-table">
             {formattedHeader}
-            {items}
+            {formattedItems}
         </div>
     );
 };
+
+
 

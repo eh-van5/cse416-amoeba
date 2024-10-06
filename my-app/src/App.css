@@ -382,10 +382,14 @@ body{
 .items-table{
   display: grid;
   background-color: white;
-  scroll-behavior: auto;
+  height: 100%;
+  overflow-y: scroll;
+  grid-row: auto 1fr;
+  grid-auto-columns: auto;
 }
 
 .items-table-header{
+  display: grid;
   grid-row: 1;
   border-bottom: solid;
   border-bottom-color: #00000047;
@@ -395,11 +399,28 @@ body{
   color: #000000BF;
   padding: 8px 0px 8px 6px;
   font-family: inter;
+  position: sticky;
+  top: 0;
+  background-color: white;
 }
 
-.items-table-items{
+.items-table-row{
+  padding: 0;
+  display: contents;
+}
+
+.items-table-row:hover > span{
+  background-color: #55767740;
+}
+
+.items-table-item{
   font-size: 16px;
-  padding: 8px 0px 8px 7px;
+  padding: 10px 0px 10px 7px;
   color: #000000B3;
   font-family: inter;
 }
+
+#filesTable {
+  height: 50%;
+}
+
