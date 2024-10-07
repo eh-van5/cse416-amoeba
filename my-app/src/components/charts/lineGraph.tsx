@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ThreeDotIcon } from '../../images/icons/icons';
+import DropdownMenu from '../general/dropdownMenu';
+import useChartMenu from './useChartMenu';
 
 interface lineGraphProps {
     data: { name: string, value1: number, value2?: number}[];
@@ -28,11 +30,20 @@ const LineGraph: React.FC<lineGraphProps> = ({
     height = 200
 }) => {
     const [graphData, setGraphData] = useState(data);
+    const [isMenuVisible, setMenuVisible] = useState(false);
+    const buttonRef = useRef<HTMLDivElement>(null);
+
+    // Use hook to get menu items
+    const menuItems = useChartMenu();
 
     // Use useEffect to listen if data is changed in props
     useEffect(() => {
         setGraphData(data);
     }, [data]);
+
+    // Toggle visibility of the menu
+    const toggleMenu = () => setMenuVisible(!isMenuVisible);
+    const closeMenu = () => setMenuVisible(false);
 
     const renderTooltip = ({ active, payload, label }: any) => {
         if(active && payload && payload.length) {
@@ -51,9 +62,11 @@ const LineGraph: React.FC<lineGraphProps> = ({
         <div className="box-container" style={{maxWidth: `${maxWidth}px`}}>
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
-                <div className="box-header-button">
+                <div className="box-header-button" onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>
                     <ThreeDotIcon />
                 </div>
+                {/* Import DropdownMenu and pass menuItems and isVisible state */}
+                <DropdownMenu isVisible={isMenuVisible} menuItems={menuItems} buttonRef={buttonRef} onClose={closeMenu} />
             </div>
             <ResponsiveContainer className="line-graph" width="100%" height={height}>
                 <LineChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>

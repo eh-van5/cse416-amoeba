@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ThreeDotIcon } from '../../images/icons/icons';
+import DropdownMenu from '../general/dropdownMenu';
+import useChartMenu from './useChartMenu';
 
 interface barGraphProps {
     data: {name: string, value1: number, value2?: number}[];
@@ -24,10 +26,17 @@ const BarGraph: React.FC<barGraphProps> = ({
     title = 'Bar Graph'
 }) => {
     const [graphData, setGraphData] = useState(data);
+    const [isMenuVisible, setMenuVisible] = useState(false);
+    const buttonRef = useRef<HTMLDivElement>(null);
+
+    const menuItems = useChartMenu();
 
     useEffect(() => {
         setGraphData(data);
     }, [data]);
+
+    const toggleMenu = () => setMenuVisible(!isMenuVisible);
+    const closeMenu = () => setMenuVisible(false);
 
     const renderTooltip = ({ active, payload, label }: any) => {
         if(active && payload && payload.length) {
@@ -46,9 +55,10 @@ const BarGraph: React.FC<barGraphProps> = ({
         <div className="box-container">
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
-                <div className="box-header-button">
+                <div className="box-header-button" onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>
                     <ThreeDotIcon />
                 </div>
+                <DropdownMenu isVisible={isMenuVisible} menuItems={menuItems} buttonRef={buttonRef} onClose={closeMenu} />
             </div>
             <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
