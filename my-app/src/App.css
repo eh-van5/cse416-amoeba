@@ -599,11 +599,14 @@ body{
 
 #file-upload{
   visibility: hidden;
+  display: contents;
 }
 
 #file-upload-label{
+  display: block;
   color: #29BE5D;
   text-align: center;
+  align-self: center;
 }
 
 #file-upload-label:hover{
@@ -614,15 +617,30 @@ body{
 #file-drop-zone{
   background-color: white;
   width: 25%;
-  height: 25%;
-  min-width: 200px;
-  min-height: 200px;
-  border: none;
-  border-radius: 10px;
+  min-width: 250px;
+  aspect-ratio: 4 / 3.5;
+  border: solid;
+  border-color: #00000080;
+  border-width: 1px;
+  border-radius: 25px;
   padding: 5px 0px;
-  background-color: white;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
   text-align: center;
-  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+#file-drop-zone:hover{
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+#file-widget{
+  display: block;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  justify-content: center;
 }

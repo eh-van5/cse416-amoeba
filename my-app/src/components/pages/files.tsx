@@ -1,10 +1,10 @@
-import FileUploadWidget from "../general/dragndrop";
+import UploadFileWidget from "../general/uploadFileWidget";
 import FileTable from "../tables/filesTable";
 
 export default function FilesPage(){
     return(
         <div className="page-content">
-            <FileUploadWidget />
+            <UploadFileWidget />
             <FileTable />
         </div>
     )
