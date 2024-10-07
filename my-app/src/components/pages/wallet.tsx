@@ -6,6 +6,9 @@ export default function WalletPage(){
     //Determines the coin amount
     const coinAmount = 0.367
     const currencyAmount = 6.90
+
+    const send = () => {}
+
     const generateRandomLossGainData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {
@@ -42,27 +45,19 @@ export default function WalletPage(){
         </div>
         <div className="graph-row">
             <SimpleBox title='Send'>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
-                    <input type="text" style={{ flex: '1', minWidth: 0, marginRight: '10px', outline: 'None', border: 'None', boxShadow: '-0.75px 0.75px 1px 1px #29BE5D', borderRadius: '6px'}} />
+                    <input type="text" className = "login-input" />
                 </div>  
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ marginLeft: '10px', marginRight: '10px' }}>Amount</label>
-                    <input type="text" style={{ flex: '1', minWidth: 0, marginRight: '10px', outline: 'None', border: 'None', boxShadow: '-0.75px 0.75px 1px 1px #29BE5D', borderRadius: '6px'}}/>
+                    <input type="text" className = "login-input"/>
                     <label style={{ marginLeft: '10px', marginRight: '10px' }}>AMB</label>
                 </div> 
-            <button style={{ 
-                margin: '0 auto', 
-                width: '200px', 
-                display: 'block',
-                backgroundColor: '#29BE5D', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '6px',
-                padding: '10px', 
-                marginBottom: '10px' 
-            }}  > Send </button>
-
+    
+                <div style={{ display: 'flex', justifyContent: 'center'}}>
+                    <button className="login-button" type="button" onClick={send}>Send</button>
+                </div>
             </SimpleBox>
         </div>
     </div>
