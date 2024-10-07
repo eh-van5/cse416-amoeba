@@ -32,9 +32,10 @@ const LineGraph: React.FC<lineGraphProps> = ({
     const [graphData, setGraphData] = useState(data);
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<HTMLDivElement>(null);
 
     // Use hook to get menu items
-    const menuItems = useChartMenu();
+    const menuItems = useChartMenu(chartRef, graphData);
 
     // Use useEffect to listen if data is changed in props
     useEffect(() => {
@@ -68,28 +69,30 @@ const LineGraph: React.FC<lineGraphProps> = ({
                 {/* Import DropdownMenu and pass menuItems and isVisible state */}
                 <DropdownMenu isVisible={isMenuVisible} menuItems={menuItems} buttonRef={buttonRef} onClose={closeMenu} />
             </div>
-            <ResponsiveContainer className="line-graph" width="100%" height={height}>
-                <LineChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="line-graph-grid" />
-                    <XAxis dataKey="name" tick={false} axisLine={true} />
-                    <YAxis width={20} tick={false} axisLine={true}/>
-                    <Tooltip content={renderTooltip} />
-                    <defs>
-                        {/* Shadow */}
-                        <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line1Color} />
-                        </filter>
-                        <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
-                            <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line2Color} />
-                        </filter>
-                    </defs>
-                    <Line type="monotone" dataKey="value1" stroke={line1Color} strokeWidth={2} dot={false} name={line1Name} style={{ filter: 'url(#shadow1)' }} />
-                    {graphData[0].value2 !== undefined && (
-                            <Line type="monotone" dataKey="value2" stroke={line2Color} strokeWidth={2} dot={false} name={line2Name} style={{ filter: 'url(#shadow2)' }} />
-                    )}
-                    <Legend verticalAlign="bottom" layout="horizontal" align="center" />
-                </LineChart>
-            </ResponsiveContainer>
+            <div ref={chartRef} style={{ position: 'relative' }}>
+                <ResponsiveContainer className="line-graph" width="100%" height={height}>
+                    <LineChart data={graphData} margin={{top: 10, right: 20, left: 0, bottom: 10}}>
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" className="line-graph-grid" />
+                        <XAxis dataKey="name" tick={false} axisLine={true} />
+                        <YAxis width={20} tick={false} axisLine={true}/>
+                        <Tooltip content={renderTooltip} />
+                        <defs>
+                            {/* Shadow */}
+                            <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
+                                <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line1Color} />
+                            </filter>
+                            <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
+                                <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor={line2Color} />
+                            </filter>
+                        </defs>
+                        <Line type="monotone" dataKey="value1" stroke={line1Color} strokeWidth={2} dot={false} name={line1Name} style={{ filter: 'url(#shadow1)' }} />
+                        {graphData[0].value2 !== undefined && (
+                                <Line type="monotone" dataKey="value2" stroke={line2Color} strokeWidth={2} dot={false} name={line2Name} style={{ filter: 'url(#shadow2)' }} />
+                        )}
+                        <Legend verticalAlign="bottom" layout="horizontal" align="center" />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };

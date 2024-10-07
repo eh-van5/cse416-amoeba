@@ -18,8 +18,9 @@ const PieGraph: React.FC<pieGraphProps> = ({
     const [graphData, setGraphData] = useState(data);
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<HTMLDivElement>(null);
 
-    const menuItems = useChartMenu();
+    const menuItems = useChartMenu(chartRef, graphData);
 
     useEffect(() => {
         setGraphData(data);
@@ -51,15 +52,17 @@ const PieGraph: React.FC<pieGraphProps> = ({
                 </div>
                 <DropdownMenu isVisible={isMenuVisible} menuItems={menuItems} buttonRef={buttonRef} onClose={closeMenu} />
             </div>
-            <PieChart width={300} height={200}>
-                <Legend layout="vertical" align="left" verticalAlign="middle" wrapperStyle={{ paddingLeft: '20px' }} />
-                <Pie data={graphData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={80} >
-                    {graphData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="0" style={{filter: `drop-shadow(0px 0px 2px ${colors[index % colors.length]}`}} />
-                    ))}
-                </Pie>
-                <Tooltip content={renderTooltip} />
-            </PieChart>
+            <div ref={chartRef} style={{ position: 'relative' }}>
+                <PieChart width={300} height={200}>
+                    <Legend layout="vertical" align="left" verticalAlign="middle" wrapperStyle={{ paddingLeft: '20px' }} />
+                    <Pie data={graphData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={80} >
+                        {graphData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="0" style={{filter: `drop-shadow(0px 0px 2px ${colors[index % colors.length]}`}} />
+                        ))}
+                    </Pie>
+                    <Tooltip content={renderTooltip} />
+                </PieChart>
+            </div>
         </div>
     );
 };
