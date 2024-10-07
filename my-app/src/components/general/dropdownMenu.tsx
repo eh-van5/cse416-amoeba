@@ -1,0 +1,56 @@
+import React, { useEffect, useState, useRef } from 'react';
+
+interface dropdownMenuProps {
+    isVisible: boolean;
+    menuItems: {label: string; onClick: () => void}[];
+    buttonRef?: React.RefObject<HTMLDivElement>;
+    onClose: () => void;
+}
+
+const DropdownMenu: React.FC<dropdownMenuProps> = ({
+    isVisible,
+    menuItems,
+    buttonRef,
+    onClose
+}) => {
+    const [position, setPosition] = useState<{top?: string; left?: string}>({});
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (buttonRef && buttonRef.current && isVisible) {
+            const buttonRect = buttonRef.current.getBoundingClientRect();
+            setPosition({
+                top: `${buttonRect.bottom + window.scrollY}px`,
+                left: `${buttonRect.left + window.scrollX - 80}px`, // Let menu is located just to the left of the button
+            });
+        }
+    }, [buttonRef, isVisible]);
+
+    // Listen to mouse event to determine whether clicked and close the menu
+    useEffect(() => {
+        const handleClick = (event: MouseEvent) => {
+            if(menuRef.current && !menuRef.current.contains(event.target as Node) && buttonRef?.current 
+                && !buttonRef.current.contains(event.target as Node)) {
+                    onClose();
+                }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => {
+            document.removeEventListener('mousedown', handleClick);
+        };
+    }, [onClose, buttonRef]);
+
+    return (
+        <div ref={menuRef} className={`dropdown-menu ${isVisible ? 'show' : ''}`}  style={{...position, position: 'absolute'}}>
+            <ul>
+                {menuItems.map((item, index) => (
+                    <li key={index} onClick={() => {item.onClick(); onClose()}}>
+                        {item.label}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+export default DropdownMenu;

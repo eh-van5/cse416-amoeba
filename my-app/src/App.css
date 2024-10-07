@@ -350,6 +350,42 @@ body{
   font-size: small;
 }
 
+/* Dropdown Menu */
+.dropdown-menu {
+  font-size: small;
+  display: none;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-menu ul {
+  list-style: none;
+  margin: 2px;
+  padding: 0;
+}
+
+.dropdown-menu ul li {
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-menu ul li:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-menu ul li,
+.box-header-button {
+  user-select: none;
+}
+
 /* Settings */
 .settings-header{
   display: flex;
