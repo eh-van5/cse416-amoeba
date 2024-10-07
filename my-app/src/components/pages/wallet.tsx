@@ -25,10 +25,10 @@ export default function WalletPage(){
         <h1>Wallet</h1>
         <div className="graph-row">
             <SimpleBox title='Wallet'>
-                <h2 style={{margin:'20px'}}>{coinAmount} AMB</h2>
+                <h2 style={{margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
             </SimpleBox>
             <SimpleBox title='USD Amount'>
-                <h2 style={{margin:'20px'}}> $ {currencyAmount} USD</h2>
+                <h2 style={{margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
             </SimpleBox>
         </div>
         <div className="graph-row">
