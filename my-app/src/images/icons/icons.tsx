@@ -94,3 +94,11 @@ export function UploadFileIcon(){
         </svg>
     )
 }
+
+export function UserIcon(){
+    return(
+        <svg width="29" height="24" viewBox="0 0 29 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24.2436 21V19C24.2436 17.9391 23.7534 16.9217 22.8808 16.1716C22.0082 15.4214 20.8247 15 19.5907 15H10.285C9.05093 15 7.86746 15.4214 6.99487 16.1716C6.12229 16.9217 5.63208 17.9391 5.63208 19V21M19.5907 7C19.5907 9.20914 17.5075 11 14.9378 11C12.3681 11 10.285 9.20914 10.285 7C10.285 4.79086 12.3681 3 14.9378 3C17.5075 3 19.5907 4.79086 19.5907 7Z" stroke="#1E1E1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    )
+}

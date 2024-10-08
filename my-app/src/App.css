@@ -616,7 +616,7 @@ body{
 
 #file-drop-zone{
   background-color: white;
-  width: 25%;
+  width: 100%;
   min-width: 250px;
   aspect-ratio: 4 / 3.5;
   border: solid;
@@ -637,6 +637,7 @@ body{
 }
 
 #file-upload-widget {
+  display: inline-block;
   width: 25%;
   min-width: 250px;
   aspect-ratio: 4 / 3.5;
@@ -667,4 +668,9 @@ body{
   height: 100%;
   background-color: #61dafb;
   border-radius: 20px;
+}
+
+#network-widget{
+  display: inline-block;
+  width: 50%;
 }
