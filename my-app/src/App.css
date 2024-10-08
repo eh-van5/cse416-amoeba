@@ -636,6 +636,16 @@ body{
   transition: box-shadow 0.3s ease;
 }
 
+#file-upload-widget {
+  width: 25%;
+  min-width: 250px;
+  aspect-ratio: 4 / 3.5;
+  padding: 5px 0px;
+  text-align: center;
+  align-content: center;
+  justify-content: center;
+}
+
 #file-widget{
   display: block;
   background-color: transparent;
@@ -643,4 +653,18 @@ body{
   height: 100%;
   align-content: center;
   justify-content: center;
+}
+
+#file-progress{
+  width: 100%;
+  background-color: grey;
+  height: 5%;
+  border-radius: 20px;
+}
+
+#file-progress-bar{
+  width: 0%;
+  height: 100%;
+  background-color: #61dafb;
+  border-radius: 20px;
 }
