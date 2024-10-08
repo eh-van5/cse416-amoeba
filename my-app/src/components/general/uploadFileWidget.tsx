@@ -7,6 +7,7 @@ export default function UploadFileWidget(){
             return (event) =>{
                 const loadingBar = document.getElementById("file-progress-bar");
                 if (loadingBar){
+                    console.log(loadingBar);
                     // loadingBar.innerHTML = "Loading " + file.name;
                     loadingBar.style.width = "0%";
                 } 
@@ -17,7 +18,7 @@ export default function UploadFileWidget(){
                 if (event.loaded && event.total) {
                     const percent = (event.loaded / event.total) * 100;
                     const loadingBar = document.getElementById("file-progress-bar");
-                    const files = document.getElementById("files");
+                    const files = document.getElementById("files-uploaded");
                     if (loadingBar && files){
                         console.log(f.name);
                         if (percent >= 100){
@@ -63,16 +64,16 @@ export default function UploadFileWidget(){
         })
     }
     return (
-        <div id = "file-upload-widget">
+        <div id = "file-widget">
             <div             
             onDrop={dropHandler} 
             onDragOver={dragOverHandler}
-            id = "file-drop-zone" > 
-                <label id = "file-widget" htmlFor="file-upload">
+            id = "drop-zone" > 
+                <label id = "upload-methods" htmlFor="file-upload">
                     <br /> {UploadFileIcon()}
                     <p>Drag and Drop</p>
                     <p>or</p>
-                    <label htmlFor="file-upload" id="file-upload-label"><u>Browse</u></label>
+                    <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
                     <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
                 </label>
             </div>
@@ -80,7 +81,7 @@ export default function UploadFileWidget(){
                 <div id = "file-progress-bar">
                 </div>
             </div>
-            <div id = "files">
+            <div id = "files-uploaded">
             </div>
         </div>
     )
