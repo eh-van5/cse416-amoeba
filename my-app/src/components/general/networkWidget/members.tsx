@@ -17,7 +17,7 @@ export default function Members() {
     const ms = ["test", "test", "test", "test", "test", "test", "test"]
     const members = ms.map(name => { return Member({name})});
     return (
-        <div>
+        <div id="members-container">
             {members}
         </div>
     );
