@@ -47,7 +47,7 @@ export default function TransactionsPage(){
     return (
         <div className="page-content" style={{padding: '20px'}}>
             <h1>Transactions</h1>
-            <div className="graph-row">
+            <div className="page-row">
                 <LineGraph
                     data={banwidthData}
                     line1Color="#17BD28"     // Default is #1C9D49
@@ -71,7 +71,7 @@ export default function TransactionsPage(){
                     bar2Name="Uploads"
                 />
             </div>
-            <div className="graph-row">
+            <div className="page-row">
                 <PieGraph
                     data={fileTypeData}
                     title="File Type"

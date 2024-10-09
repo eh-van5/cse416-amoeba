@@ -231,8 +231,7 @@ body{
   padding: 20px;
 }
 
-/* Line Graph */
-.graph-row {
+.page-row {
   display: flex;
   width: 100%;
   /* max-width: 1220px; */
