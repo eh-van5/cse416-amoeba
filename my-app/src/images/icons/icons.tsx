@@ -57,19 +57,64 @@ export function ExitIcon(){
 
 export function ThreeDotIcon() {
     return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        className="three-dot-icon"
-        style={{ width: '24px', height: '24px', fill: '#747474be' }}
-      >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="three-dot-icon" style={{ width: '24px', height: '24px', fill: '#747474be' }}>
         <circle cx="12" cy="6" r="1.5" />
         <circle cx="12" cy="12" r="1.5" />
         <circle cx="12" cy="18" r="1.5" />
       </svg>
     );
 }
-  
+
+export function UploadIcon() {
+    return (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 14.5V1M10 1L15 5.70123M10 1L5 5.70123" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M1 12V15C1 16.8856 1 17.8284 1.58579 18.4142C2.17157 19 3.11438 19 5 19H15C16.8856 19 17.8284 19 18.4142 18.4142C19 17.8284 19 16.8856 19 15V12" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+
+    );
+}
+
+export function DownloadIcon() {
+    return (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 1V13.5M10 13.5L5 8.79877M10 13.5L15 8.79877" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M1 12V15C1 16.8856 1 17.8284 1.58579 18.4142C2.17157 19 3.11438 19 5 19H15C16.8856 19 17.8284 19 18.4142 18.4142C19 17.8284 19 16.8856 19 15V12" stroke="#17BD28" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+    );
+}
+
+export function OutgoingIcon() {
+    return (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clipPath="url(#clip0_35_456)">
+            <path d="M20 12L14.8284 6.82842C13.4951 5.49509 12.8284 4.82843 12 4.82843C11.1716 4.82843 10.5049 5.49509 9.17158 6.82842L4 12" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 20L14.8284 14.8284C13.4951 13.4951 12.8284 12.8284 12 12.8284C11.1716 12.8284 10.5049 13.4951 9.17158 14.8284L4 20" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </g>
+        <defs>
+            <clipPath id="clip0_35_456">
+                <rect width="24" height="24" fill="white"/>
+            </clipPath>
+        </defs>
+        </svg>
+    );
+}
+
+export function IncomingIcon() {
+    return (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clipPath="url(#clip0_35_457)">
+            <path d="M4 12L9.17158 17.1716C10.5049 18.5049 11.1716 19.1716 12 19.1716C12.8284 19.1716 13.4951 18.5049 14.8284 17.1716L20 12" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 4L9.17158 9.17158C10.5049 10.5049 11.1716 11.1716 12 11.1716C12.8284 11.1716 13.4951 10.5049 14.8284 9.17158L20 4" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </g>
+        <defs>
+            <clipPath id="clip0_35_457">
+        <rect width="24" height="24" fill="white"/>
+        </clipPath>
+        </defs>
+        </svg>
+    );
+}
 
 export function SunIcon(){
 return (
