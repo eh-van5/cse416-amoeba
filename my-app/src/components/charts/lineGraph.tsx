@@ -17,6 +17,19 @@ interface lineGraphProps {
     height?: number;
 }
 
+const generateRandomData = (oneLine:boolean = false) => {
+    const data = [];
+    for(let i = 0; i < 12; i++) {
+        let t = `09:${i+10}`;
+        let value1 = Math.floor(Math.random() * 30) + 20;
+        var value2 = undefined
+        if (!oneLine)
+            value2 = Math.floor(Math.random() * 30) + 15;
+        data.push({name: t, value1, value2});
+    }
+    return data;
+}
+
 const LineGraph: React.FC<lineGraphProps> = ({
     data,
     line1Color = '#1C9D49',
@@ -96,5 +109,5 @@ const LineGraph: React.FC<lineGraphProps> = ({
         </div>
     );
 };
-
+export {generateRandomData};
 export default LineGraph;

@@ -1,5 +1,6 @@
 import SimpleBox from "../general/simpleBox"
 import LineGraph from "../charts/lineGraph"
+import { generateRandomData } from "../charts/lineGraph"
 
 export default function MiningPage(){
     return(
@@ -16,8 +17,16 @@ export default function MiningPage(){
                 <SimpleBox title="Mining Network" style={{display:'block'}}>
                     <h2 style={{margin:'20px', display:"inline-block"}}>(Insert Number) Active Colonists</h2>
                     <h2 style={{margin:'20px', display:"inline-block", left:'20%', position:'relative'}}>(Insert Number) Peak Colonists</h2>
+                    <LineGraph
+                        data={generateRandomData(true)}
+                            xAxisLabel="Time"
+                            yAxisLabel="Users"
+                            title="Mining Activity"
+                            line1Name="Activity"
+                    />
                 </SimpleBox>
-                {/* Still needs graph, drop-down box, slider, and button*/}
+                
+                {/* Still needs drop-down box, slider, and button*/}
         </div>
         
         
