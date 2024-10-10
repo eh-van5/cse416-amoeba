@@ -12,7 +12,7 @@ export default function WalletPage(){
     const generateRandomLossGainData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {
-            let t = `09/${i+10}/2024`;
+            let t = `09:${i+10}`;
             let value1 = Math.floor(Math.random() * 30) + 20;
             let value2 = Math.floor(Math.random() * 30) + 15;
             data.push({name: t, value1, value2});
@@ -23,7 +23,7 @@ export default function WalletPage(){
     return(
     <div className="page-content" style={{padding: '20px'}}>
         <h1>Wallet</h1>
-        <div className="page-row">
+        <div className="graph-row">
             <SimpleBox title='Wallet'>
                 <h2 style={{margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
             </SimpleBox>
@@ -31,19 +31,19 @@ export default function WalletPage(){
                 <h2 style={{margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
             </SimpleBox>
         </div>
-        <div className="page-row">
+        <div className="graph-row">
             <LineGraph
                 data = {lossGainData}
                 line1Color="#17BD28"     // Default is #1C9D49
                 line2Color="#FF6D6D"     // Default is #9D1C1C
-                xAxisLabel="Date"
-                yAxisLabel="USD"
+                xAxisLabel="Time"
+                yAxisLabel="Amount"
                 line1Name = "Gain"
                 line2Name = "Loss"
                 title="Gain/Loss over Time"
             />
         </div>
-        <div className="page-row">
+        <div className="graph-row">
             <SimpleBox title='Send'>
                 <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
@@ -56,7 +56,7 @@ export default function WalletPage(){
                 </div> 
     
                 <div style={{ display: 'flex', justifyContent: 'center'}}>
-                    <button className="login-button" type="button" onClick={send}>Send</button>
+                    <button id='login-button' className="button" type="button" onClick={send}>Send</button>
                 </div>
             </SimpleBox>
         </div>

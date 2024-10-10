@@ -66,13 +66,14 @@ body{
   font-size: 15px;
 }
 
+#login-button{
+  margin: 0 0 50px 0;
+}
 
-.login-button{
+.button{
   background: #29BE5D;
   border-radius: 3px;
   border-style: none;
-  
-  margin: 0 0 50px 0;
 
   font-size: medium;
 

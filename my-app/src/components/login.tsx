@@ -19,7 +19,7 @@ export default function Login(props: Props){
             <div className="login-box">
                 <h1 className="login-text">Login</h1>
                 <input className="login-input" type="text" placeholder={"Private Key..."}/>
-                <button className="login-button" type="button" onClick={login}>Continue</button>
+                <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
 
                 <p className="login"><i>Don't have an account?</i></p>
                 <p className="login login-link"><i><u>Register</u></i></p>
