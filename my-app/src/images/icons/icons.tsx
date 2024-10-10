@@ -67,7 +67,7 @@ export function ThreeDotIcon() {
 
 export function UploadIcon() {
     return (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 14.5V1M10 1L15 5.70123M10 1L5 5.70123" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M1 12V15C1 16.8856 1 17.8284 1.58579 18.4142C2.17157 19 3.11438 19 5 19H15C16.8856 19 17.8284 19 18.4142 18.4142C19 17.8284 19 16.8856 19 15V12" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round"/>
         </svg>
@@ -87,32 +87,58 @@ export function DownloadIcon() {
 export function OutgoingIcon() {
     return (
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clipPath="url(#clip0_35_456)">
-            <path d="M20 12L14.8284 6.82842C13.4951 5.49509 12.8284 4.82843 12 4.82843C11.1716 4.82843 10.5049 5.49509 9.17158 6.82842L4 12" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M20 20L14.8284 14.8284C13.4951 13.4951 12.8284 12.8284 12 12.8284C11.1716 12.8284 10.5049 13.4951 9.17158 14.8284L4 20" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </g>
-        <defs>
-            <clipPath id="clip0_35_456">
-                <rect width="24" height="24" fill="white"/>
-            </clipPath>
-        </defs>
+            <g clipPath="url(#clip0_35_456)">
+                <path d="M20 12L14.8284 6.82842C13.4951 5.49509 12.8284 4.82843 12 4.82843C11.1716 4.82843 10.5049 5.49509 9.17158 6.82842L4 12" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M20 20L14.8284 14.8284C13.4951 13.4951 12.8284 12.8284 12 12.8284C11.1716 12.8284 10.5049 13.4951 9.17158 14.8284L4 20" stroke="#FF6D6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </g>
+            <defs>
+                <clipPath id="clip0_35_456">
+                    <rect width="24" height="24" fill="white"/>
+                </clipPath>
+            </defs>
         </svg>
     );
 }
 
 export function IncomingIcon() {
     return (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clipPath="url(#clip0_35_457)">
-            <path d="M4 12L9.17158 17.1716C10.5049 18.5049 11.1716 19.1716 12 19.1716C12.8284 19.1716 13.4951 18.5049 14.8284 17.1716L20 12" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 4L9.17158 9.17158C10.5049 10.5049 11.1716 11.1716 12 11.1716C12.8284 11.1716 13.4951 10.5049 14.8284 9.17158L20 4" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </g>
-        <defs>
-            <clipPath id="clip0_35_457">
-        <rect width="24" height="24" fill="white"/>
-        </clipPath>
-        </defs>
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clipPath="url(#clip0_35_457)">
+                <path d="M4 12L9.17158 17.1716C10.5049 18.5049 11.1716 19.1716 12 19.1716C12.8284 19.1716 13.4951 18.5049 14.8284 17.1716L20 12" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 4L9.17158 9.17158C10.5049 10.5049 11.1716 11.1716 12 11.1716C12.8284 11.1716 13.4951 10.5049 14.8284 9.17158L20 4" stroke="#17BD28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </g>
+            <defs>
+                <clipPath id="clip0_35_457">
+                    <rect width="24" height="24" fill="white"/>
+                </clipPath>
+            </defs>
         </svg>
+    );
+}
+
+export function ViewAllIcon() {
+    return (
+        <svg width="24" height="24" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clipPath="url(#clip0_39_608)">
+                <path d="M9 14L12.5858 10.4142C13.2525 9.74755 13.5858 9.41421 13.5858 9C13.5858 8.58579 13.2525 8.25245 12.5858 7.58579L9 4" stroke="#747474be" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 14L7.58579 10.4142C8.25245 9.74755 8.58579 9.41421 8.58579 9C8.58579 8.58579 8.25245 8.25245 7.58579 7.58579L4 4" stroke="#747474be" strokeLinecap="round" strokeLinejoin="round"/>
+            </g>
+            <defs>
+                <clipPath id="clip0_39_608">
+                    <rect width="18" height="18" fill="white"/>
+                </clipPath>
+            </defs>
+        </svg>
+    );
+}
+
+export function BackIcon() {
+    return (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 7L8.41421 10.5858C7.74755 11.2525 7.41421 11.5858 7.41421 12C7.41421 12.4142 7.74755 12.7475 8.41421 13.4142L12 17" stroke="#747474be" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M17 7L13.4142 10.5858C12.7475 11.2525 12.4142 11.5858 12.4142 12C12.4142 12.4142 12.7475 12.7475 13.4142 13.4142L17 17" stroke="#747474be" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+
     );
 }
 
