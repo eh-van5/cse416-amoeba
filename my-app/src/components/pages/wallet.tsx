@@ -23,7 +23,7 @@ export default function WalletPage(){
     return(
     <div className="page-content" style={{padding: '20px'}}>
         <h1>Wallet</h1>
-        <div className="graph-row">
+        <div className="page-row">
             <SimpleBox title='Wallet'>
                 <h2 style={{margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
             </SimpleBox>
@@ -31,7 +31,7 @@ export default function WalletPage(){
                 <h2 style={{margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
             </SimpleBox>
         </div>
-        <div className="graph-row">
+        <div className="page-row">
             <LineGraph
                 data = {lossGainData}
                 line1Color="#17BD28"     // Default is #1C9D49
@@ -43,7 +43,7 @@ export default function WalletPage(){
                 title="Gain/Loss over Time"
             />
         </div>
-        <div className="graph-row">
+        <div className="page-row">
             <SimpleBox title='Send'>
                 <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
