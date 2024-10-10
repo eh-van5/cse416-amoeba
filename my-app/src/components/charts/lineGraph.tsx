@@ -39,7 +39,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
     line1Name = 'Line 1',
     line2Name = 'Line 2',
     title = 'Line Graph',
-    maxWidth = Infinity,
+    maxWidth = 100,
     height = 200
 }) => {
     const [graphData, setGraphData] = useState(data);
@@ -73,7 +73,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
     };
 
     return (
-        <div className="box-container" style={{maxWidth: `${maxWidth}px`}}>
+        <div className="box-container" style={{maxWidth: `${maxWidth}%`}}>
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
                 <div className="box-header-button" onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>

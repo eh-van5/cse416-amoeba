@@ -21,8 +21,9 @@ export default function MiningPage(){
                         data={generateRandomData(true)}
                             xAxisLabel="Time"
                             yAxisLabel="Users"
-                            title="Mining Activity"
+                            title="Mining Activity (Past 24 Hours)"
                             line1Name="Activity"
+                            maxWidth={70}
                     />
                 </SimpleBox>
                 
