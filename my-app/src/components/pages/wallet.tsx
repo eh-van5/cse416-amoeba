@@ -12,7 +12,7 @@ export default function WalletPage(){
     const generateRandomLossGainData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {
-            let t = `09:${i+10}`;
+            let t = `09/${i+10}/2024`;
             let value1 = Math.floor(Math.random() * 30) + 20;
             let value2 = Math.floor(Math.random() * 30) + 15;
             data.push({name: t, value1, value2});
@@ -36,8 +36,8 @@ export default function WalletPage(){
                 data = {lossGainData}
                 line1Color="#17BD28"     // Default is #1C9D49
                 line2Color="#FF6D6D"     // Default is #9D1C1C
-                xAxisLabel="Time"
-                yAxisLabel="Amount"
+                xAxisLabel="Date"
+                yAxisLabel="USD"
                 line1Name = "Gain"
                 line2Name = "Loss"
                 title="Gain/Loss over Time"
