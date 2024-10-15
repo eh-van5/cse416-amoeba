@@ -111,13 +111,17 @@ body{
   height: 100vh;
 }
 
+.navbar-box.minimized{
+  max-width: 115px;
+}
+
 .navbar-banner{
   display: flex;
   align-items: center;
 }
 
 #navbar-banner-logo{
-  width: 40%;
+  width: 104px;
 
   transition: all 0.5s ease;
 }
@@ -130,13 +134,17 @@ body{
   font-size: 150%;
 }
 
+#navbar-banner-text.minimized{
+  display: hidden;
+}
+
 .navbar-burger{
   position: absolute;
 
   
   top: 2%;
   right: 3%;
-  width: 12%;
+  width: 31px;
 
   transition: all 0.5s ease;
 }
@@ -178,7 +186,7 @@ body{
 }
 
 .navbar-item-logo{
-  width: 12%;
+  width: 27px;
 }
 
 .navbar-item-text{

@@ -22,8 +22,7 @@ export default function Login(props: Props){
                 <button className="login-button" type="button" onClick={login}>Continue</button>
 
                 <p className="login"><i>Don't have an account?</i></p>
-                <p className="login login-link"><i><u>Register</u></i></p>
-                <p className="login login-link"><i><u>Forgot password?</u></i></p>
+                <p className="login login-link"><i><u>Create a Wallet</u></i></p>
             </div>
         </div>
     )
