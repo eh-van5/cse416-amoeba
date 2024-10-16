@@ -1,9 +1,19 @@
 import SimpleBox from "../general/simpleBox"
 import LineGraph from "../charts/lineGraph"
 import { generateRandomData } from "../charts/lineGraph"
+import { useState } from "react"
 
 export default function MiningPage(){
-    const beginMining = () => {}
+    const [buttonState, setButtonState] = useState<boolean>(false);
+    const [sliderValue, setSliderValue] = useState<number>(50); // Initialize the slider value
+
+    const handleSlider = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSliderValue(Number(event.target.value)); // Update state with the slider value
+    }
+    const beginMining = () => {
+        setButtonState((buttonState) => !buttonState)
+    }
+    
     return(
         <div className="page-content">
             <h1>Mining</h1>
@@ -26,7 +36,17 @@ export default function MiningPage(){
                             line1Name="Activity"
                             maxWidth={70}
                     />
-                    <button className="button" onClick={beginMining} style={{position:'absolute', bottom:'10px', right:'10px'}}>Send</button>
+                    <div style={{ position:'absolute', bottom:'20%', right:'5%', width:'20%'}}>
+                        <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={sliderValue}
+                            onChange={handleSlider}
+                            style={{ width: '100%' }}
+                        />
+                    </div>
+                    <button className="button" type='button' onClick={beginMining} style={{position:'absolute', bottom:'20px', right:'20px'}}>{(buttonState ? 'Mining...' : 'Begin')}</button>
                 </SimpleBox>
                 
                 {/* Still needs drop-down box, slider, and button*/}
