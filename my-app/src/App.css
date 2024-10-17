@@ -30,8 +30,7 @@ body{
   border: 1px solid #abadad;
 
   margin: auto;
-  max-width: 400px;
-  width: 50%;
+  width: 400px;
 
   padding: 0 0 2% 0;
 
@@ -67,6 +66,7 @@ body{
 }
 
 #login-button{
+  cursor: pointer;
   margin: 0 0 50px 0;
 }
 
@@ -82,7 +82,7 @@ body{
   padding: 10px 10px;
 }
 
-.login-button:hover{
+#login-button:hover{
   background: #1c9d49;
   cursor: pointer;
 }
@@ -99,6 +99,44 @@ body{
 .login-link:hover{
   color: #1c9d49;
   cursor: pointer;
+}
+
+.login-link-red{
+  color: #8c1818;
+  margin: 0 0 20px 0;
+}
+
+
+.login-link-red:hover{
+  color: #6c1515;
+  cursor: pointer;
+}
+
+.create-wallet-key-box{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border: 0.5px solid #abadad;
+  border-radius: 50px;
+
+  min-width: 450px;
+  height: 55px;
+
+  padding: 0px 20px;
+}
+
+.copy-clipboard{
+  width: 25px;
+}
+
+.copy-clipboard:hover{
+  cursor: pointer;
+  color: #abadad;
+}
+
+.copy-clipboard-status{
+  color: #3ac76b;
 }
 
 /* Navbar */
