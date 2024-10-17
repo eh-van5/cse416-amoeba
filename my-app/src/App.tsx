@@ -34,7 +34,7 @@ function App() {
   }, [loggedIn]);
 
   return(
-    <div>
+    <>
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
       {loggedIn && 
       <div className="page">
@@ -57,7 +57,7 @@ function App() {
                             />,          })[currentPage]
         }
       </div>}
-    </div>
+    </>
     
   )
 }

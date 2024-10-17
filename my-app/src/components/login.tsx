@@ -11,7 +11,7 @@ export default function Login(props: Props){
     }
 
     return (
-        <div>
+        <>
             <div className="login-banner">
                 <img id="login-banner-logo" src={logo} alt="app logo" />
                 <span id="login-banner-text">Colony</span>
@@ -24,6 +24,6 @@ export default function Login(props: Props){
                 <p className="login"><i>Don't have an account?</i></p>
                 <p className="login login-link"><i><u>Create a Wallet</u></i></p>
             </div>
-        </div>
+        </>
     )
 }
