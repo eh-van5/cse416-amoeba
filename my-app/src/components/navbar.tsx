@@ -24,7 +24,7 @@ export default function Navbar(props: NavbarProps){
             </svg>
             
             <div className="navbar-items">
-                <NavbarItem icon={<DashboardIcon/>} text="Dashboard" minimized={minimized} onClick={() => props.setPage(Page.Dashboard)}/>
+                <NavbarItem icon={<DashboardIcon/>} text="Proxy" minimized={minimized} onClick={() => props.setPage(Page.Proxy)}/>
                 <NavbarItem icon={<FileIcon/>} text="Files" minimized={minimized} onClick={() => props.setPage(Page.Files)}/>
                 <NavbarItem icon={<TransactionIcon/>} text="Transactions" minimized={minimized} onClick={() => props.setPage(Page.Transactions)}/>
                 <NavbarItem icon={<WalletIcon/>} text="Wallet" minimized={minimized} onClick={() => props.setPage(Page.Wallet)}/>
