@@ -11,6 +11,7 @@ export default function UploadFileWidget(){
                     // loadingBar.innerHTML = "Loading " + file.name;
                     loadingBar.style.width = "0%";
                 } 
+                console.log(f);
             }
         })(file))
         reader.addEventListener('progress', (function(f) {
