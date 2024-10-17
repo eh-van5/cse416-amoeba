@@ -1,6 +1,8 @@
 import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 
+// Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
+
 interface Props{
     setLoggedIn: Dispatcher<boolean>;
 }
@@ -11,7 +13,7 @@ export default function Login(props: Props){
     }
 
     return (
-        <div>
+        <>
             <div className="login-banner">
                 <img id="login-banner-logo" src={logo} alt="app logo" />
                 <span id="login-banner-text">Colony</span>
@@ -24,6 +26,6 @@ export default function Login(props: Props){
                 <p className="login"><i>Don't have an account?</i></p>
                 <p className="login login-link"><i><u>Create a Wallet</u></i></p>
             </div>
-        </div>
+        </>
     )
 }

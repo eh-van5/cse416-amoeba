@@ -9,6 +9,7 @@ import TransactionsPage from './components/pages/transactions';
 import WalletPage from './components/pages/wallet';
 import MiningPage from './components/pages/mining';
 import SettingsPage from './components/pages/settings';
+import { useTheme } from './ThemeContext';
 
 export enum Page{
   Proxy,
@@ -26,8 +27,8 @@ export type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Proxy);
+  const { isDarkMode } = useTheme();
 
-  const[isDarkMode, setDarkMode] = useState<boolean>(false);
   const[notifications, setNotifications] = useState<boolean>(true);
   useEffect(() => {
     setCurrentPage(Page.Proxy);
@@ -37,7 +38,7 @@ function App() {
     <div>
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
       {loggedIn && 
-      <div className="page">
+      <div className={`page${isDarkMode ? '-dark' : ''}`}>
         <Navbar
           setPage={setCurrentPage}
           logout={() => setLoggedIn(false)}
@@ -50,8 +51,6 @@ function App() {
             [Page.Wallet]: <WalletPage/>,
             [Page.Mining]: <MiningPage/>,
             [Page.Settings]: <SettingsPage 
-                            isDarkMode={isDarkMode} 
-                            setDarkMode={setDarkMode} 
                             notifications={notifications} 
                             setNotifications={setNotifications}
                             />,          })[currentPage]

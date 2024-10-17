@@ -4,10 +4,12 @@ import PieGraph from '../charts/pieGraph';
 import SimpleBox from '../general/simpleBox';
 import { BackIcon, DownloadIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
+import { useTheme } from '../../ThemeContext';
 
 export default function TransactionsPage(){
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
+    const {isDarkMode} = useTheme();
 
     const generateRandomActivityData = () => {
         const data = [];
@@ -36,7 +38,7 @@ export default function TransactionsPage(){
 
     const items = [];
     for (let i = 0; i < 4*60; i++){
-        items.push(<span className="items-table-item">test</span>);
+        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
     }
 
     // Get some random fake data
@@ -50,13 +52,13 @@ export default function TransactionsPage(){
 
     return (
         <div className="page-content" style={{padding: '20px'}}>
-            <h1>Transactions</h1>
+            <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Transactions</h1>
             {isView === false && ( <div className="page-row">
                 <SimpleBox title="Total Upload">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '60px', marginTop: '20px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalUpload}</span>
-                            <span style={{fontSize: '14px', marginLeft: "5px"}}>Files</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalUpload}</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px', marginLeft: "5px"}}>Files</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-60px', right: '10px'}}>
                             <UploadIcon />
@@ -66,8 +68,8 @@ export default function TransactionsPage(){
                 <SimpleBox title="Total Download">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '60px', marginTop: '20px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalDownload}</span>
-                            <span style={{fontSize: '14px', marginLeft: "5px"}}>Files</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalDownload}</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px', marginLeft: "5px"}}>Files</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-60px', right: '10px'}}>
                             <DownloadIcon />

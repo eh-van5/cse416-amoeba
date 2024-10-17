@@ -1,3 +1,5 @@
+import { useTheme } from "../../ThemeContext";
+
 interface formatItemsProps{
     colNum: number,
     items: JSX.Element[]
@@ -22,12 +24,13 @@ export default function ItemsTable ({
     headings,
     items
 }: itemsTableProps){
+    const {isDarkMode} = useTheme();
     const formattedHeader = headings.map(heading => {
-        return <span className="items-table-header">{heading}</span>
+        return <span className={`items-table-header${isDarkMode? '-dark' : ''}`}>{heading}</span>
     });
     const formattedItems = formatItems({colNum: headings.length, items});
     return (
-        <div className="items-table">
+        <div className={`items-table${isDarkMode? '-dark' : ''}`}>
             {formattedHeader}
             {formattedItems}
         </div>
