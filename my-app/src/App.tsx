@@ -53,7 +53,8 @@ function App() {
             [Page.Settings]: <SettingsPage 
                             notifications={notifications} 
                             setNotifications={setNotifications}
-                            />,          })[currentPage]
+                            />,          
+            })[currentPage]
         }
       </div>}
     </div>
