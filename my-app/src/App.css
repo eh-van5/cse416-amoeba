@@ -598,11 +598,8 @@ body{
 }
 
 #file-widget {
-  display: inline-block;
-  width: 25%;
+  flex: 1;
   min-width: 250px;
-  aspect-ratio: 4 / 3.5;
-  padding: 5px 0px;
   text-align: center;
   align-content: center;
   justify-content: center;
@@ -621,9 +618,8 @@ body{
 
   #drop-zone{
     background-color: white;
-    width: 100%;
+    height: 100%;
     min-width: 250px;
-    aspect-ratio: 4 / 3.5;
     border: solid;
     border-color: #00000080;
     border-width: 1px;
@@ -656,34 +652,57 @@ body{
   display: contents;
 }
 
-#file-progress{
+/* #file-progress{
   width: 100%;
   background-color: grey;
   height: 5%;
   border-radius: 20px;
-}
+} */
 
-#file-progress-bar{
+/* #file-progress-bar{
   width: 0%;
   height: 100%;
   background-color: #61dafb;
   border-radius: 20px;
-}
+} */
 
 #network-widget{
-  display: inline-block;
-  width: 50%;
+  flex: 3;
+  margin-bottom: 0px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
 }
 
-#members-container {
+#connection-container{
   background-color: white;
-  width: 60%;
-  min-width: 250px;
+  border: solid;
+  border-color: #00000080;
+  border-width: 1px;
+  border-radius: 25px 25px 0px 0px;
+  padding: 5px 5px 8px 8px;
+  width: 100%;
+  .input {
+    width: 100%;
+  }
+}
+
+#members {
+  width: 100%;
+  background-color: white;
   border: solid;
   border-color: #00000080;
   border-width: 1px;
   border-radius: 0px 0px 25px 25px;
   padding: 5px 0px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
+}
+
+#members-container {
+  width: 60%;
+  background-color: transparent;
+  min-width: 250px;
+  padding-left: 5px;
+}
+
+#top-file-widgets {
+  display: flex;
 }

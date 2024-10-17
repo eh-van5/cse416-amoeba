@@ -77,12 +77,12 @@ export default function UploadFileWidget(){
                     <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
                 </label>
             </div>
-            <div id = "file-progress">
+            {/* <div id = "file-progress">
                 <div id = "file-progress-bar">
                 </div>
             </div>
             <div id = "files-uploaded">
-            </div>
+            </div> */}
         </div>
     )
 }
