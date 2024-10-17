@@ -394,6 +394,11 @@ body{
   user-select: none;
 }
 
+/* Text */
+.no-wrap {
+  white-space: nowrap;
+}
+
 /* Settings */
 .settings-header{
   display: flex;
