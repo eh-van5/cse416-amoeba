@@ -61,7 +61,7 @@ export default function Login(props: Props){
                 <p style={{visibility: copied ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
                 <p className="login"><i>Already have an account?</i></p>
-                <a className="login login-link-red" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Back</u></i></a>
+                <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
             </div>
         )
     }
