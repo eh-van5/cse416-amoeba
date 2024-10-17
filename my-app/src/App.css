@@ -598,3 +598,19 @@ body{
   height: 50%;
 }
 
+/* CSS for custom green slider */
+.custom-range {
+  cursor: pointer;
+}
+
+.custom-range::-webkit-slider-runnable-track {
+  height: 8px; 
+  background: green;
+  border-radius: 5px;
+}
+
+.custom-range::-moz-range-track {
+  height: 8px;
+  background: green;
+  border-radius: 5px;
+}
