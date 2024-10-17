@@ -25,7 +25,7 @@ export default function SettingsPage(props: SettingsProps){
     console.log("has notifications: ", props.notifications);
 
     return(
-        <div className={`navbar${isDarkMode ? '-dark' : ''}`}>
+        <div className="page-content">
             <h1 style={{ color: isDarkMode ? 'white' : 'black' }}>Settings</h1>
             <div className={`box-container${isDarkMode ? '-dark' : ''}`} style={{height: "82vh", padding: "20px 30px"}}>
                 <div className="settings-header">
