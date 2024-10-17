@@ -1,6 +1,10 @@
+import { ReactElement } from "react";
 import { UploadFileIcon } from "../../images/icons/icons";
 
-export default function UploadFileWidget(){
+interface UploadFileWidgetProps{
+    setItems: React.Dispatch<React.SetStateAction<ReactElement[]>>
+}
+export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
     function readFile(file: File){
         const reader = new FileReader();
         reader.addEventListener('loadstart', (function(f) {
@@ -13,24 +17,17 @@ export default function UploadFileWidget(){
                 } 
             }
         })(file))
-        reader.addEventListener('progress', (function(f) {
+        reader.addEventListener('loadend', (function(f) {
             return (event) => {
-                if (event.loaded && event.total) {
-                    const percent = (event.loaded / event.total) * 100;
-                    const loadingBar = document.getElementById("file-progress-bar");
-                    const files = document.getElementById("files-uploaded");
-                    if (loadingBar && files){
-                        console.log(f.name);
-                        if (percent >= 100){
-                            loadingBar.style.width = "100%";
-                            files.innerHTML = "Loaded " + f.name;
-                        } else {
-                            loadingBar.style.width = percent + "%";
-                        }
-                    }
-
-                    console.log(`Progress: ${Math.round(percent)}`)
-                }
+                const new_item = [
+                    <span className="items-table-item">{f.name}</span>,
+                    <span className="items-table-item">you</span>,
+                    <span className="items-table-item">{f.lastModified}</span>,
+                    <span className="items-table-item">Not Sharing</span>,
+                    <span className="items-table-item">{f.size}</span>
+                ];
+                // console.log([...items, ...new_item])
+                setItems(prevItems => [...prevItems, ...new_item]);
             }
         })(file));
         reader.readAsDataURL(file);

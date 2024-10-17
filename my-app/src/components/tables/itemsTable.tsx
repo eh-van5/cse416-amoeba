@@ -26,6 +26,7 @@ export default function ItemsTable ({
         return <span className="items-table-header">{heading}</span>
     });
     const formattedItems = formatItems({colNum: headings.length, items});
+    console.log(items);
     return (
         <div className="items-table">
             {formattedHeader}
