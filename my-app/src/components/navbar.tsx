@@ -39,7 +39,7 @@ export default function Navbar(props: NavbarProps){
                     <img className="navbar-profile-img" src={user} alt="" />
                     <div style={{display: "flex", flexDirection: "column"}}>
                         <span style={{fontSize: "15px", color: isDarkMode ? 'white' : 'black'}}>Colonist</span>
-                        <span style={{fontSize: "12px", color: isDarkMode ? 'white' : 'black'}}>9ea*************d9e</span>
+                        <span style={{fontSize: "12px", color: isDarkMode ? 'white' : 'black'}}>bcr*************m3z</span>
                     </div>
                     <div className="navbar-profile-exit" onClick={props.logout}>
                         <ExitIcon/>
