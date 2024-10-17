@@ -1,3 +1,6 @@
+/*=================================
+Seems to be a depreciated page
+=================================*/
 import React, {useState} from 'react';
 import LineGraph from "../charts/lineGraph";
 import PieGraph from '../charts/pieGraph';

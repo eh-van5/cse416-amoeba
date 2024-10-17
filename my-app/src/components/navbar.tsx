@@ -21,7 +21,7 @@ export default function Navbar(props: NavbarProps){
                 <img id="navbar-banner-logo" src={logo} alt="app logo" />
                 {!minimized && <span id="navbar-banner-text">Colony</span>}
             </div>
-            <svg onClick={()=>setMinimized(!minimized)} className="navbar-burger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="0.5" stroke="#425E5F">
+            <svg onClick={()=>setMinimized(!minimized)} className="navbar-burger" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="0.5" stroke="#000000">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
             
@@ -35,7 +35,7 @@ export default function Navbar(props: NavbarProps){
             <NavbarItem icon={<SettingsIcon/>} text="Settings" minimized={minimized} id="navbar-settings" onClick={() => props.setPage(Page.Settings)} theme={isDarkMode}/>
             <hr style={{width: "90%"}}/>
             {!minimized && 
-                <div className="navbar-profile">
+                <div className={`navbar-profile${isDarkMode ? '-dark' : ''}`}>
                     <img className="navbar-profile-img" src={user} alt="" />
                     <div style={{display: "flex", flexDirection: "column"}}>
                         <span style={{fontSize: "15px", color: isDarkMode ? 'white' : 'black'}}>Colonist</span>
@@ -68,7 +68,7 @@ interface ItemProp {
 function NavbarItem(props: ItemProp){
     return(
         <div 
-        className="navbar-item" 
+        className={`navbar-item${props.theme ? '-dark' : ''}`} 
         id={props.id ? props.id: ""} 
         onClick={props.onClick}
         tabIndex={0}>

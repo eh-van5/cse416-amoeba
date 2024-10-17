@@ -1,6 +1,9 @@
 import { UploadFileIcon } from "../../images/icons/icons";
+import { useTheme } from "../../ThemeContext";
 
 export default function UploadFileWidget(){
+    const {isDarkMode} = useTheme();
+
     function readFile(file: File){
         const reader = new FileReader();
         reader.addEventListener('loadstart', (function(f) {
@@ -69,11 +72,11 @@ export default function UploadFileWidget(){
             <div             
             onDrop={dropHandler} 
             onDragOver={dragOverHandler}
-            id = "drop-zone" > 
+            id = "drop-zone" style={(isDarkMode ? {backgroundColor: '#215F64'} : {})}> 
                 <label id = "upload-methods" htmlFor="file-upload">
                     <br /> {UploadFileIcon()}
-                    <p>Drag and Drop</p>
-                    <p>or</p>
+                    <p style={(isDarkMode ? {color: 'white'} : {})}>Drag and Drop</p>
+                    <p style={(isDarkMode ? {color: 'white'} : {})}>or</p>
                     <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
                     <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
                 </label>

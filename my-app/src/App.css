@@ -194,6 +194,23 @@ body{
   /* box-shadow: inset -5px 0 0 0px #557677; */
 }
 
+.navbar-item-dark{
+  position: relative;
+  
+  padding: 10px 0 12px 40px;
+  gap: 7%;
+
+  display: flex;
+  align-items: center;
+}
+
+.navbar-item-dark:hover{
+  cursor: pointer;
+  background-color: #4A7D8C;
+
+  /* box-shadow: inset -5px 0 0 0px #557677; */
+}
+
 .navbar-item:active{
   background-color: #D9D9D9;
 
@@ -237,6 +254,22 @@ body{
 .navbar-profile:hover{
   cursor: pointer;
   background-color: #f1f1f1;
+}
+
+.navbar-profile-dark{
+  display: flex;
+  align-items: center;
+  padding: 7px 0 7px 5px;
+
+  margin-left: 18px;
+
+  width: 85%;
+  border-radius: 5px;
+}
+
+.navbar-profile-dark:hover{
+  cursor: pointer;
+  background-color: #4A7D8C;
 }
 
 .navbar-profile-img{
@@ -310,6 +343,10 @@ body{
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+.box-container-dark:hover {
+  box-shadow: 0px 8px 16px #4A7D8C;
+}
+
 .box-header {
   display: flex;
   justify-content: space-between;
@@ -373,6 +410,11 @@ body{
 .square-box-container:hover {
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
+
+.square-box-container-dark:hover {
+  box-shadow: 0px 8px 16px #4A7D8C;
+}
+
 
 /* Tooltip and Legend */
 .custom-tooltip {
