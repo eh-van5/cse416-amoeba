@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
+import { useTheme } from '../../ThemeContext';
 
 interface pieGraphProps {
     data: {name: string, value: number} [];
@@ -19,6 +20,7 @@ const PieGraph: React.FC<pieGraphProps> = ({
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
+    const {isDarkMode} = useTheme();
 
     const menuItems = useChartMenu(chartRef, graphData);
 
@@ -44,7 +46,7 @@ const PieGraph: React.FC<pieGraphProps> = ({
     };
 
     return (
-        <div className="square-box-container">
+        <div className={`square-box-container${isDarkMode ? '-dark' : ''}`}>
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
                 <div className="box-header-button"  onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>

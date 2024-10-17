@@ -1,6 +1,8 @@
 import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 
+// Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
+
 interface Props{
     setLoggedIn: Dispatcher<boolean>;
 }

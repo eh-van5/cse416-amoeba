@@ -5,10 +5,12 @@ import PieGraph from '../charts/pieGraph';
 import SimpleBox from '../general/simpleBox';
 import { BackIcon, DownloadIcon, IncomingIcon, OutgoingIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
+import { useTheme } from '../../ThemeContext';
 
 export default function TransactionsPage(){
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
+    const {isDarkMode} = useTheme();
 
     const generateRandomBanwidthData = () => {
         const data = [];
@@ -47,7 +49,7 @@ export default function TransactionsPage(){
 
     const items = [];
     for (let i = 0; i < 4*60; i++){
-        items.push(<span className="items-table-item">test</span>);
+        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
     }
 
     // Get some random fake data
@@ -59,13 +61,13 @@ export default function TransactionsPage(){
 
     return (
         <div className="page-content" style={{padding: '20px'}}>
-            <h1>Transactions</h1>
+            <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Transactions</h1>
             {isView === false && ( <div className="page-row">
                 <SimpleBox title="Outgoing Traffic">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>15</span>
-                            <span style={{fontSize: '14px'}}>MB/s</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>15</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px'}}>MB/s</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
                             <OutgoingIcon />
@@ -75,8 +77,8 @@ export default function TransactionsPage(){
                 <SimpleBox title="Incoming Traffic">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>22</span>
-                            <span style={{fontSize: '14px'}}>MB/s</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>22</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px'}}>MB/s</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
                             <IncomingIcon />
@@ -86,8 +88,8 @@ export default function TransactionsPage(){
                 <SimpleBox title="Total Upload">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>94</span>
-                            <span style={{fontSize: '14px'}}>Files</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>94</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px'}}>Files</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
                             <UploadIcon />
@@ -97,8 +99,8 @@ export default function TransactionsPage(){
                 <SimpleBox title="Total Download">
                     <div style={{position: 'relative'}}>
                         <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>87</span>
-                            <span style={{fontSize: '14px'}}>Files</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>87</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px'}}>Files</span>
                         </div>
                         <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
                             <DownloadIcon />
