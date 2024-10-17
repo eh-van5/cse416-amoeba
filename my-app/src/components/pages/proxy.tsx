@@ -49,13 +49,13 @@ export default function ProxyPage(){
             <h1>Proxy</h1>
             {isViewHistory === false && isViewAvailable === false && ( <div className="page-row">
                 <SimpleBox title='Enable My IP as a Proxy'>
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "20px" }} className="no-wrap">
-                        <label style={{ marginLeft: '20px', marginRight: '10px', fontSize: '14px' }}>Price per MB: </label>
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
+                        <label style={{ marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
                         <input type="text" disabled={isProxyEnabled} />
                         <label style={{ marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '26px' }}>
-                        <label style={{ marginLeft: '20px', marginRight: '10px', fontSize: '14px' }}>Data Transferred:</label>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <label style={{ marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Transferred:</label>
                         <span>{DataTransferred} MB</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
@@ -64,15 +64,15 @@ export default function ProxyPage(){
                 </SimpleBox>
                 <SimpleBox title='Use Proxy Node'>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }} className="no-wrap">
-                        <label style={{ marginLeft: '20px', marginRight: '10px', fontSize: '14px' }}>Selected Proxy Node:</label>
+                        <label style={{ marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Selected Proxy Node:</label>
                         <span style={{ marginRight: '20px' }}>{selectedIPAddress}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                        <label style={{ marginLeft: '20px', marginRight: '10px', fontSize: '14px' }}>Location:</label>
+                        <label style={{ marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Location:</label>
                         <span>{location}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                        <label style={{ marginLeft: '20px', marginRight: '10px', fontSize: '14px' }}>Data Used:</label>
+                        <label style={{ marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Used:</label>
                         <span>{DataUsed} MB</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
