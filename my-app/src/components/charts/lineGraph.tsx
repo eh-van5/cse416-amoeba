@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
+import { useTheme } from '../../ThemeContext';
 
 interface lineGraphProps {
     data: { name: string, value1: number, value2?: number}[];
@@ -17,6 +18,19 @@ interface lineGraphProps {
     height?: number;
 }
 
+const generateRandomData = (oneLine:boolean = false) => {
+    const data = [];
+    for(let i = 0; i < 12; i++) {
+        let t = `09:${i+10}`;
+        let value1 = Math.floor(Math.random() * 30) + 20;
+        var value2 = undefined
+        if (!oneLine)
+            value2 = Math.floor(Math.random() * 30) + 15;
+        data.push({name: t, value1, value2});
+    }
+    return data;
+}
+
 const LineGraph: React.FC<lineGraphProps> = ({
     data,
     line1Color = '#1C9D49',
@@ -26,13 +40,14 @@ const LineGraph: React.FC<lineGraphProps> = ({
     line1Name = 'Line 1',
     line2Name = 'Line 2',
     title = 'Line Graph',
-    maxWidth = Infinity,
+    maxWidth = 100,
     height = 200
 }) => {
     const [graphData, setGraphData] = useState(data);
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
+    const {isDarkMode} = useTheme();
 
     // Use hook to get menu items
     const menuItems = useChartMenu(chartRef, graphData);
@@ -60,7 +75,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
     };
 
     return (
-        <div className="box-container" style={{maxWidth: `${maxWidth}px`}}>
+        <div className={`box-container${isDarkMode ? '-dark' : ''}`} style={{maxWidth: `${maxWidth}%`}}>
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
                 <div className="box-header-button" onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>
@@ -96,5 +111,5 @@ const LineGraph: React.FC<lineGraphProps> = ({
         </div>
     );
 };
-
+export {generateRandomData};
 export default LineGraph;

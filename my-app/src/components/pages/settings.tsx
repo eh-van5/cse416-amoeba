@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dispatcher } from "../../App";
 import { SunIcon, MoonIcon } from "../../images/icons/icons"
 import ToggleSwitch from "../general/toggle";
+import { useTheme } from "../../ThemeContext";
 
 enum Tab{
     Appearance,
@@ -9,35 +10,34 @@ enum Tab{
 }
 
 interface SettingsProps{
-    isDarkMode: boolean;
-    setDarkMode: Dispatcher<boolean>;
     notifications: boolean;
     setNotifications: Dispatcher<boolean>;
 }
 
 export default function SettingsPage(props: SettingsProps){
     const[currentTab, setCurrentTab] = useState<Tab>(Tab.Appearance);
+    const { isDarkMode, toggleTheme } = useTheme();
 
     // All tabs as an array of strings
     const tabs = Object.keys(Tab).filter((v) => isNaN(Number(v)));
 
-    console.log("is dark mode", props.isDarkMode);
+    console.log("is dark mode", isDarkMode);
     console.log("has notifications: ", props.notifications);
 
     return(
         <div className="page-content">
-            <h1>Settings</h1>
-            <div className="box-container" style={{height: "82vh", padding: "20px 30px"}}>
+            <h1 style={{ color: isDarkMode ? 'white' : 'black' }}>Settings</h1>
+            <div className={`box-container${isDarkMode ? '-dark' : ''}`} style={{height: "82vh", padding: "20px 30px"}}>
                 <div className="settings-header">
                     {
-                        tabs.map((e) => <TabItem text={e} currentTab={currentTab} setCurrentTab={setCurrentTab}/>)
+                        tabs.map((e) => <TabItem text={e} currentTab={currentTab} setCurrentTab={setCurrentTab} theme={isDarkMode}/>)
                     }
                 </div>
                 <div className="settings-content">
                     {
                         ({
-                            [Tab.Appearance]: <AppearanceTab isDarkMode={props.isDarkMode} setDarkMode={props.setDarkMode}/>,
-                            [Tab.Notifications]: <NotificationTab notifications={props.notifications} setNotifications={props.setNotifications}/>,
+                            [Tab.Appearance]: <AppearanceTab isDarkMode={isDarkMode} setDarkMode={toggleTheme}/>,
+                            [Tab.Notifications]: <NotificationTab notifications={props.notifications} setNotifications={props.setNotifications} theme={isDarkMode}/>,
                         })[currentTab]
                     }
                     
@@ -48,6 +48,7 @@ export default function SettingsPage(props: SettingsProps){
 }
 
 interface TabItemProps{
+    theme: boolean;
     text: string;
     currentTab: Tab;
     setCurrentTab: Dispatcher<Tab>;
@@ -59,6 +60,7 @@ interface AppearanceTabProps{
 }
 
 interface NotificationsTabProps{
+    theme: boolean;
     notifications: boolean;
     setNotifications: Dispatcher<boolean>;
 }
@@ -66,10 +68,10 @@ interface NotificationsTabProps{
 function TabItem(props: TabItemProps){
     return (
         <span 
-        className="settings-tab"
+        className={"settings-tab"+(props.theme ? '-black' : '')}
         tabIndex={0}
         onClick={() => props.setCurrentTab(Tab[props.text as keyof typeof Tab])}
-        style={{color: Tab[props.currentTab] === props.text ? "black" : "#bdbdb4"}}>{props.text}
+        style={{color: Tab[props.currentTab] === props.text ? (props.theme ? 'white' : 'black') : "#bdbdb4"}}>{props.text}
         </span>
     )
     
@@ -103,7 +105,7 @@ function NotificationTab(props: NotificationsTabProps){
         return (
         <label style={{display: "flex", alignItems: "center", padding: "5px 30px"}} htmlFor={`notification-${idname}`}>
             <input type="checkbox" className="notification-checkbox" id={`notification-${idname}`}/>
-            <span style={{padding: "0 5px", fontSize: "12px"}}>{name}</span>
+            <span style={{padding: "0 5px", fontSize: "12px", color:(props.theme ? 'white': 'black')}}>{name}</span>
         </label>
         )
     }

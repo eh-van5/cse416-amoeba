@@ -1,9 +1,13 @@
+/*=================================
+Seems to be a depreciated page
+=================================*/
 import React, {useState} from 'react';
 import LineGraph from "../charts/lineGraph";
 import PieGraph from '../charts/pieGraph';
 import SimpleBox from "../general/simpleBox";
 import { BackIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
+import { useTheme } from '../../ThemeContext';
 
 export default function DashboardPage(){
     const coinAmount = 0.367;
@@ -11,10 +15,11 @@ export default function DashboardPage(){
 
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
+    const {isDarkMode} = useTheme();
 
     const items = [];
     for (let i = 0; i < 4*60; i++){
-        items.push(<span className="items-table-item">test</span>);
+        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
     }
 
     const generateRandomLossGainData = () => {
@@ -42,13 +47,13 @@ export default function DashboardPage(){
 
     return(
         <div className="page-content">
-            <h1>Dashboard</h1>
+            <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Dashboard</h1>
             {isView === false && ( <div className="page-row">
                 <SimpleBox title='Wallet'>
-                    <h2 style={{margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
+                    <h2 style={{color:isDarkMode ? 'white' : 'black', margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
                 </SimpleBox>
                 <SimpleBox title='USD Amount'>
-                    <h2 style={{margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
+                    <h2 style={{color:isDarkMode ? 'white' : 'black', margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
                 </SimpleBox>
             </div> )}
             {isView === false && ( <div className="page-row">
