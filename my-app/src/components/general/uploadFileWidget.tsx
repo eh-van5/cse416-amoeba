@@ -1,10 +1,13 @@
 import { ReactElement } from "react";
 import { UploadFileIcon } from "../../images/icons/icons";
+import { useTheme } from "../../ThemeContext";
 
 interface UploadFileWidgetProps{
     setItems: React.Dispatch<React.SetStateAction<ReactElement[]>>
 }
 export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
+    const {isDarkMode} = useTheme();
+
     function readFile(file: File){
         const reader = new FileReader();
         reader.addEventListener('loadstart', (function(f) {
@@ -15,6 +18,7 @@ export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
                     // loadingBar.innerHTML = "Loading " + file.name;
                     loadingBar.style.width = "0%";
                 } 
+                console.log(f);
             }
         })(file))
         reader.addEventListener('loadend', (function(f) {
@@ -65,11 +69,11 @@ export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
             <div             
             onDrop={dropHandler} 
             onDragOver={dragOverHandler}
-            id = "drop-zone" > 
+            id = "drop-zone" style={(isDarkMode ? {backgroundColor: '#215F64'} : {})}> 
                 <label id = "upload-methods" htmlFor="file-upload">
                     <br /> {UploadFileIcon()}
-                    <p>Drag and Drop</p>
-                    <p>or</p>
+                    <p style={(isDarkMode ? {color: 'white'} : {})}>Drag and Drop</p>
+                    <p style={(isDarkMode ? {color: 'white'} : {})}>or</p>
                     <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
                     <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
                 </label>

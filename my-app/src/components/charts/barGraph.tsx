@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
+import { useTheme } from "../../ThemeContext";
 
 interface barGraphProps {
     data: {name: string, value1: number, value2?: number}[];
@@ -29,6 +30,7 @@ const BarGraph: React.FC<barGraphProps> = ({
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
+    const { isDarkMode } = useTheme();
 
     const menuItems = useChartMenu(chartRef, graphData);
 
@@ -53,7 +55,7 @@ const BarGraph: React.FC<barGraphProps> = ({
     };
 
     return (
-        <div className="box-container">
+        <div className={`box-container${isDarkMode ? '-dark' : ''}`}>
             <div className="box-header">
                 <h3 className="box-title">{title}</h3>
                 <div className="box-header-button" onClick={toggleMenu} ref={buttonRef} style={{cursor: 'pointer'}}>

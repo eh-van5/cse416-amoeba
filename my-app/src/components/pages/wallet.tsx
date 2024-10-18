@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
 import LineGraph from "../charts/lineGraph";
 import SimpleBox from "../general/simpleBox";
+import { useTheme } from '../../ThemeContext';
 
 export default function WalletPage(){
+    const {isDarkMode} = useTheme();
     //Determines the coin amount
     const coinAmount = 0.367
     const currencyAmount = 6.90
@@ -22,13 +24,13 @@ export default function WalletPage(){
     const lossGainData = generateRandomLossGainData();
     return(
     <div className="page-content" style={{padding: '20px'}}>
-        <h1>Wallet</h1>
+        <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Wallet</h1>
         <div className="graph-row">
             <SimpleBox title='Wallet'>
-                <h2 style={{margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
+                <h2 style={{color:isDarkMode ? 'white' : 'black', margin:'20px'}}>{coinAmount.toFixed(3)} AMB</h2>
             </SimpleBox>
             <SimpleBox title='USD Amount'>
-                <h2 style={{margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
+                <h2 style={{color:isDarkMode ? 'white' : 'black', margin:'20px'}}> $ {currencyAmount.toFixed(2)} USD</h2>
             </SimpleBox>
         </div>
         <div className="graph-row">
@@ -46,13 +48,13 @@ export default function WalletPage(){
         <div className="graph-row">
             <SimpleBox title='Send'>
                 <div style={{ display: 'flex', alignItems: 'center'}}>
-                    <label style={{ marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
+                    <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
                     <input type="text" className = "login-input" />
                 </div>  
                 <div style={{ display: 'flex', alignItems: 'center'}}>
-                    <label style={{ marginLeft: '10px', marginRight: '10px' }}>Amount</label>
+                    <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px' }}>Amount</label>
                     <input type="text" className = "login-input"/>
-                    <label style={{ marginLeft: '10px', marginRight: '10px' }}>AMB</label>
+                    <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px' }}>AMB</label>
                 </div> 
     
                 <div style={{ display: 'flex', justifyContent: 'center'}}>

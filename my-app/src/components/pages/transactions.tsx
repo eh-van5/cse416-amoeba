@@ -1,25 +1,16 @@
 import React, {useState} from 'react';
-import LineGraph from "../charts/lineGraph";
 import BarGraph from '../charts/barGraph';
 import PieGraph from '../charts/pieGraph';
 import SimpleBox from '../general/simpleBox';
-import { BackIcon, DownloadIcon, IncomingIcon, OutgoingIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
+import { BackIcon, DownloadIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
+import { useTheme } from '../../ThemeContext';
 
 export default function TransactionsPage(){
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
+    const {isDarkMode} = useTheme();
 
-    const generateRandomBanwidthData = () => {
-        const data = [];
-        for(let i = 0; i < 12; i++) {
-            let t = `09:${i+10}`;
-            let value1 = Math.floor(Math.random() * 30) + 20;
-            let value2 = Math.floor(Math.random() * 30) + 15;
-            data.push({name: t, value1, value2});
-        }
-        return data;
-    }
     const generateRandomActivityData = () => {
         const data = [];
         let today = new Date();
@@ -47,78 +38,46 @@ export default function TransactionsPage(){
 
     const items = [];
     for (let i = 0; i < 4*60; i++){
-        items.push(<span className="items-table-item">test</span>);
+        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
     }
 
     // Get some random fake data
-    const banwidthData = generateRandomBanwidthData();
     const activityData = generateRandomActivityData();
     const fileTypeData = generateRandomFileTypeData();
 
     const headings = ["File", "Hash", "Status", "Amount"];
 
+    const totalUpload = 94;
+    const totalDownload = 87;
+
     return (
         <div className="page-content" style={{padding: '20px'}}>
-            <h1>Transactions</h1>
+            <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Transactions</h1>
             {isView === false && ( <div className="page-row">
-                <SimpleBox title="Outgoing Traffic">
-                    <div style={{position: 'relative'}}>
-                        <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>15</span>
-                            <span style={{fontSize: '14px'}}>MB/s</span>
-                        </div>
-                        <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
-                            <OutgoingIcon />
-                        </div>
-                    </div>
-                </SimpleBox>
-                <SimpleBox title="Incoming Traffic">
-                    <div style={{position: 'relative'}}>
-                        <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>22</span>
-                            <span style={{fontSize: '14px'}}>MB/s</span>
-                        </div>
-                        <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
-                            <IncomingIcon />
-                        </div>
-                    </div>
-                </SimpleBox>
                 <SimpleBox title="Total Upload">
                     <div style={{position: 'relative'}}>
-                        <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>94</span>
-                            <span style={{fontSize: '14px'}}>Files</span>
+                        <div style={{textAlign: 'center', marginBottom: '60px', marginTop: '20px'}}>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalUpload}</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px', marginLeft: "5px"}}>Files</span>
                         </div>
-                        <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
+                        <div style={{position: 'absolute', bottom: '-60px', right: '10px'}}>
                             <UploadIcon />
                         </div>
                     </div>
                 </SimpleBox>
                 <SimpleBox title="Total Download">
                     <div style={{position: 'relative'}}>
-                        <div style={{textAlign: 'center', marginBottom: '24px'}}>
-                            <span style={{fontSize: '48px', lineHeight: '1', margin: '0'}}>87</span>
-                            <span style={{fontSize: '14px'}}>Files</span>
+                        <div style={{textAlign: 'center', marginBottom: '60px', marginTop: '20px'}}>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '48px', lineHeight: '1', margin: '0'}}>{totalDownload}</span>
+                            <span style={{color:isDarkMode ? 'white' : 'black', fontSize: '14px', marginLeft: "5px"}}>Files</span>
                         </div>
-                        <div style={{position: 'absolute', bottom: '-24px', right: '10px'}}>
+                        <div style={{position: 'absolute', bottom: '-60px', right: '10px'}}>
                             <DownloadIcon />
                         </div>
                     </div>
                 </SimpleBox>
             </div> )}
             {isView === false && ( <div className="page-row">
-                <LineGraph
-                    data={banwidthData}
-                    line1Color="#17BD28"     // Default is #1C9D49
-                    line2Color="#FF6D6D"     // Default is #9D1C1C
-                    xAxisLabel="Time"
-                    yAxisLabel="MB/s"
-                    line1Name = "Download"
-                    line2Name = "Upload"
-                    title="Bandwidth Over Time"
-                    //maxWidth={1220}
-                    //height={200}
-                />
                 <BarGraph
                     data={activityData}
                     bar1Color="#17BD28"
@@ -128,6 +87,10 @@ export default function TransactionsPage(){
                     title="Activity"
                     bar1Name="Downloads"
                     bar2Name="Uploads"
+                />
+                <PieGraph
+                    data={fileTypeData}
+                    title="File Type"
                 />
             </div> )}
             <div className="page-row">
@@ -139,10 +102,6 @@ export default function TransactionsPage(){
                         <ItemsTable headings={headings} items={isView? items : items.slice(0, 48)}/>
                     </div>
                 </SimpleBox>
-                {isView === false && ( <PieGraph
-                    data={fileTypeData}
-                    title="File Type"
-                /> )}
             </div>
         </div>
     );
