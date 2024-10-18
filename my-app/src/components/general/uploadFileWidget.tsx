@@ -40,7 +40,7 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
                 if (file === null){
                     throw Error("Parsing something that isn't a file");
                 }
-                files.set(file.name, {file: file, price: 0});
+                files.set(file.name, {file: file, price: 0, shared: false});
             }
         })
         setItems(new Map(files));
@@ -55,7 +55,7 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
             throw Error;
         }
         Object.values(filesList).forEach(file => {
-            files.set(file.name, {file: file, price: 0});
+            files.set(file.name, {file: file, price: 0, shared: false});
         })
         setItems(new Map(files));
     }

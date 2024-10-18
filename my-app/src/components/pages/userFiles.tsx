@@ -8,12 +8,13 @@ import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
 export interface UserFileData{
     file: File;
     price: number;
+    shared: boolean;
 }
 
 export default function UserFilesPage(){
     const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];
-    const [sharedFiles, setSharedFiles] = useState<ReactElement[]>([]);
-    const [uploadedFiles, setUploadedFiles] = useState<Map<string, UserFileData> >(new Map());
+    const [sharedFiles, setSharedFiles] = useState<UserFileData[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState<Map<string, UserFileData>>(new Map());
     const {isDarkMode} = useTheme();
     console.log(uploadedFiles);
     return(
@@ -21,7 +22,7 @@ export default function UserFilesPage(){
             <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Files</h1>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
-                <PriceFilesWidget files = {uploadedFiles} />
+                <PriceFilesWidget files = {uploadedFiles} setFiles = {setSharedFiles} />
             </div>
             <FileTable items={sharedFiles} headings={headings}/>
         </div>

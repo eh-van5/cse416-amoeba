@@ -5,6 +5,7 @@ import { UserFileData } from "../../pages/userFiles";
 
 interface priceFilesProps {
     files: Map<string, UserFileData>;
+    setFiles: React.Dispatch<React.SetStateAction<UserFileData[]>>
 }
 
 interface formatPriceTableProps {
@@ -13,33 +14,40 @@ interface formatPriceTableProps {
 
 function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
     const {isDarkMode} = useTheme();
-    function onPriceChange(e: React.ChangeEvent){
-        e.preventDefault();
-        console.log(e);
-    }
     const filesAndPrice = files.map((fileName) => {
         return (
             <div key = {fileName} className = "items-table-row">
                 <label htmlFor = {fileName} className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                     {fileName}
                 </label>
-                <input required onChange = {onPriceChange} name = {fileName} type="number" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
+                <input required id = {fileName + "-price"} name = {fileName} type="number" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
             </div>
         );
     });
     return filesAndPrice;
 }
 
-export default function PriceFilesWidget({files}: priceFilesProps) {
+export default function PriceFilesWidget({files, setFiles}: priceFilesProps) {
     const headings = ["File Name", "Price"]
     const items : ReactElement[] = FormatPriceTable({files: Array.from(files.keys())});
-    function uploadFiles(e : React.MouseEvent){
+    function uploadFiles(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
-
+        Array.from(files.keys()).forEach((fileName) => {
+            const price = fileName+"-price";
+            const input = document.getElementById(price) as HTMLInputElement;
+            if (input !== null){
+                const file = files.get(fileName)?.file;
+                if (file === undefined){
+                    throw Error();
+                }
+                files.set(fileName, {file: file, price: parseFloat(input.value), shared: false});
+            }
+        })
+        setFiles(Array.from(files.values()));
     }
     return(
-        <form id = "price-files-widget">
-            <input onClick = {uploadFiles} formMethod = "dialog" type = "submit" value = "Upload"/>
+        <form id = "price-files-widget" onSubmit = {uploadFiles} >
+            <input type = "submit" value = "Upload"/>
             <PriceItemsTable items={items} headings={headings} />
         </form>
     )

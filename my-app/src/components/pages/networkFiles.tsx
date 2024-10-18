@@ -15,7 +15,6 @@ export default function NetworkFilesPage(){
             <div id = "top-widgets">
                 <NetworkWidget />
             </div>
-            <FileTable items={items} headings={headings}/>
         </div>
     )
 }

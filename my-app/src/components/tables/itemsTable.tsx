@@ -9,7 +9,7 @@ function formatItems({colNum, items}: formatItemsProps){
     let formattedItems = []
     for(let i = 0; i < items.length; i+=colNum){
         formattedItems.push(
-        <div className = "items-table-row">
+        <div key = {i} className = "items-table-row">
             {items.splice(0, colNum)}
         </div>
         )
