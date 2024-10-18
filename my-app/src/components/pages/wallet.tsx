@@ -29,6 +29,9 @@ export default function WalletPage(){
 
         }
         if(numberErrors===0){
+            if(generalError){
+                generalError.innerHTML = '';
+            }
             const conversionAmb= currencyAmount / coinAmount;
             //coinAmount = coinAmount-ambAmount;
             setCoinAmount(coinAmount => coinAmount - ambAmount);
@@ -41,7 +44,7 @@ export default function WalletPage(){
     const generateRandomLossGainData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {
-            let t = `09:${i+10}`;
+            let t = `09/${i+10}/2024`;
             let value1 = Math.floor(Math.random() * 30) + 20;
             let value2 = Math.floor(Math.random() * 30) + 15;
             data.push({name: t, value1, value2});
@@ -66,7 +69,7 @@ export default function WalletPage(){
                 line1Color="#17BD28"     // Default is #1C9D49
                 line2Color="#FF6D6D"     // Default is #9D1C1C
                 xAxisLabel="Time"
-                yAxisLabel="Amount"
+                yAxisLabel="AMB"
                 line1Name = "Gain"
                 line2Name = "Loss"
                 title="Gain/Loss over Time"
@@ -75,15 +78,15 @@ export default function WalletPage(){
         <div className="graph-row">
             <SimpleBox title='Send'>
                 <div style={{ display: 'flex', justifyContent: 'center'}}>
-                    <p id='general_error' className='error_message' style = {{justifyContent: 'center'}}></p>
+                    <p id='general_error' className='error_message' style = {{justifyContent: 'center', color:isDarkMode ? 'white' : 'black'}}></p>
                 </div>    
                 <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px',}}>Wallet Number</label>
-                    <input type="text" className = "login-input" />
+                    <input type="text" id = "walletNum" className = "login-input" />
                 </div>  
                 <div style={{ display: 'flex', alignItems: 'center'}}>
                     <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px' }}>Amount</label>
-                    <input type="text" className = "login-input"/>
+                    <input type="text" id = "ambAmount" className = "login-input"/>
                     <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '10px' }}>AMB</label>
                 </div> 
     
