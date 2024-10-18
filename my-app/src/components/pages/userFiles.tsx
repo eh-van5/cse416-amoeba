@@ -12,7 +12,6 @@ export interface UserFileData{
 }
 
 export default function UserFilesPage(){
-    const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];
     const [sharedFiles, setSharedFiles] = useState<UserFileData[]>([]);
     const [uploadedFiles, setUploadedFiles] = useState<Map<string, UserFileData>>(new Map());
     const {isDarkMode} = useTheme();
@@ -24,7 +23,7 @@ export default function UserFilesPage(){
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
                 <PriceFilesWidget files = {uploadedFiles} setFiles = {setSharedFiles} />
             </div>
-            <FileTable items={sharedFiles} headings={headings}/>
+            <FileTable items={sharedFiles} />
         </div>
     )
 }

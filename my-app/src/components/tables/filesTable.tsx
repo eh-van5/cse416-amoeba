@@ -5,16 +5,14 @@ import ItemsTable from "./itemsTable"
 
 interface FileTableProps {
     items: UserFileData[],
-    headings: string[]
 }
 
-export default function FileTable ({items, headings} : FileTableProps) {
+export default function FileTable ({items} : FileTableProps) {
     // pull items from backend
     // console.log(items)
     const {isDarkMode} = useTheme();
 
-    const formattedItems: JSX.Element[] = [];
-    items.map((item) => {
+    const formattedItems: JSX.Element[] = items.map((item) => {
         return (
         <div key = {item.file.name} className = "items-table-row">
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
@@ -35,16 +33,14 @@ export default function FileTable ({items, headings} : FileTableProps) {
         </div>
         )
     })
-    // pull items from backend
-    
-    // for (let i = 0; i < 4*60; i++){
-    //     items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
-    // }
 
     console.log(items);
+    const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];
+
     return (
-        <div id="filesTable">
-            <PriceItemsTable headings={headings} items={formattedItems}/>
+        <div id = "filesTable" className={`items-table${isDarkMode? '-dark' : ''}`}>
+            <PriceItemsTable headings={headings} items={formattedItems} />
         </div>
     )
 }
+
