@@ -752,7 +752,7 @@ body{
   background-color: white;
   height: 100%;
   overflow-y: scroll;
-  grid-row: auto 1fr;
+  grid-template-rows: auto 9fr;
   grid-auto-columns: auto;
 }
 
@@ -761,7 +761,7 @@ body{
   background-color: #215F64;
   height: 100%;
   overflow-y: scroll;
-  grid-row: auto 1fr;
+  grid-row: auto 9fr;
   grid-auto-columns: auto;
 }
 

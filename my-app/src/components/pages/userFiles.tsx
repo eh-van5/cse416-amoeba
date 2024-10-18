@@ -34,8 +34,6 @@ export default function UserFilesPage(){
         if (typeArr[1].trim() === "Descending") {
             order = -1;
         }
-        console.log(sortType);
-        console.log(order);
         sharedFiles.sort((a, b) => {
             switch(sortType) {
                 case "Name":
