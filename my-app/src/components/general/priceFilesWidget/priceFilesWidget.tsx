@@ -30,7 +30,7 @@ function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
 }
 
 export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
-    const headings = ["File Name", "Price"]
+    const headings = ["File Name", "Set Price"]
     const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.keys())});
     function uploadFiles(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
@@ -42,7 +42,7 @@ export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedF
                 if (file === undefined){
                     throw Error();
                 }
-                uploadedFiles.set(fileName, {file: file, price: parseFloat(input.value), shared: false});
+                uploadedFiles.set(fileName, {file: file, price: parseFloat(input.value), shared: true});
             }
         })
         setSharedFiles([...sharedFiles, ...Array.from(uploadedFiles.values())]);
@@ -51,7 +51,7 @@ export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedF
     return(
         <form id = "price-files-widget" onSubmit = {uploadFiles} >
             <FilesTable items={items} headings={headings} />
-            <input type = "submit" value = "Upload"/>
+            <input type = "submit" value = "Share Files"/>
         </form>
     )
 }

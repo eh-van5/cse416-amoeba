@@ -823,6 +823,7 @@ body{
 #filesTable {
   height: 50%;
   margin-top: 10px;
+  overflow-y: auto;
 }
 
 #file-widget {

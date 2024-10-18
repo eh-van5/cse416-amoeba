@@ -30,6 +30,8 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
     //     reader.readAsDataURL(file);
     // }
 
+    
+    // register files into dht
     function dropHandler(event: React.DragEvent){
         event.preventDefault();
         console.log("Something has been dropped");
@@ -48,6 +50,7 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
     function dragOverHandler(event: React.DragEvent){
         event.preventDefault();
     }
+    // here is where u register files into dht
     function fileSelectorHandler(event: React.ChangeEvent){
         const target = event.target as HTMLInputElement;
         const filesList = target.files;

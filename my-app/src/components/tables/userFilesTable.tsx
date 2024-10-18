@@ -4,18 +4,21 @@ import { UserFileData } from "../pages/userFiles";
 
 interface FileTableProps {
     items: UserFileData[],
+    headings: string[]
 }
 
-export default function UserFilesTable ({items} : FileTableProps) {
-    // pull items from backend
+export default function UserFilesTable ({items, headings} : FileTableProps) {
     // console.log(items)
     const {isDarkMode} = useTheme();
 
+    // pull actual items from backend
     const formattedItems: JSX.Element[] = items.map((item) => {
+        // const status = item.shared ? "sharing" : "not sharing"
         return (
         <div key = {item.file.name} className = "items-table-row">
+
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {item.shared}
+                {item.shared ? "Sharing" : "Not Sharing"}
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                 {item.file.name}
@@ -32,8 +35,6 @@ export default function UserFilesTable ({items} : FileTableProps) {
         </div>
         )
     })
-
-    const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];
 
     return (
         <div id = "filesTable" className={`items-table${isDarkMode? '-dark' : ''}`}>
