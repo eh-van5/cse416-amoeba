@@ -1,41 +1,35 @@
-import { ReactElement } from "react";
 import { UploadFileIcon } from "../../images/icons/icons";
 import { useTheme } from "../../ThemeContext";
+import { UserFileData } from "../pages/userFiles";
 
 interface UploadFileWidgetProps{
-    setItems: React.Dispatch<React.SetStateAction<ReactElement[]>>
+    files: Map<string, UserFileData>
+    setItems: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>
 }
-export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
+export default function UploadFileWidget({files, setItems}: UploadFileWidgetProps){
     const {isDarkMode} = useTheme();
 
-    function readFile(file: File){
-        const reader = new FileReader();
-        reader.addEventListener('loadstart', (function(f) {
-            return (event) =>{
-                const loadingBar = document.getElementById("file-progress-bar");
-                if (loadingBar){
-                    console.log(loadingBar);
-                    // loadingBar.innerHTML = "Loading " + file.name;
-                    loadingBar.style.width = "0%";
-                } 
-                console.log(f);
-            }
-        })(file))
-        reader.addEventListener('loadend', (function(f) {
-            return (event) => {
-                const new_item = [
-                    <span className="items-table-item">{f.name}</span>,
-                    <span className="items-table-item">you</span>,
-                    <span className="items-table-item">{f.lastModified}</span>,
-                    <span className="items-table-item">Not Sharing</span>,
-                    <span className="items-table-item">{f.size}</span>
-                ];
-                // console.log([...items, ...new_item])
-                setItems(prevItems => [...prevItems, ...new_item]);
-            }
-        })(file));
-        reader.readAsDataURL(file);
-    }
+    // function readFile(file: File){
+    //     const reader = new FileReader();
+    //     reader.addEventListener('loadstart', (function(f) {
+    //         return (event) =>{
+    //             const loadingBar = document.getElementById("file-progress-bar");
+    //             if (loadingBar){
+    //                 console.log(loadingBar);
+    //                 // loadingBar.innerHTML = "Loading " + file.name;
+    //                 loadingBar.style.width = "0%";
+    //             } 
+    //             console.log(f);
+    //         }
+    //     })(file))
+    //     reader.addEventListener('loadend', (function(f) {
+    //         return (event) => {
+    //             setItems(prevItems => [...prevItems, f]);
+    //         }
+    //     })(file));
+    //     reader.readAsDataURL(file);
+    // }
+
     function dropHandler(event: React.DragEvent){
         event.preventDefault();
         console.log("Something has been dropped");
@@ -46,9 +40,10 @@ export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
                 if (file === null){
                     throw Error("Parsing something that isn't a file");
                 }
-                readFile(file);
+                files.set(file.name, {file: file, price: 0});
             }
         })
+        setItems(new Map(files));
     }
     function dragOverHandler(event: React.DragEvent){
         event.preventDefault();
@@ -59,11 +54,12 @@ export default function UploadFileWidget({setItems}: UploadFileWidgetProps){
         if (filesList === null){
             throw Error;
         }
-
         Object.values(filesList).forEach(file => {
-            readFile(file);
+            files.set(file.name, {file: file, price: 0});
         })
+        setItems(new Map(files));
     }
+
     return (
         <div id = "file-widget">
             <div             

@@ -27,7 +27,8 @@ export default function Navbar(props: NavbarProps){
             
             <div className="navbar-items">
                 <NavbarItem icon={<DashboardIcon/>} text="Proxy" minimized={minimized} onClick={() => props.setPage(Page.Proxy)} theme={isDarkMode}/>
-                <NavbarItem icon={<FileIcon/>} text="Files" minimized={minimized} onClick={() => props.setPage(Page.Files)} theme={isDarkMode}/>
+                <NavbarItem icon={<FileIcon/>} text="Your Files" minimized={minimized} onClick={() => props.setPage(Page.UserFiles)} theme={isDarkMode}/>
+                <NavbarItem icon={<FileIcon/>}text="Network Files" minimized={minimized} onClick={() => props.setPage(Page.NetworkFiles)} theme={isDarkMode}/>
                 <NavbarItem icon={<TransactionIcon/>} text="Transactions" minimized={minimized} onClick={() => props.setPage(Page.Transactions)} theme={isDarkMode}/>
                 <NavbarItem icon={<WalletIcon/>} text="Wallet" minimized={minimized} onClick={() => props.setPage(Page.Wallet)} theme={isDarkMode}/>
                 <NavbarItem icon={<MiningIcon/>} text="Mining" minimized={minimized} onClick={() => props.setPage(Page.Mining)} theme={isDarkMode}/>
