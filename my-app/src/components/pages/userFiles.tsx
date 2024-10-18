@@ -2,7 +2,7 @@ import { ReactElement, useState } from "react";
 import { useTheme } from "../../ThemeContext";
 import NetworkWidget from "../general/networkWidget/networkWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
-import FileTable from "../tables/filesTable";
+import FileTable from "../tables/userFilesTable";
 import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
 
 export interface UserFileData{
@@ -21,7 +21,7 @@ export default function UserFilesPage(){
             <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Files</h1>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
-                <PriceFilesWidget files = {uploadedFiles} setFiles = {setSharedFiles} />
+                <PriceFilesWidget sharedFiles = {sharedFiles} uploadedFiles = {uploadedFiles} setSharedFiles = {setSharedFiles} setUploadedFiles = {setUploadedFiles} />
             </div>
             <FileTable items={sharedFiles} />
         </div>

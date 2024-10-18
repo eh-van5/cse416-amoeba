@@ -2,7 +2,7 @@ import { ReactElement, useState } from "react";
 import { useTheme } from "../../ThemeContext";
 import NetworkWidget from "../general/networkWidget/networkWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
-import FileTable from "../tables/filesTable";
+import FileTable from "../tables/userFilesTable";
 
 export default function NetworkFilesPage(){
     const headings = ["Name", "Shared By", "Last Opened", "Status", "Size"];

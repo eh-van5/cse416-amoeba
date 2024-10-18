@@ -1,11 +1,13 @@
 import { ReactElement } from "react";
 import { useTheme } from "../../../ThemeContext";
-import PriceItemsTable from "./priceFilesTable";
 import { UserFileData } from "../../pages/userFiles";
+import FilesTable from "../../tables/filesTable";
 
 interface priceFilesProps {
-    files: Map<string, UserFileData>;
-    setFiles: React.Dispatch<React.SetStateAction<UserFileData[]>>
+    sharedFiles: UserFileData[];
+    uploadedFiles: Map<string, UserFileData>;
+    setSharedFiles: React.Dispatch<React.SetStateAction<UserFileData[]>>;
+    setUploadedFiles: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>;
 }
 
 interface formatPriceTableProps {
@@ -27,28 +29,29 @@ function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
     return filesAndPrice;
 }
 
-export default function PriceFilesWidget({files, setFiles}: priceFilesProps) {
+export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
     const headings = ["File Name", "Price"]
-    const items : ReactElement[] = FormatPriceTable({files: Array.from(files.keys())});
+    const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.keys())});
     function uploadFiles(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
-        Array.from(files.keys()).forEach((fileName) => {
+        Array.from(uploadedFiles.keys()).forEach((fileName) => {
             const price = fileName+"-price";
             const input = document.getElementById(price) as HTMLInputElement;
             if (input !== null){
-                const file = files.get(fileName)?.file;
+                const file = uploadedFiles.get(fileName)?.file;
                 if (file === undefined){
                     throw Error();
                 }
-                files.set(fileName, {file: file, price: parseFloat(input.value), shared: false});
+                uploadedFiles.set(fileName, {file: file, price: parseFloat(input.value), shared: false});
             }
         })
-        setFiles(Array.from(files.values()));
+        setSharedFiles([...sharedFiles, ...Array.from(uploadedFiles.values())]);
+        setUploadedFiles(new Map());
     }
     return(
         <form id = "price-files-widget" onSubmit = {uploadFiles} >
+            <FilesTable items={items} headings={headings} />
             <input type = "submit" value = "Upload"/>
-            <PriceItemsTable items={items} headings={headings} />
         </form>
     )
 }
