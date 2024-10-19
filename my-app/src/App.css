@@ -1010,11 +1010,14 @@ body{
   justify-content: space-between;
   align-items: end;
   margin-top: 20px;
+  font-size: 20px;
   .sortBy{
     display: flex;
     align-items: center;
+    font-size: 16px;
   }
   .title{
     margin: 0px;
+    font-size: 20px;
   }
 }

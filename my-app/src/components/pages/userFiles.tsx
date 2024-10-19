@@ -56,12 +56,13 @@ export default function UserFilesPage(){
 
     return(
         <div className="page-content">
-            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
+            <p className = "page-file-header" style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
             <hr></hr>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
                 <PriceFilesWidget sharedFiles = {sharedFiles} uploadedFiles = {uploadedFiles} setSharedFiles = {setSharedFiles} setUploadedFiles = {setUploadedFiles} />
             </div>
+            <hr></hr>
             <div className="page-file-header"> 
                 <p className = "title" style={{ color:isDarkMode ? 'white' : 'black'}}>Current Files</p>
                 <select className = "sortBy" onChange={sortBy}>
@@ -69,7 +70,6 @@ export default function UserFilesPage(){
                     {options}
                 </select>
             </div>
-            <hr></hr>
             <UserFilesTable items={sharedFiles} setItems = {setSharedFiles} headings={headings}/>
         </div>
     )
