@@ -1004,3 +1004,17 @@ body{
   background: green;
   border-radius: 5px;
 }
+
+.page-file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-top: 20px;
+  .sortBy{
+    display: flex;
+    align-items: center;
+  }
+  .title{
+    margin: 0px;
+  }
+}

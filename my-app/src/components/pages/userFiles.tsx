@@ -62,12 +62,14 @@ export default function UserFilesPage(){
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
                 <PriceFilesWidget sharedFiles = {sharedFiles} uploadedFiles = {uploadedFiles} setSharedFiles = {setSharedFiles} setUploadedFiles = {setUploadedFiles} />
             </div>
-            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Current Files</p>
+            <div className="page-file-header"> 
+                <p className = "title" style={{ color:isDarkMode ? 'white' : 'black'}}>Current Files</p>
+                <select className = "sortBy" onChange={sortBy}>
+                    <option value="" selected disabled hidden>Sort By</option>
+                    {options}
+                </select>
+            </div>
             <hr></hr>
-            <select onChange={sortBy}>
-                <option value="" selected disabled hidden>Sort By</option>
-                {options}
-            </select>
             <UserFilesTable items={sharedFiles} setItems = {setSharedFiles} headings={headings}/>
         </div>
     )
