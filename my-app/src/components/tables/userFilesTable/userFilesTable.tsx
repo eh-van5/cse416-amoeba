@@ -2,6 +2,7 @@ import { useTheme } from "../../../ThemeContext";
 import FilesTable from "../filesTable";
 import { UserFileData } from "../../pages/userFiles";
 import StatusButton from "./userFilesTableButton";
+import { formatBytes, translateDate } from "../../general/formatHelpers";
 
 interface FileTableProps {
     items: UserFileData[]
@@ -9,20 +10,6 @@ interface FileTableProps {
     headings: string[]
 }
 
-// Helper function to translate timestamps to human readable date times
-function translateDate(timestamp: number): string {
-    const date = new Date(timestamp);
-    const options: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    };
-
-    return date.toLocaleDateString(undefined, options);
-}
 
 export default function UserFilesTable ({items, setItems, headings} : FileTableProps) {
     // console.log(items)
@@ -47,7 +34,7 @@ export default function UserFilesTable ({items, setItems, headings} : FileTableP
                 {translateDate(item.file.lastModified)}
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {item.file.size}
+                {formatBytes(item.file.size)}
             </span>
         </div>
         )
