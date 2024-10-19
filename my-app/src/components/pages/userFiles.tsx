@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTheme } from "../../ThemeContext";
-import UploadFileWidget from "../general/uploadFileWidget";
 import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
-import UserFilesTable from "../tables/userFilesTable";
+import UploadFileWidget from "../general/uploadFileWidget";
+import UserFilesTable from "../tables/userFilesTable/userFilesTable";
 
 export interface UserFileData{
     file: File;
@@ -56,19 +56,23 @@ export default function UserFilesPage(){
 
     return(
         <div className="page-content">
-            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
+            <div className="page-file-header"> 
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
+            </div>
             <hr></hr>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
                 <PriceFilesWidget sharedFiles = {sharedFiles} uploadedFiles = {uploadedFiles} setSharedFiles = {setSharedFiles} setUploadedFiles = {setUploadedFiles} />
             </div>
-            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Current Files</p>
             <hr></hr>
-            <select onChange={sortBy}>
-                <option value="" selected disabled hidden>Sort By</option>
-                {options}
-            </select>
-            <UserFilesTable items={sharedFiles} headings={headings}/>
+            <div className="page-file-header"> 
+                <p className = "title" style={{ color:isDarkMode ? 'white' : 'black'}}>Current Files</p>
+                <select className = "sortBy" onChange={sortBy}>
+                    <option value="" selected disabled hidden>Sort By</option>
+                    {options}
+                </select>
+            </div>
+            <UserFilesTable items={sharedFiles} setItems = {setSharedFiles} headings={headings}/>
         </div>
     )
 }
