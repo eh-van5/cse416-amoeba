@@ -11,18 +11,21 @@ interface priceFilesProps {
 }
 
 interface formatPriceTableProps {
-    files: string[];
+    files: UserFileData[];
 }
 
 function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
     const {isDarkMode} = useTheme();
-    const filesAndPrice = files.map((fileName) => {
+    const filesAndPrice = files.map((file) => {
         return (
-            <div key = {fileName} className = "items-table-row">
-                <label htmlFor = {fileName} className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                    {fileName}
+            <div key = {file.file.name} className = "items-table-row">
+                <label htmlFor = {file.file.name} className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
+                    {file.file.name}
                 </label>
-                <input required id = {fileName + "-price"} name = {fileName} type="number" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
+                <label htmlFor = {file.file.name} className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
+                    {file.file.size}
+                </label>
+                <input required id = {file.file.name + "-price"} name = {file.file.name} type="number" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
             </div>
         );
     });
@@ -30,8 +33,8 @@ function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
 }
 
 export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
-    const headings = ["File Name", "Set Price"]
-    const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.keys())});
+    const headings = ["File Name", "Size", "Set Price"]
+    const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.values())});
     function uploadFiles(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
         Array.from(uploadedFiles.keys()).forEach((fileName) => {
