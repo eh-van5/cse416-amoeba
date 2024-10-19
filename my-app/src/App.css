@@ -1024,3 +1024,48 @@ body{
     margin: 0px;
   }
 }
+
+#purchase-form{
+  border: solid;
+  border-width: 2px;
+  border-radius: 10px;
+  border-color: #0c5c28;
+  font-size: 20px;
+  padding: 0px;
+  #purchase-form-options-container {
+    display: grid;
+    grid-row: auto;
+    grid-template-columns: .2fr 1fr 1fr;
+    margin: 1em;
+    gap: 10px;
+  }
+  #provider-options {
+    font-size: 16px;
+    display: contents;
+    grid-row: 1;
+    align-items: center;
+    .buyFormRadio {
+      margin: 5px;
+    }
+    .buyFormPrices {
+      align-self: center;
+    }
+    .buyFormOwners {
+      align-self: center;
+    }
+  }
+  #purchase-form-header{
+    background-color: #0c5c28;
+    width: 100%;
+    color: white;
+    text-align: center;
+    padding: 10px;
+  }
+  #purchase-form-buttons{
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 10px 15px 10px;
+    align-items: center;
+  }
+}

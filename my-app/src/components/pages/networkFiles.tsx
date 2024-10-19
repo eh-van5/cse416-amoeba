@@ -23,7 +23,7 @@ export default function NetworkFilesPage(){
                 lastModified: 123456789,
                 size: 0
             },
-            prices: new Map<string, number>().set('owner1', 10).set('owner2', 20)
+            prices: new Map<string, number>().set('owner1', 10000000000).set('owner2', 20)
         }
     ]
     const {isDarkMode} = useTheme();

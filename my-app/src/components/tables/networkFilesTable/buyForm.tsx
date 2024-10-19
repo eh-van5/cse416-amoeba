@@ -14,7 +14,7 @@ export default function BuyForm({item}: buyFormProps) {
     const options = Array.from(owners).map((owner: string) => {
         return (
             <div id="provider-options">
-                <input required name = "provider" type = "radio"></input>
+                <input className = "buyFormRadio" required name = "provider" type = "radio"></input>
                 <label className = "buyFormPrices">${item.prices.get(owner)} </label>
                 <label className = "buyFormOwners">{owner}</label>
             </div>
@@ -22,14 +22,14 @@ export default function BuyForm({item}: buyFormProps) {
     })
     return (
         <dialog id="purchase-form">
+            <div id="purchase-form-header">Provider Options:</div>
             <form method="dialog">
-                <p>
-                <label>Provider: </label>
-                {options}
+                <p id = "purchase-form-options-container">
+                    {options}
                 </p>
-                <div>
-                <button onClick={cancel} id="cancel" type="reset">Cancel</button>
-                <button type="submit">Confirm</button>
+                <div id = "purchase-form-buttons">
+                    <button onClick={cancel} id="cancel" type="reset">Cancel</button>
+                    <button type="submit">Confirm</button>
                 </div>
             </form>
         </dialog>
