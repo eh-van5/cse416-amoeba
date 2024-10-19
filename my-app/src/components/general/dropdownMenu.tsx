@@ -19,10 +19,19 @@ const DropdownMenu: React.FC<dropdownMenuProps> = ({
     useEffect(() => {
         if (buttonRef && buttonRef.current && isVisible) {
             const buttonRect = buttonRef.current.getBoundingClientRect();
-            setPosition({
-                top: `${buttonRect.bottom + window.scrollY}px`,
-                left: `${buttonRect.left + window.scrollX - 80}px`, // Let menu is located just to the left of the button
-            });
+            const offset = menuRef.current? menuRef.current.getBoundingClientRect().width : 0;
+            const containerRect = buttonRef.current.offsetParent?.getBoundingClientRect();
+            if(containerRect) {
+                setPosition({
+                    top: `${buttonRect.bottom - containerRect.top}px`,
+                    left: `${buttonRect.right - containerRect.left - offset}px`
+                });
+            }else {
+                setPosition({
+                    top: `${buttonRect.bottom + window.scrollY}px`,
+                    left: `${buttonRect.right + window.scrollX - offset}px`, // Let menu is located just to the left of the button
+                });
+            }
         }
     }, [buttonRef, isVisible]);
 

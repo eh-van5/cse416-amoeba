@@ -52,7 +52,7 @@ export default function MiningPage(){
                 <SimpleBox title="Mining Network" style={{display:'block', position:'relative'}}>
                     <h3 style={{ color:isDarkMode ? 'white' : 'black', margin:'20px', display:"inline-block"}}>(Insert Number) Active Colonists</h3>
                     <h3 style={{ color:isDarkMode ? 'white' : 'black', margin:'20px', display:"inline-block", left:'20%', position:'relative'}}>(Insert Number) Peak Colonists</h3>
-                    {/*BUG: Drop down menu does not appear next to the button like on other pages*/}
+                    {/*BUG: Drop down menu does not appear next to the button like on other pages (Fixed)*/}
                     <LineGraph
                         data={generateRandomData(true)}
                             xAxisLabel="Time"
