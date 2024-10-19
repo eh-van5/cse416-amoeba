@@ -56,7 +56,9 @@ export default function UserFilesPage(){
 
     return(
         <div className="page-content">
-            <p className = "page-file-header" style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
+            <div className="page-file-header"> 
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Share Files</p>
+            </div>
             <hr></hr>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
