@@ -1069,3 +1069,13 @@ body{
     align-items: center;
   }
 }
+
+.buy-button {
+  font-size: 16px;
+}
+
+.buy-button-dark {
+  font-size: 16px;
+  background-color: 215F64;
+  font: white;
+}
