@@ -811,6 +811,25 @@ body{
   max-width: 100px;
   font-size: 14px;
   font-family: inter;
+  border-radius: 10px;
+  border-width: 1px;
+  background-color: white;
+  .play{
+    fill: green;
+  }
+  .pause{
+    fill: crimson;
+  }
+}
+
+.share-button:hover{
+  min-width: 100px;
+  max-width: 100px;
+  font-size: 14px;
+  font-family: inter;
+  border-radius: 10px;
+  border-width: 1px;
+  background-color: #55767740;  
   .play{
     fill: green;
   }
@@ -824,6 +843,7 @@ body{
   padding: 10px 0px 10px 7px;
   color: #000000B3;
   font-family: inter;
+  align-content: center;
 }
 
 .items-table-item-dark{
@@ -925,7 +945,6 @@ body{
     flex: 9;
     .items-table-item{
       align-self: center;
-      text-align: center;
     }
   }
 }
