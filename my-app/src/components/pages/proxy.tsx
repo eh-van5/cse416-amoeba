@@ -30,6 +30,9 @@ export default function ProxyPage(){
     const [isViewAvailable, setViewAvailable] = useState(false);
     const [isProxyEnabled, setIsProxyEnabled] = useState(false);
     const [isUsingProxy, setIsUsingProxy] = useState(false);
+    const [pricePerMB, setPricePerMB] = useState('');
+    const [error, setError] = useState('');
+
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
@@ -38,6 +41,17 @@ export default function ProxyPage(){
     const location = "United States";
     const DataTransferred = 0;
     const DataUsed = 0;
+
+    const handleEnableProxy = () => {
+        const price = parseFloat(pricePerMB);
+        const validNumberPattern = /^[0-9]*\.?[0-9]+$/;
+        if(!pricePerMB || !validNumberPattern.test(pricePerMB) || price < 0) {
+            setError('Please enter a valid positive number or 0.');
+        }else {
+            setError('');
+            setIsProxyEnabled(!isProxyEnabled);
+        }
+    };
 
     /*  Enable proxy node
         Use proxy node
@@ -50,17 +64,20 @@ export default function ProxyPage(){
             <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Proxy</h1>
             {isViewHistory === false && isViewAvailable === false && ( <div className="page-row">
                 <SimpleBox title='Enable My IP as a Proxy'>
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px" }} className="no-wrap">
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
-                        <input type="text" disabled={isProxyEnabled} />
+                        <input type="text" value={pricePerMB} onChange={(e) => setPricePerMB(e.target.value)} disabled={isProxyEnabled} />
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
+                    </div>
+                    <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', color: 'red' }}>{error}</span> 
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Transferred:</label>
                         <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataTransferred} MB</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={() => setIsProxyEnabled(!isProxyEnabled)} />
+                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={handleEnableProxy} />
                     </div>
                 </SimpleBox>
                 <SimpleBox title='Use Proxy Node'>
@@ -92,15 +109,13 @@ export default function ProxyPage(){
                 </SimpleBox>
                 {isViewHistory === false && ( <LineGraph
                     data={banwidthData}
-                    line1Color="#17BD28"     // Default is #1C9D49
-                    line2Color="#FF6D6D"     // Default is #9D1C1C
+                    line1Color="#17BD28"
+                    line2Color="#FF6D6D"
                     xAxisLabel="Time"
                     yAxisLabel="MB/s"
                     line1Name = "Download"
                     line2Name = "Upload"
                     title="Bandwidth Over Time"
-                    //maxWidth={1220}
-                    //height={200}
                 /> )}
             </div> )}
             {isViewHistory === false && ( <div className="page-row">
