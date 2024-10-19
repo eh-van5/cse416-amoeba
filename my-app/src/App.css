@@ -1079,3 +1079,19 @@ body{
   background-color: 215F64;
   font: white;
 }
+
+.input-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-group {
+  flex: 0 1 80px;
+  margin: 0 5px;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+}
