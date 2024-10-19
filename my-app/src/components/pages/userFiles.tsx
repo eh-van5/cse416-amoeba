@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTheme } from "../../ThemeContext";
-import UploadFileWidget from "../general/uploadFileWidget";
 import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
-import UserFilesTable from "../tables/userFilesTable";
+import UploadFileWidget from "../general/uploadFileWidget";
+import UserFilesTable from "../tables/userFilesTable/userFilesTable";
 
 export interface UserFileData{
     file: File;
@@ -68,7 +68,7 @@ export default function UserFilesPage(){
                 <option value="" selected disabled hidden>Sort By</option>
                 {options}
             </select>
-            <UserFilesTable items={sharedFiles} headings={headings}/>
+            <UserFilesTable items={sharedFiles} setItems = {setSharedFiles} headings={headings}/>
         </div>
     )
 }

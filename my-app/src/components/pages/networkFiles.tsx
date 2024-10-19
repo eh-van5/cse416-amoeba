@@ -2,7 +2,7 @@ import { ReactElement, useState } from "react";
 import { useTheme } from "../../ThemeContext";
 import NetworkWidget from "../general/networkWidget/networkWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
-import FileTable from "../tables/userFilesTable";
+import FileTable from "../tables/userFilesTable/userFilesTable";
 
 export default function NetworkFilesPage(){
     const headings = ["Name", "Shared By", "Last Opened", "Status", "Size"];
@@ -11,10 +11,13 @@ export default function NetworkFilesPage(){
 
     return(
         <div className="page-content">
-            <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Files</h1>
+            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network</p>
+            <hr></hr>
             <div id = "top-widgets">
                 <NetworkWidget />
             </div>
+            <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network Files</p>
+            <hr></hr>
         </div>
     )
 }

@@ -761,7 +761,7 @@ body{
   background-color: #215F64;
   height: 100%;
   overflow-y: scroll;
-  grid-row: auto 9fr;
+  grid-template-rows: auto 9fr;
   grid-auto-columns: auto;
 }
 
@@ -804,6 +804,19 @@ body{
 
 .items-table-row:hover > span {
   background-color: #55767740;
+}
+
+.share-button {
+  min-width: 100px;
+  max-width: 100px;
+  font-size: 14px;
+  font-family: inter;
+  .play{
+    fill: green;
+  }
+  .pause{
+    fill: crimson;
+  }
 }
 
 .items-table-item {
