@@ -181,3 +181,19 @@ export function CopyIcon(){
         </svg>
     )
 }
+
+export function PauseIcon() {
+    return (
+        <svg className = "pause" width="24" height="24" viewBox="0 0 24 24" fill="1D1B20" xmlns="http://www.w3.org/2000/svg">
+        <path className = "pause" d="M14 19V5H18V19H14ZM6 19V5H10V19H6Z" fill="#1D1B20"/>
+        </svg>
+    )
+}
+
+export function PlayIcon() {
+    return (
+        <svg className = "play" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path className = "play" d="M8 19V5L19 12L8 19Z" fill="#1D1B20"/>
+        </svg>
+    )
+}
