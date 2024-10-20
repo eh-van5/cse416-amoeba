@@ -80,6 +80,8 @@ body{
   max-width: 100px;
   width: 40%;
   padding: 10px 10px;
+
+  cursor: pointer;
 }
 
 #login-button:hover{
@@ -1116,4 +1118,8 @@ input {
   width: 100%;
   box-sizing: border-box;
   padding: 5px;
+}
+
+.mining-button:hover{
+  background-color:red
 }
