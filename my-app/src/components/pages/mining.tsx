@@ -16,7 +16,8 @@ export default function MiningPage() {
     const [minutes, setMinutes] = useState<string>('0');
     const [seconds, setSeconds] = useState<string>('0');
     const [timerValue, setTimerValue] = useState<number>(-1); // Usestate for the mining timer
-    var timerActive: boolean = false;
+    const [buttonText, setButtonText] = useState<string>("Begin Mining");
+    
     const [isMining, setIsMining] = useState<boolean>(false); // Switch for button state
 
     const handleSlider = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,17 +45,40 @@ export default function MiningPage() {
         }
     };
 
-    const beginMining = () => {
+    const handleButtonClick = () => {
+        setTimerValue(0);
         const totalSeconds = (parseInt(hours) || 0) * 3600 + (parseInt(minutes) || 0) * 60 + (parseInt(seconds) || 0);
+        console.log(totalSeconds);
         if (totalSeconds > 0) {
             // setSeconds('0');
             // setMinutes('0');
             // setHours('0');
-            timerActive = true;
             setTimerValue(totalSeconds);
         }
         setIsMining((isMining) => !isMining);
+        if (isMining) {
+            setButtonText('Begin Mining');
+        }
+        else {
+            setButtonText('Stop Mining');
+        }
     }
+
+    const handleMouseOver = () => {
+        if(isMining) {
+            setButtonText('Stop Mining');
+        }
+    }
+
+    const handleMouseOut = () => {
+        if(isMining) {
+            setButtonText(`${0} Units Mined`);
+        }
+        else {
+            setButtonText("Begin Mining");
+        }
+    }
+
 
     return (
         <div className="page-content">
@@ -68,7 +92,7 @@ export default function MiningPage() {
                 </SimpleBox>
             </div>
             <SimpleBox title="Mining Network" style={{ display: 'block', position: 'relative' }}>
-                <div style={{ display: 'flex', justifyContent: "space-between", maxWidth: '50%' }}>
+                <div style={{ display: 'flex', justifyContent: "space-between", maxWidth: '60%' }}>
                     <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>(Insert Number) Active Colonists</h3>
                     <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>(Insert Number) Peak Colonists</h3>
                 </div>
@@ -79,28 +103,27 @@ export default function MiningPage() {
                     yAxisLabel="Users"
                     title="Mining Activity (Past 24 Hours)"
                     line1Name="Activity"
-                    maxWidth={70}
+                    maxWidth={60}
                 />
-                <div style={{ position: 'absolute', bottom: '20%', right: '5%', width: '20%' }}>
+                <div style={{ position: 'absolute', bottom: '20%', right: '5%', width: '30%' }}>
                     <h3 style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>
                         {
                             isMining ?
-                                timerActive && `Time Left` :
+                                `Time Left` :
                                 'Cancel Mining'
                         }
                     </h3>
                     {
                         isMining
                             ?
-                            timerActive &&
-                            <h3 style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>
-                                {`${Math.floor(timerValue / 3600)}h ${Math.floor((timerValue % 3600) / 60)}m ${timerValue % 60}`}
-                            </h3>
+                            <h1 style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>
+                                {timerValue > 0 ? `${Math.floor(timerValue / 3600).toString().padStart(2, '0')}h ${Math.floor((timerValue % 3600) / 60).toString().padStart(2, '0')}m ${(timerValue % 60).toString().padStart(2, '0')}s` : '~~h ~~m ~~s'}
+                            </h1>
                             :
                             (<div className="input-container">
                                 <div className="input-group">
                                     <label>
-                                        Hrs
+                                        <span style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>Hrs</span>
                                         <input
                                             type="number"
                                             value={hours}
@@ -111,7 +134,7 @@ export default function MiningPage() {
                                 </div>
                                 <div className="input-group">
                                     <label style={{ width: '30%' }}>
-                                        Mins
+                                        <span  style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>Mins</span>
                                         <input
                                             type="number"
                                             value={minutes}
@@ -122,7 +145,7 @@ export default function MiningPage() {
                                 </div>
                                 <div className="input-group">
                                     <label style={{ width: '30%' }}>
-                                        Secs:
+                                        <span  style={{ color: isDarkMode ? 'white' : 'black', display: "block" }}>Secs</span>
                                         <input
                                             type="number"
                                             value={seconds}
@@ -146,7 +169,9 @@ export default function MiningPage() {
                     <h6 style={{ color: isDarkMode ? 'white' : 'black', display: 'inline-block', marginTop: '0px' }}>Low</h6>
                     <h6 style={{ color: isDarkMode ? 'white' : 'black', display: 'inline-block', float: 'right', marginTop: '0px' }}>High</h6>
                 </div>
-                <button className="button" type='button' onClick={beginMining} style={{ position: 'absolute', bottom: '20px', right: '20px' }}>{(isMining ? 'Mining...' : 'Begin')}</button>
+                <button className={`button ${isMining ? 'mining-button': ''}`} type='button' onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} onClick={handleButtonClick} style={{ position: 'absolute', bottom: '20px', right: '20px' }}>
+                    {buttonText}
+                </button>
             </SimpleBox>
 
             {/* Still needs drop-down box, slider, and button*/}
