@@ -22,11 +22,11 @@ export default function ProxyPage(){
     }
 
     const items = [];
-    for (let i = 0; i < 5*60; i++){
-        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
+    for (let i = 0; i < 4*60; i++){
+        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}> </span>);
     }
 
-    const headings1 = ["Client IP", "Data Transferred", "Charge"];
+    const headings1 = ["Client IP", "Data", "Charge", "Date"];
     const headings2 = ["IP Address", "Price per MB", "Location", "Status", "      "];
     const [isViewHistory, setViewHistory] = useState(false);
     const [isViewAvailable, setViewAvailable] = useState(false);
@@ -101,12 +101,12 @@ export default function ProxyPage(){
                 </SimpleBox>
             </div> )}
             {isViewAvailable === false && ( <div className="page-row">
-                <SimpleBox title="Client Usage History">
+                <SimpleBox title="Client Usage History" style={{ minHeight: isViewHistory ? '680px' : '0px' }}>
                     <div style={{position: 'relative', margin: '20px'}}>
                         <div className="box-header-button" onClick={toggleViewHistory} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isViewHistory? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ItemsTable headings={headings1} items={isViewHistory? items.slice(0, 180) : items.slice(0, 36)}/>
+                        <ItemsTable headings={headings1} items={isViewHistory? items : items.slice(0, 48)}/>
                     </div>
                 </SimpleBox>
                 {isViewHistory === false && ( <LineGraph
@@ -121,12 +121,12 @@ export default function ProxyPage(){
                 /> )}
             </div> )}
             {isViewHistory === false && ( <div className="page-row">
-            <SimpleBox title="Available Proxy Nodes">
+            <SimpleBox title="Available Proxy Nodes" style={{ minHeight: isViewAvailable ? '680px' : '0px' }}>
                     <div style={{position: 'relative', margin: '20px'}}>
                         <div className="box-header-button" onClick={toggleViewAvailable} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isViewAvailable? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ProxyNodesTable items={proxyNodes} headings={headings2} onSelect={toggleViewAvailable} />
+                        <ProxyNodesTable items={isViewAvailable ? proxyNodes : proxyNodes.slice(0, 3)} headings={headings2} onSelect={toggleViewAvailable} />
                     </div>
                 </SimpleBox>
             </div> )}
