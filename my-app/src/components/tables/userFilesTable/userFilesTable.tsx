@@ -17,6 +17,9 @@ export default function UserFilesTable ({items, setItems, headings} : FileTableP
 
     // pull actual items from backend
     const formattedItems: JSX.Element[] = items.map((item) => {
+        if (!item.shared) {
+            return <></>;
+        }
         // const status = item.shared ? "sharing" : "not sharing"
         return (
         <div key = {item.file.name} className = "items-table-row">
