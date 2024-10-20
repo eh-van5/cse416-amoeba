@@ -5,6 +5,8 @@ import ItemsTable from '../tables/itemsTable';
 import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
 import { useTheme } from '../../ThemeContext';
+import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
+import { proxyNodes } from '../tables/proxyNodesTable/proxyNodes';
 
 export default function ProxyPage(){
     const {isDarkMode} = useTheme();
@@ -25,7 +27,7 @@ export default function ProxyPage(){
     }
 
     const headings1 = ["Client IP", "Data Transferred", "Charge"];
-    const headings2 = ["IP Address", "Price per MB", "Location", "Status", "Select Buttom"];
+    const headings2 = ["IP Address", "Price per MB", "Location", "Status", "      "];
     const [isViewHistory, setViewHistory] = useState(false);
     const [isViewAvailable, setViewAvailable] = useState(false);
     const [isProxyEnabled, setIsProxyEnabled] = useState(false);
@@ -124,7 +126,7 @@ export default function ProxyPage(){
                         <div className="box-header-button" onClick={toggleViewAvailable} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isViewAvailable? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ItemsTable headings={headings2} items={isViewAvailable? items : items.slice(0, 60)}/>
+                        <ProxyNodesTable items={proxyNodes} headings={headings2} onSelect={toggleViewAvailable} />
                     </div>
                 </SimpleBox>
             </div> )}
