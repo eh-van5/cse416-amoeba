@@ -40,7 +40,7 @@ export default function ProfilePage(){
                 <div>
                     {credentialField("Wallet Address", "bcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z")}
                     {credentialField("Private Key", "・・・・・・・・・・・・・・・")}
-                    <input className="create-wallet-key-box" type="text" name="profile-password" placeholder="Enter your password"
+                    <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Enter your password"
                     style={{width: "20%"}}/>
 
                 </div>
