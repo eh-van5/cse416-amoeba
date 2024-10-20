@@ -84,6 +84,8 @@ body{
   max-width: 100px;
   width: 40%;
   padding: 10px 10px;
+
+  cursor: pointer;
 }
 
 #login-button:hover{
@@ -1035,8 +1037,14 @@ body{
   border: solid;
   border-color: #00000080;
   border-width: 1px;
-  border-radius: 0px 0px 25px 25px;
+  border-radius: 25px 25px 25px 25px;
   padding: 5px 0px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+#members:hover{
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 #members-container {
@@ -1154,4 +1162,8 @@ input {
   width: 100%;
   box-sizing: border-box;
   padding: 5px;
+}
+
+.mining-button:hover{
+  background-color:red
 }

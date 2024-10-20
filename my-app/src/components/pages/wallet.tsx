@@ -15,12 +15,20 @@ export default function WalletPage(){
         //console.log(walletNum)
         const ambAmount = parseFloat((document.getElementById('ambAmount') as HTMLInputElement).value);
         const generalError = (document.getElementById('general_error'));
+        
         if(ambAmount>coinAmount){
             if(generalError){
                 generalError.innerHTML = 'Error: Coin sent is more than coins in wallet';
             }
             numberErrors += 1;
         }
+        if(ambAmount<0){
+            if(generalError){
+                generalError.innerHTML = 'Error: Coin sent cannot be 0 or less';
+            }
+            numberErrors += 1;
+        }
+
         if(!walletNum|| isNaN(ambAmount)){
             if(generalError){
                 generalError.innerHTML = 'An error occured. Please try again.';
@@ -30,7 +38,7 @@ export default function WalletPage(){
         }
         if(numberErrors===0){
             if(generalError){
-                generalError.innerHTML = '';
+                generalError.innerHTML = 'Successfully sent to wallet!';
             }
             const conversionAmb= currencyAmount / coinAmount;
             //coinAmount = coinAmount-ambAmount;
