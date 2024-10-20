@@ -6,7 +6,7 @@ import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
 import { useTheme } from '../../ThemeContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
-import { proxyNodes } from '../tables/proxyNodesTable/proxyNodes';
+import { proxyNodes, proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 
 export default function ProxyPage(){
     const {isDarkMode} = useTheme();
@@ -33,14 +33,18 @@ export default function ProxyPage(){
     const [isProxyEnabled, setIsProxyEnabled] = useState(false);
     const [isUsingProxy, setIsUsingProxy] = useState(false);
     const [pricePerMB, setPricePerMB] = useState('');
-    const [error, setError] = useState('');
+    const [enableError, setEnableError] = useState('');
+    const [useError, setUseError] = useState('');
+    const [selectedProxyNode, setSelectedProxyNode] = useState({
+        ipAddress: '',
+        location: '',
+        pricePerMB: 0
+    });
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
 
-    const selectedIPAddress = "192.168.0.1";
-    const location = "United States";
     const DataTransferred = 0;
     const DataUsed = 0;
 
@@ -48,11 +52,30 @@ export default function ProxyPage(){
         const price = parseFloat(pricePerMB);
         const validNumberPattern = /^[0-9]*\.?[0-9]+$/;
         if(!pricePerMB || !validNumberPattern.test(pricePerMB) || price < 0) {
-            setError('Please enter a valid positive number or 0.');
+            setEnableError('Please enter a valid positive number or 0.');
         }else {
-            setError('');
+            setEnableError('');
             setIsProxyEnabled(!isProxyEnabled);
         }
+    };
+
+    const handleUseProxy = () => {
+        if (!selectedProxyNode.ipAddress) {
+            setUseError('Please select a proxy node before using.');
+        } else {
+            setUseError('');
+            setIsUsingProxy(!isUsingProxy);
+        }
+    };
+
+    const handleSelectProxyNode = (node: proxyNodeStructure) => {
+        if(isViewAvailable)
+            toggleViewAvailable();
+        setSelectedProxyNode({
+            ipAddress: node.ipAddress,
+            location: node.location,
+            pricePerMB: node.pricePerMB
+        });
     };
 
     /*  Enable proxy node
@@ -66,17 +89,17 @@ export default function ProxyPage(){
             <h1 style={{ color:isDarkMode ? 'white' : 'black'}}>Proxy</h1>
             {isViewHistory === false && isViewAvailable === false && ( <div className="page-row">
                 <SimpleBox title='Enable My IP as a Proxy'>
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px" }} className="no-wrap">
+                    <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
                         <input type="text" value={pricePerMB} onChange={(e) => setPricePerMB(e.target.value)} disabled={isProxyEnabled} />
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
                     </div>
-                    <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', color: 'red' }}>{error}</span> 
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Transferred:</label>
                         <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataTransferred} MB</span>
+                    </div>
+                    <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '12px', color: 'red' }}>{enableError}</span> 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
                         <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={handleEnableProxy} />
@@ -85,18 +108,21 @@ export default function ProxyPage(){
                 <SimpleBox title='Use Proxy Node'>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }} className="no-wrap">
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Selected Proxy Node:</label>
-                        <span style={{ color:isDarkMode ? 'white' : 'black', marginRight: '20px' }}>{selectedIPAddress}</span>
+                        <span style={{ color:isDarkMode ? 'white' : 'black', marginRight: '20px' }}>{selectedProxyNode.ipAddress} - {selectedProxyNode.location}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                        <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Location:</label>
-                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{location}</span>
+                        <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB:</label>
+                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{selectedProxyNode.pricePerMB || " - "} AMB</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Used:</label>
                         <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataUsed} MB</span>
                     </div>
+                    <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 
+                    </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={() => setIsUsingProxy(!isUsingProxy)} />
+                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={handleUseProxy} />
                     </div>
                 </SimpleBox>
             </div> )}
@@ -126,7 +152,7 @@ export default function ProxyPage(){
                         <div className="box-header-button" onClick={toggleViewAvailable} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isViewAvailable? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ProxyNodesTable items={isViewAvailable ? proxyNodes : proxyNodes.slice(0, 3)} headings={headings2} onSelect={toggleViewAvailable} />
+                        <ProxyNodesTable items={isViewAvailable ? proxyNodes : proxyNodes.slice(0, 3)} headings={headings2} onSelect={handleSelectProxyNode} />
                     </div>
                 </SimpleBox>
             </div> )}
