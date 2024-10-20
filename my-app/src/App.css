@@ -137,6 +137,22 @@ body{
 
 .copy-clipboard-status{
   color: #3ac76b;
+  margin: 3px 0;
+}
+
+#export-wallet-button{
+  border: 0.5px solid black;
+  border-radius: 20px;
+
+  background-color: white;
+
+  margin: 15px;
+  padding: 10px;
+}
+
+#export-wallet-button:hover{
+  cursor: pointer;
+  background-color: #abadad;
 }
 
 /* Navbar */

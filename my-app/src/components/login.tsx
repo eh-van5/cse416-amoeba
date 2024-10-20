@@ -18,7 +18,7 @@ interface Props{
 export default function Login(props: Props){
     const[currentPage, setCurrentPage] = useState<LoginPage>(LoginPage.Login);
     const[walletCreated, setWalletCreated] = useState<boolean>(false);
-    const[copied, setCopied] = useState<boolean>(false);
+    const[copied, setCopied] = useState<boolean[]>([false, false, false]);
 
     const[walletAddress, setWalletAddress] = useState<string>("Create a Wallet");
 
@@ -27,14 +27,18 @@ export default function Login(props: Props){
         setCurrentPage(LoginPage.CreateWallet);
         setWalletCreated(false);
         setWalletAddress("Create a Wallet")
-        setCopied(false);
+        setCopied([false, false, false]);
     }
     const createWallet = () => {
         setWalletAddress("Loading...");
         setTimeout(() => {setWalletCreated(true); setWalletAddress("bcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z");}, 1000);
     }
-    const copyToClipboard = () => {
-        setCopied(true);
+    const copyToClipboard = (i:number) => {
+        const newValues = copied.map((v, index) => {
+            if(i === index) return true;
+            else return v;
+        });
+        setCopied(newValues);
         navigator.clipboard.writeText(walletAddress);
     }
     function loginPage(){
@@ -54,11 +58,31 @@ export default function Login(props: Props){
         return(
             <div className="login-box" style={{width: "60%", minWidth: "500px", maxWidth: "700px"}}>
                 <h1 className="login-text">Create Wallet</h1>
-                <div className="create-wallet-key-box">
-                    <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
-                    <div className="copy-clipboard" onClick={copyToClipboard}><CopyIcon/></div>
+                <div>
+                    <p>Wallet Address</p>
+                    <div className="create-wallet-key-box">
+                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
+                        <div className="copy-clipboard" onClick={() => copyToClipboard(0)}><CopyIcon/></div>
+                    </div>
+                    <p style={{visibility: copied[0] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
-                <p style={{visibility: copied ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                <div>
+                    <p>Public Key</p>
+                    <div className="create-wallet-key-box">
+                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
+                        <div className="copy-clipboard" onClick={() => copyToClipboard(1)}><CopyIcon/></div>
+                    </div>
+                    <p style={{visibility: copied[1] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                </div>
+                <div>
+                    <p>Private Key</p>
+                    <div className="create-wallet-key-box">
+                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
+                        <div className="copy-clipboard" onClick={() => copyToClipboard(2)}><CopyIcon/></div>
+                    </div>
+                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                </div>
+                <button id="export-wallet-button" type="button">Export Wallet</button>
                 <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
                 <p className="login"><i>Already have an account?</i></p>
                 <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
