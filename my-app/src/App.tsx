@@ -11,6 +11,7 @@ import SettingsPage from './components/pages/settings';
 import { useTheme } from './ThemeContext';
 import UserFilesPage from './components/pages/userFiles';
 import NetworkFilesPage from './components/pages/networkFiles';
+import ProfilePage from './components/pages/profile';
 
 export enum Page{
   Proxy,
@@ -19,7 +20,8 @@ export enum Page{
   Transactions,
   Wallet,
   Mining,
-  Settings
+  Settings,
+  Profile
 }
 
 // This is the type that setState from useState hook uses
@@ -56,7 +58,8 @@ function App() {
             [Page.Settings]: <SettingsPage 
                             notifications={notifications} 
                             setNotifications={setNotifications}
-                            />,          
+                            />,    
+            [Page.Profile]: <ProfilePage/>
             })[currentPage]
         }
       </div>}
