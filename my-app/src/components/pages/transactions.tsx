@@ -94,7 +94,7 @@ export default function TransactionsPage(){
                 />
             </div> )}
             <div className="page-row">
-                <SimpleBox title="Recent Transactions">
+                <SimpleBox title="Recent Transactions" style={{ minHeight: isView ? '680px' : '0px' }}>
                     <div style={{position: 'relative', margin: '20px'}}>
                         <div className="box-header-button" onClick={toggleView} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isView? <BackIcon /> : <ViewAllIcon />}
