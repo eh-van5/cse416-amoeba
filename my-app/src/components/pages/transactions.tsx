@@ -5,6 +5,7 @@ import SimpleBox from '../general/simpleBox';
 import { BackIcon, DownloadIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
 import { useTheme } from '../../ThemeContext';
+import RecentTransactionsTable, { transactionData } from '../tables/recentTransactionsTable/recentTransactionstable';
 
 export default function TransactionsPage(){
     const [isView, setView] = useState(false);
@@ -45,7 +46,7 @@ export default function TransactionsPage(){
     const activityData = generateRandomActivityData();
     const fileTypeData = generateRandomFileTypeData();
 
-    const headings = ["File", "Hash", "Status", "Amount"];
+    const headings = ["File", "Hash", "Status", "Amount", "Date"];
 
     const totalUpload = 94;
     const totalDownload = 87;
@@ -99,7 +100,7 @@ export default function TransactionsPage(){
                         <div className="box-header-button" onClick={toggleView} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isView? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ItemsTable headings={headings} items={isView? items : items.slice(0, 48)}/>
+                        <RecentTransactionsTable headings={headings} items={isView? transactionData : transactionData.slice(0, 3)}/>
                     </div>
                 </SimpleBox>
             </div>
