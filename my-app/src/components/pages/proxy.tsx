@@ -7,6 +7,7 @@ import LineGraph from '../charts/lineGraph';
 import { useTheme } from '../../ThemeContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
 import { proxyNodes, proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
+import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
 
 export default function ProxyPage(){
     const {isDarkMode} = useTheme();
@@ -132,7 +133,7 @@ export default function ProxyPage(){
                         <div className="box-header-button" onClick={toggleViewHistory} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
                             {isViewHistory? <BackIcon /> : <ViewAllIcon />}
                         </div>
-                        <ItemsTable headings={headings1} items={isViewHistory? items : items.slice(0, 48)}/>
+                        <ClientUsageTable headings={headings1} items={isViewHistory? clientUsageData : clientUsageData.slice(0, 3)}/>
                     </div>
                 </SimpleBox>
                 {isViewHistory === false && ( <LineGraph
