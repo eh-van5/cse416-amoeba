@@ -42,7 +42,7 @@ export default function ProfilePage(){
                     {credentialField("Private Key", "・・・・・・・・・・・・・・・")}
                     <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Enter your password"
                     style={{width: "20%"}}/>
-
+                    {/* <span style={{fontSize: "small", color: "red"}}>Incorrect password. Please try again.</span> */}
                 </div>
             </div>
         </div>
