@@ -11,3 +11,9 @@ npm install
 ```
 npm start
 ```
+
+# To test DHT
+```
+cd src/backend/dht
+./main.exe <Any Value>
+```
