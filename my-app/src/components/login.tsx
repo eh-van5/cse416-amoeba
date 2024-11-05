@@ -90,6 +90,12 @@ export default function Login(props: Props){
                     style={{width: "20%"}}/>
                     <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
+                <div>
+                    <p className="create-wallet-key-name">Confirm Password</p>
+                    <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Reenter your password"
+                    style={{width: "20%"}}/>
+                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                </div>
                 <button id="export-wallet-button" type="button">Export Wallet</button>
                 <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
                 <p className="login"><i>Already have an account?</i></p>
