@@ -5,7 +5,7 @@ import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
 import { useTheme } from '../../ThemeContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
-import { proxyNodes, proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
+import { proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
 
 export default function ProxyPage(){
@@ -41,10 +41,19 @@ export default function ProxyPage(){
         location: '',
         pricePerMB: 0
     });
+    const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
+
+    useEffect(() => {
+        const fecthData = async () => {
+            const data = await fetchProxies();
+            setProxyNodes(data);
+        };
+        fecthData();
+    }, []);
 
     const DataTransferred = 0;
     const DataUsed = 0;
@@ -98,6 +107,42 @@ export default function ProxyPage(){
             }
         }catch(error) {
             console.error('Failed to disable proxy: ', error);
+        }
+    };
+
+    const fetchProxies = async (): Promise<proxyNodeStructure[]> => {
+        try {
+            const response = await fetch('http://localhost:8080/get-proxies');
+            const proxies = await response.json();
+
+            const proxiesWithLocation = await Promise.all(
+                proxies.map(async (proxy: proxyNodeStructure) => {
+                    const location = await fetchLocation(proxy.ipAddress);
+                    return {...proxy, location};
+                })
+            );
+
+            return proxiesWithLocation
+        }catch(error) {
+            console.error('Failed to fetch proxies:', error);
+            return [];
+        }
+    };
+
+    const fetchLocation = async (ipAddress: string): Promise<string> => {
+        try {
+            const response = await fetch(`http://ip-api.com/json/${ipAddress}`);
+            const data = await response.json();
+    
+            if(data.status === "success") {
+                return `${data.city}, ${data.country}`;
+            }else {
+                console.warn(`Failed to fetch location for IP: ${ipAddress}`);
+                return "Unknown";
+            }
+        }catch (error) {
+            console.error(`Failed to fetch location for IP: ${ipAddress}`, error);
+            return "Unknown";
         }
     };
 

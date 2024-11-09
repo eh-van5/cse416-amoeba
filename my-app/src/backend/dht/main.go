@@ -270,10 +270,16 @@ func main() {
 
 	defer node.Close()
 
+	// Get the current node IP
 	peerID := node.ID().String()
+
+	// Configure HTTP routing
 	mux := http.NewServeMux()
 	mux.HandleFunc("/enable-proxy", enableProxyHandler(ctx, dht, peerID))
 	mux.HandleFunc("/disable-proxy", disableProxyHandler(ctx, dht, peerID))
+	mux.HandleFunc("/get-proxies", getAvailableProxiesHandler(ctx, dht, node))
+
+	// Start the HTTP server
 	go func() {
 		if err := http.ListenAndServe(":8080", enableCORS(mux)); err != nil {
 			log.Fatalf("Failed to start server: %v", err)
@@ -521,6 +527,15 @@ func disableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, peerID string) h
 	}
 }
 
+func getAvailableProxiesHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		availableProxies := listAllProxies(ctx, node, dht)
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(availableProxies)
+	}
+}
+
 /*
 	func monitorProxyStatus(ctx context.Context, dht *dht.IpfsDHT, peerID string) {
 		quit := make(chan os.Signal, 1)
@@ -583,4 +598,30 @@ func enableCORS(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
+}
+
+func listAllProxies(ctx context.Context, node host.Host, dht *dht.IpfsDHT) []ProxyInfo {
+	proxyInfos := []ProxyInfo{}
+
+	for _, peer := range node.Peerstore().Peers() {
+		peerID := peer.String()
+		key := "/orcanet/proxy/" + peerID
+		value, err := dht.GetValue(ctx, key)
+		if err != nil {
+			continue
+		}
+
+		var proxyInfo ProxyInfo
+		err = json.Unmarshal(value, &proxyInfo)
+		if err != nil {
+			log.Printf("Failed to unmarshal proxy info for key %s: %v", key, err)
+			continue
+		}
+
+		if proxyInfo.Status == "available" {
+			proxyInfos = append(proxyInfos, proxyInfo)
+		}
+	}
+
+	return proxyInfos
 }
