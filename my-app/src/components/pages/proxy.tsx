@@ -1,7 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import SimpleBox from "../general/simpleBox";
 import { BackIcon, ViewAllIcon } from '../../images/icons/icons';
-import ItemsTable from '../tables/itemsTable';
 import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
 import { useTheme } from '../../ThemeContext';
@@ -35,6 +34,7 @@ export default function ProxyPage(){
     const [isUsingProxy, setIsUsingProxy] = useState(false);
     const [pricePerMB, setPricePerMB] = useState('');
     const [enableError, setEnableError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [useError, setUseError] = useState('');
     const [selectedProxyNode, setSelectedProxyNode] = useState({
         ipAddress: '',
@@ -49,14 +49,55 @@ export default function ProxyPage(){
     const DataTransferred = 0;
     const DataUsed = 0;
 
-    const handleEnableProxy = () => {
+    const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
         const validNumberPattern = /^[0-9]*\.?[0-9]+$/;
         if(!pricePerMB || !validNumberPattern.test(pricePerMB) || price < 0) {
             setEnableError('Please enter a valid positive number or 0.');
+            setSuccessMessage('');
         }else {
             setEnableError('');
-            setIsProxyEnabled(!isProxyEnabled);
+
+            try {
+                // Send a request
+                const response = await fetch('http://localhost:8080/enable-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ pricePerMB: price }),
+                });
+    
+                const result = await response.json();
+    
+                if(response.ok) {
+                    setSuccessMessage(result.status);
+                    setIsProxyEnabled(true);
+                }else {
+                    setEnableError('Failed to enable proxy.');
+                    console.error('Error enabling proxy:', result);
+                }
+            }catch(error) {
+                setEnableError('Network error. Please try again.');
+                console.error('Failed to enable proxy:', error);
+            }
+        }
+    };
+
+    const handleDisableProxy = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/disable-proxy', {
+                method: 'POST'
+            });
+            const result = await response.json();
+            if(response.ok) {
+                setIsProxyEnabled(false);
+                setSuccessMessage('');
+            }else {
+                console.error(result)
+            }
+        }catch(error) {
+            console.error('Failed to disable proxy: ', error);
         }
     };
 
@@ -100,10 +141,10 @@ export default function ProxyPage(){
                         <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataTransferred} MB</span>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '12px', color: 'red' }}>{enableError}</span> 
+                        <span style={{ fontSize: '12px', color: enableError ? 'red' : 'green' }}>{enableError || successMessage}</span> 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={handleEnableProxy} />
+                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={isProxyEnabled ? handleDisableProxy : handleEnableProxy} />
                     </div>
                 </SimpleBox>
                 <SimpleBox title='Use Proxy Node'>
