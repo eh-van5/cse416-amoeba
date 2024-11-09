@@ -127,7 +127,6 @@ function NotificationTab(props: NotificationsTabProps){
                 <span className="settings-subheader">Notify me about...</span>
                 <span className="settings-text">Choose what notifications you receive</span>
                 {Checkbox("File Updates","file-updates")}
-                {Checkbox("Transactions","transactions")}
                 {Checkbox("Wallet Updates","wallet-updates")}
                 {Checkbox("Coin Mining","coin-mining")}
             </div>

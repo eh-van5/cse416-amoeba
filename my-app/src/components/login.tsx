@@ -45,7 +45,9 @@ export default function Login(props: Props){
         return(
             <div className="login-box">
                 <h1 className="login-text">Login</h1>
-                <input className="login-input" type="text" placeholder={"Private Key..."}/>
+                {/* <span style={{fontSize: "small", color: "red"}}>Incorrect address or password. Please try again.</span> */}
+                <input className="login-input" type="text" placeholder={"Wallet Address..."}/>
+                <input className="login-input" type="text" placeholder={"Password..."}/>
                 <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
 
                 <p className="login"><i>Don't have an account?</i></p>
@@ -59,7 +61,7 @@ export default function Login(props: Props){
             <div className="login-box" style={{width: "60%", minWidth: "500px", maxWidth: "700px"}}>
                 <h1 className="login-text">Create Wallet</h1>
                 <div>
-                    <p>Wallet Address</p>
+                    <p className="create-wallet-key-name">Wallet Address</p>
                     <div className="create-wallet-key-box">
                         <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
                         <div className="copy-clipboard" onClick={() => copyToClipboard(0)}><CopyIcon/></div>
@@ -67,7 +69,7 @@ export default function Login(props: Props){
                     <p style={{visibility: copied[0] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
                 <div>
-                    <p>Public Key</p>
+                    <p className="create-wallet-key-name">Public Key</p>
                     <div className="create-wallet-key-box">
                         <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
                         <div className="copy-clipboard" onClick={() => copyToClipboard(1)}><CopyIcon/></div>
@@ -75,11 +77,17 @@ export default function Login(props: Props){
                     <p style={{visibility: copied[1] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
                 <div>
-                    <p>Private Key</p>
+                    <p className="create-wallet-key-name">Private Key</p>
                     <div className="create-wallet-key-box">
                         <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
                         <div className="copy-clipboard" onClick={() => copyToClipboard(2)}><CopyIcon/></div>
                     </div>
+                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                </div>
+                <div>
+                    <p className="create-wallet-key-name">Password</p>
+                    <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Enter your password"
+                    style={{width: "20%"}}/>
                     <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
                 <button id="export-wallet-button" type="button">Export Wallet</button>
@@ -91,7 +99,7 @@ export default function Login(props: Props){
     }
 
     return (
-        <>
+        <div className="login-page">
             <div className="login-banner">
                 <img id="login-banner-logo" src={logo} alt="app logo" />
                 <span id="login-banner-text">Colony</span>
@@ -103,6 +111,6 @@ export default function Login(props: Props){
                     [LoginPage.ViewWallet]: <></> ,
                 })[currentPage]
             }
-        </>
+        </div>
     )
 }
