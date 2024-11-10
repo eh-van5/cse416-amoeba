@@ -47,12 +47,17 @@ export default function ProxyPage(){
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
 
+    const POLLING_INTERVAL = 5000;
     useEffect(() => {
         const fecthData = async () => {
             const data = await fetchProxies();
             setProxyNodes(data);
         };
         fecthData();
+        const interval = setInterval(() => {
+            fecthData();
+        }, POLLING_INTERVAL);
+        return () => clearInterval(interval);
     }, []);
 
     const DataTransferred = 0;

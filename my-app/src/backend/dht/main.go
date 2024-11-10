@@ -602,9 +602,13 @@ func enableCORS(h http.Handler) http.Handler {
 
 func listAllProxies(ctx context.Context, node host.Host, dht *dht.IpfsDHT) []ProxyInfo {
 	proxyInfos := []ProxyInfo{}
+	myID := node.ID().String()
 
 	for _, peer := range node.Peerstore().Peers() {
 		peerID := peer.String()
+		if peerID == myID {
+			continue
+		}
 		key := "/orcanet/proxy/" + peerID
 		value, err := dht.GetValue(ctx, key)
 		if err != nil {
