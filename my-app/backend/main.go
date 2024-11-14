@@ -17,6 +17,8 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
+	gostream "github.com/libp2p/go-libp2p-gostream"
+	p2phttp "github.com/libp2p/go-libp2p-http"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -279,7 +281,7 @@ func main() {
 	go refreshReservation(node, 10*time.Minute)
 	connectToPeer(node, bootstrap_node_addr) // connect to bootstrap node
 	go handlePeerExchange(node)
-	go handleInput(ctx, dht)
+	go handleInput(node, ctx, dht)
 
 	// receiveDataFromPeer(node)
 	// sendDataToPeer(node, "12D3KooWKNWVMpDh5ZWpFf6757SngZfyobsTXA8WzAWqmAjgcdE6")
@@ -289,7 +291,7 @@ func main() {
 	select {}
 }
 
-func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
+func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("User Input \n ")
 	for {
@@ -354,7 +356,7 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 			// key := args[1]
 
 		case "START_SERVER":
-			server()
+			httpserver(node)
 
 		case "GET_FILE":
 			if len(args) < 3 {
@@ -363,17 +365,57 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 			}
 			peerid := args[1]
 			hash := args[2]
-			res, err := GetPeerAddr(ctx, dht, peerid)
-			if err != nil {
-				fmt.Println("peerid failed")
-			}
+			// res, err := GetPeerAddr(ctx, dht, peerid)
+			// if err != nil {
+			// 	fmt.Println("peerid failed")
+			// }
 
-			httpclient(res, hash)
+			httpclient(node, peerid, hash)
 
 		default:
 			fmt.Println("Expected GET, GET_IP, PUT or PUT_PROVIDER")
 		}
 	}
+}
+
+func httpserver(server_node host.Host) {
+	listener, _ := gostream.Listen(server_node, p2phttp.DefaultP2PProtocol)
+	defer listener.Close()
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hi!"))
+	})
+	server := &http.Server{}
+	server.Serve(listener)
+}
+
+func httpclient(client_node host.Host, peerid string, hash string) {
+	tr := &http.Transport{}
+	tr.RegisterProtocol("libp2p", p2phttp.NewTransport(client_node))
+	client := &http.Client{Transport: tr}
+
+	res, err := client.Get("libp2p://" + peerid + "/hello")
+	if err != nil {
+		fmt.Println("Error fetching file:", err)
+		return
+	}
+	defer res.Body.Close()
+
+	// Create a file to save the downloaded data
+	outFile, err := os.Create(hash)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer outFile.Close()
+
+	// Write the file contents to disk
+	_, err = io.Copy(outFile, res.Body)
+	if err != nil {
+		fmt.Println("Error saving file:", err)
+		return
+	}
+
+	fmt.Println("File downloaded successfully!")
 }
 
 func uploadFile(fileContent []byte, hash string) {
