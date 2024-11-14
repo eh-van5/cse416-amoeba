@@ -371,7 +371,6 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 	}
 }
 
-// ProvideKey reads a file, generates its CID, and stores provider information in the DHT.
 func provideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price int) error {
 	// Read file content
 	fileContent, err := os.ReadFile(filePath)
