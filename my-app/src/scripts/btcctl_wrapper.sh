@@ -1,4 +1,7 @@
 #!/bin/bash
 # Wrapper script for btcctl with specific flags
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-/mnt/c/Users/Evan/Documents/SBU/2024Fall/CSE416/cse416-amoeba/my-app/src/coin/btcd/cmd/btcctl/./btcctl --rpcuser=user --rpcpass=password --rpcserver=127.0.0.1:8332 --notls --wallet "$@"
+BTCCTL_EXEC="${SCRIPT_DIR}/../coin/btcd/cmd/btcctl/./btcctl"
+
+"$BTCCTL_EXEC" --rpcuser=user --rpcpass=password --rpcserver=127.0.0.1:8332 --notls --wallet "$@"
