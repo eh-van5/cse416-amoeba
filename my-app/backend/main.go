@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	node_id             = "sbu_id" // give your SBU ID
+	node_id             = "113366806" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 	globalCtx           context.Context
@@ -373,74 +373,6 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 		default:
 			fmt.Println("Expected GET, GET_IP, PUT or PUT_PROVIDER")
 		}
-	}
-}
-
-func httpclient(info peer.AddrInfo, hash string) {
-	fmt.Println(info.Addrs)
-
-	if len(info.Addrs) <= 0 {
-		fmt.Println("info doesn't exist")
-		return
-	}
-
-	addr := info.Addrs[0]
-
-	ip, err := addr.ValueForProtocol(multiaddr.P_IP4)
-
-	if err != nil {
-		ip, err = addr.ValueForProtocol(multiaddr.P_IP6)
-		if err != nil {
-			fmt.Println("Error extracting IP address:", err)
-			return
-		}
-	}
-
-	port, err := addr.ValueForProtocol(multiaddr.P_TCP)
-
-	if err != nil {
-		fmt.Println("Error extracting TCP port:", err)
-		return
-	}
-
-	url := "http://" + ip + ":" + port + "/" + hash
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Error fetching file:", err)
-		return
-	}
-	defer response.Body.Close()
-
-	// Create a file to save the downloaded data
-	outFile, err := os.Create(hash)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
-	}
-	defer outFile.Close()
-
-	// Write the file contents to disk
-	_, err = io.Copy(outFile, response.Body)
-	if err != nil {
-		fmt.Println("Error saving file:", err)
-		return
-	}
-
-	fmt.Println("File downloaded successfully!")
-}
-
-func server() {
-	// Define the directory to serve files from
-	fs := http.FileServer(http.Dir("./uploaded_files"))
-
-	// Route requests to the server
-	http.Handle("/", fs)
-
-	// Start the server on port 8080
-	log.Println("Serving files on :8080...")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal(err)
 	}
 }
 
