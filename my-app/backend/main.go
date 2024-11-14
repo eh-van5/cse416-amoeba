@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -18,7 +19,6 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
 	gostream "github.com/libp2p/go-libp2p-gostream"
-	p2phttp "github.com/libp2p/go-libp2p-http"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -33,7 +33,7 @@ import (
 )
 
 var (
-	node_id             = "113366806" // give your SBU ID
+	node_id             = "sbu_id" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 	globalCtx           context.Context
@@ -378,22 +378,37 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 	}
 }
 
-func httpserver(server_node host.Host) {
-	listener, _ := gostream.Listen(server_node, p2phttp.DefaultP2PProtocol)
+func httpserver(server_node host.Host) error {
+	listener, _ := gostream.Listen(server_node, "/mock-http/1.0.0")
 	defer listener.Close()
 	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hi!"))
 	})
-	server := &http.Server{}
-	server.Serve(listener)
+	return http.Serve(listener, nil)
 }
 
 func httpclient(client_node host.Host, peerid string, hash string) {
-	tr := &http.Transport{}
-	tr.RegisterProtocol("libp2p", p2phttp.NewTransport(client_node))
-	client := &http.Client{Transport: tr}
+	server_id, err := peer.Decode(peerid)
+	if err != nil {
+		log.Fatalf("Failed to open stream to peer: %v", err)
+		return
+	}
+	stream, err := gostream.Dial(context.Background(), client_node, server_id, "/mock-http/1.0.0")
+	if err != nil {
+		log.Fatalf("Failed to open stream to peer: %v", err)
+		return
+	}
+	defer stream.Close()
 
-	res, err := client.Get("libp2p://" + peerid + "/hello")
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return stream, nil
+			},
+		},
+	}
+
+	res, err := client.Get("http://mock-http/hello")
 	if err != nil {
 		fmt.Println("Error fetching file:", err)
 		return

@@ -1,21 +1,41 @@
 package p2p
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"log"
+	"net"
 	"net/http"
 	"os"
 
-	p2phttp "github.com/libp2p/go-libp2p-http"
+	gostream "github.com/libp2p/go-libp2p-gostream"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 func httpclient(client_node host.Host, peerid string, hash string) {
-	tr := &http.Transport{}
-	tr.RegisterProtocol("libp2p", p2phttp.NewTransport(client_node))
-	client := &http.Client{Transport: tr}
+	server_id, err := peer.Decode(peerid)
+	if err != nil {
+		log.Fatalf("Failed to open stream to peer: %v", err)
+		return
+	}
+	stream, err := gostream.Dial(context.Background(), client_node, server_id, "/mock-http/1.0.0")
+	if err != nil {
+		log.Fatalf("Failed to open stream to peer: %v", err)
+		return
+	}
+	defer stream.Close()
 
-	res, err := client.Get("libp2p://" + peerid + "/hello")
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return stream, nil
+			},
+		},
+	}
+
+	res, err := client.Get("http://mock-http/hello")
 	if err != nil {
 		fmt.Println("Error fetching file:", err)
 		return
