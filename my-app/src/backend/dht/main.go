@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -270,7 +269,7 @@ func main() {
 
 	defer node.Close()
 
-	// Get the current node IP
+	// Get the current node ID
 	peerID := node.ID().String()
 
 	// Configure HTTP routing
@@ -278,6 +277,7 @@ func main() {
 	mux.HandleFunc("/enable-proxy", enableProxyHandler(ctx, dht, peerID))
 	mux.HandleFunc("/disable-proxy", disableProxyHandler(ctx, dht, peerID))
 	mux.HandleFunc("/get-proxies", getAvailableProxiesHandler(ctx, dht, node))
+	mux.HandleFunc("/heartbeat", heartbeatHandler(dht, peerID))
 
 	// Start the HTTP server
 	go func() {
@@ -286,7 +286,7 @@ func main() {
 		}
 		log.Println("Server is running on http://localhost:8080")
 	}()
-	// go monitorProxyStatus(ctx, dht, peerID)
+	go monitorProxyStatus(node, dht)
 	go handleInput(ctx, dht)
 
 	// receiveDataFromPeer(node)
@@ -428,9 +428,10 @@ func refreshReservation(node host.Host, interval time.Duration) {
 
 /* Proxy Operations */
 type ProxyInfo struct {
-	IPAddress  string  `json:"ipAddress"`
-	PricePerMB float64 `json:"pricePerMB"`
-	Status     string  `json:"status"`
+	IPAddress  string    `json:"ipAddress"`
+	PricePerMB float64   `json:"pricePerMB"`
+	Status     string    `json:"status"`
+	LastActive time.Time `json:"lastActive"`
 }
 
 func storeProxyInfo(ctx context.Context, dht *dht.IpfsDHT, proxyInfo ProxyInfo, peerID string) error {
@@ -473,6 +474,7 @@ func enableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, peerID string) ht
 		}
 		proxyInfo.IPAddress = ip
 		proxyInfo.Status = "available"
+		proxyInfo.LastActive = time.Now()
 
 		err = storeProxyInfo(ctx, dht, proxyInfo, peerID)
 		if err != nil {
@@ -490,32 +492,7 @@ func disableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, peerID string) h
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := "/orcanet/proxy/" + peerID
 
-		// Get value from DHT
-		value, err := dht.GetValue(ctx, key)
-		if err != nil {
-			log.Printf("Failed to get proxy info: %v", err)
-			http.Error(w, "Failed to get proxy info", http.StatusInternalServerError)
-			return
-		}
-
-		// Update status
-		var proxyInfo ProxyInfo
-		err = json.Unmarshal(value, &proxyInfo)
-		if err != nil {
-			log.Printf("Failed to unmarshal proxy info: %v", err)
-			http.Error(w, "Failed to parse proxy info", http.StatusInternalServerError)
-			return
-		}
-		proxyInfo.Status = "unavailable"
-
-		// Restore new value
-		newValue, err := json.Marshal(proxyInfo)
-		if err != nil {
-			log.Printf("Failed to marshal updated proxy info: %v", err)
-			http.Error(w, "Failed to update proxy info", http.StatusInternalServerError)
-			return
-		}
-		err = dht.PutValue(ctx, key, newValue)
+		err := dht.PutValue(ctx, key, nil)
 		if err != nil {
 			log.Printf("Failed to update proxy info: %v", err)
 			http.Error(w, "Failed to disable proxy", http.StatusInternalServerError)
@@ -536,36 +513,6 @@ func getAvailableProxiesHandler(ctx context.Context, dht *dht.IpfsDHT, node host
 	}
 }
 
-/*
-	func monitorProxyStatus(ctx context.Context, dht *dht.IpfsDHT, peerID string) {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-
-		ticker := time.NewTicker(30 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				if !isNetworkAvailable() {
-					log.Println("Network disconnected. Marking proxy as unavailable...")
-					err := disableProxyHandler(ctx, dht, peerID)
-					if err != nil {
-						log.Printf("Failed to mark proxy as unavailable: %v", err)
-					}
-					os.Exit(0)
-				}
-			case <-quit:
-				log.Println("Server shtting down. Marking proxy as unvailable...")
-				err := disableProxyHandler(ctx, dht, peerID)
-				if err != nil {
-					log.Printf("Failed to mark proxy as unavailable: %v", err)
-				}
-				os.Exit(0)
-			}
-		}
-	}
-*/
 func getPublicIP() (string, error) {
 	resp, err := http.Get("https://api.ipify.org?format=text")
 	if err != nil {
@@ -578,11 +525,6 @@ func getPublicIP() (string, error) {
 		return "", err
 	}
 	return string(ip), nil
-}
-
-func isNetworkAvailable() bool {
-	_, err := net.DialTimeout("tcp", "8.8.8.8:53", 2*time.Second) // Try to connect Google DNS
-	return err == nil
 }
 
 func enableCORS(h http.Handler) http.Handler {
@@ -628,4 +570,76 @@ func listAllProxies(ctx context.Context, node host.Host, dht *dht.IpfsDHT) []Pro
 	}
 
 	return proxyInfos
+}
+
+/* Heartbeat */
+func heartbeatHandler(dht *dht.IpfsDHT, peerID string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.Background()
+		key := "/orcanet/proxy/" + peerID
+
+		value, err := dht.GetValue(ctx, key)
+		if err != nil {
+			log.Printf("Failed to find proxy info for heartbeat: %v", err)
+			http.Error(w, "Proxy not found", http.StatusNotFound)
+			return
+		}
+
+		var proxyInfo ProxyInfo
+		if err := json.Unmarshal(value, &proxyInfo); err != nil {
+			log.Printf("Failed to unmarshal proxy infor for heartbeat: %v", err)
+			http.Error(w, "Failed to parse proxy info", http.StatusInternalServerError)
+			return
+		}
+
+		proxyInfo.LastActive = time.Now()
+		newValue, err := json.Marshal(proxyInfo)
+		if err != nil {
+			log.Printf("Failed to marshal proxy info for heartbeat: %v", err)
+			http.Error(w, "Failed to update proxy info", http.StatusInternalServerError)
+			return
+		}
+
+		if err := dht.PutValue(ctx, key, newValue); err != nil {
+			log.Printf("Failed to store updated proxy info for heartbeat: %v", err)
+			http.Error(w, "Failed to store updated proxy info", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Heartbeat received"))
+	}
+}
+
+func monitorProxyStatus(node host.Host, dht *dht.IpfsDHT) {
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		ctx := context.Background()
+
+		for _, peer := range node.Peerstore().Peers() {
+			peerID := peer.String()
+			key := "/orcanet/proxy/" + peerID
+			value, err := dht.GetValue(ctx, key)
+			if err != nil {
+				continue
+			}
+
+			var proxyInfo ProxyInfo
+			err = json.Unmarshal(value, &proxyInfo)
+			if err != nil {
+				log.Printf("Failed to unmarshal proxy info for key %s: %v", key, err)
+				continue
+			}
+
+			if proxyInfo.Status == "available" && time.Since(proxyInfo.LastActive) > 12*time.Second {
+				if err := dht.PutValue(ctx, key, nil); err != nil {
+					log.Printf("Failed to store updated proxy info for key %s: %v", key, err)
+				}
+				log.Printf("Proxy %s is deleted due to inactivity", proxyInfo.IPAddress)
+			}
+		}
+	}
 }

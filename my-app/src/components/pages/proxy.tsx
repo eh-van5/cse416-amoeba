@@ -48,6 +48,7 @@ export default function ProxyPage(){
     const banwidthData = generateRandomBanwidthData();
 
     const POLLING_INTERVAL = 5000;
+    const HEARTBEAT_INTERVAL = 10000;
     useEffect(() => {
         const fecthData = async () => {
             const data = await fetchProxies();
@@ -59,6 +60,23 @@ export default function ProxyPage(){
         }, POLLING_INTERVAL);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+        if(isProxyEnabled) {
+            interval = setInterval(() => {
+                sendHeartbeat();
+            }, HEARTBEAT_INTERVAL);
+        }else if (interval !== null) {
+            clearInterval(interval);
+            interval = null;
+        }
+        return () => {
+            if (interval !== null) {
+                clearInterval(interval);
+            }
+        };
+    }, [isProxyEnabled])
 
     const DataTransferred = 0;
     const DataUsed = 0;
@@ -148,6 +166,14 @@ export default function ProxyPage(){
         }catch (error) {
             console.error(`Failed to fetch location for IP: ${ipAddress}`, error);
             return "Unknown";
+        }
+    };
+
+    const sendHeartbeat = async () => {
+        try {
+            await fetch('http://localhost:8080/heartbeat', { method: 'POST' });
+        } catch (error) {
+            console.error('Failed to send heartbeat:', error);
         }
     };
 
