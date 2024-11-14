@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -309,38 +310,24 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 				continue
 			}
 			key := args[1]
-			res, err := dht.GetValue(ctx, key)
+			dhtKey := "/orcanet/" + key
+			res, err := GetProviders(ctx, dht, dhtKey)
 			if err != nil {
-				fmt.Printf("Failed to get record: %v\n", err)
-				continue
+				fmt.Println("get failed")
 			}
-			fmt.Printf("Record: %s\n", res)
+			fmt.Println("Record ", res)
 
-		case "GET_PROVIDERS":
+		case "GET_IP":
 			if len(args) < 2 {
 				fmt.Println("Expected key")
 				continue
 			}
-			key := args[1]
-			data := []byte(key)
-			hash := sha256.Sum256(data)
-			mh, err := multihash.EncodeName(hash[:], "sha2-256")
+			peerid := args[1]
+			res, err := GetPeerAddr(ctx, dht, peerid)
 			if err != nil {
-				fmt.Printf("Error encoding multihash: %v\n", err)
-				continue
+				fmt.Println("peerid failed")
 			}
-			c := cid.NewCidV1(cid.Raw, mh)
-			providers := dht.FindProvidersAsync(ctx, c, 20)
-			fmt.Println("Searching for providers...")
-			for p := range providers {
-				if p.ID == peer.ID("") {
-					break
-				}
-				fmt.Printf("Found provider: %s\n", p.ID.String())
-				for _, addr := range p.Addrs {
-					fmt.Printf(" - Address: %s\n", addr.String())
-				}
-			}
+			fmt.Println("Multiaddr: ", res)
 
 		case "PUT":
 			if len(args) < 3 {
@@ -348,12 +335,12 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 				continue
 			}
 
-			// filePath := args[1]
+			filePath := args[1]
 			price, err := strconv.Atoi(args[2])
 			if err != nil {
 				fmt.Println("price conversion gone awry")
 			}
-			err = provideKey(ctx, dht, "C:/Users/School Liz/Downloads/hw6.pdf", price)
+			err = provideKey(ctx, dht, filePath, price)
 			if err != nil {
 				fmt.Println("error: %v", err)
 			}
@@ -365,10 +352,137 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 				continue
 			}
 			// key := args[1]
+
+		case "START_SERVER":
+			server()
+
+		case "GET_FILE":
+			if len(args) < 3 {
+				fmt.Println("Expected key")
+				continue
+			}
+			peerid := args[1]
+			hash := args[2]
+			res, err := GetPeerAddr(ctx, dht, peerid)
+			if err != nil {
+				fmt.Println("peerid failed")
+			}
+
+			httpclient(res, hash)
+
 		default:
-			fmt.Println("Expected GET, GET_PROVIDERS, PUT or PUT_PROVIDER")
+			fmt.Println("Expected GET, GET_IP, PUT or PUT_PROVIDER")
 		}
 	}
+}
+
+func httpclient(info peer.AddrInfo, hash string) {
+	fmt.Println(info.Addrs)
+
+	if len(info.Addrs) <= 0 {
+		fmt.Println("info doesn't exist")
+		return
+	}
+
+	addr := info.Addrs[0]
+
+	ip, err := addr.ValueForProtocol(multiaddr.P_IP4)
+
+	if err != nil {
+		ip, err = addr.ValueForProtocol(multiaddr.P_IP6)
+		if err != nil {
+			fmt.Println("Error extracting IP address:", err)
+			return
+		}
+	}
+
+	port, err := addr.ValueForProtocol(multiaddr.P_TCP)
+
+	if err != nil {
+		fmt.Println("Error extracting TCP port:", err)
+		return
+	}
+
+	url := "http://" + ip + ":" + port + "/" + hash
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error fetching file:", err)
+		return
+	}
+	defer response.Body.Close()
+
+	// Create a file to save the downloaded data
+	outFile, err := os.Create(hash)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer outFile.Close()
+
+	// Write the file contents to disk
+	_, err = io.Copy(outFile, response.Body)
+	if err != nil {
+		fmt.Println("Error saving file:", err)
+		return
+	}
+
+	fmt.Println("File downloaded successfully!")
+}
+
+func server() {
+	// Define the directory to serve files from
+	fs := http.FileServer(http.Dir("./uploaded_files"))
+
+	// Route requests to the server
+	http.Handle("/", fs)
+
+	// Start the server on port 8080
+	log.Println("Serving files on :8080...")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func uploadFile(fileContent []byte, hash string) {
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	copy, err := os.Create("uploaded_files/" + hash)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer copy.Close()
+	// write this byte array to our temporary file
+	copy.Write(fileContent)
+}
+
+func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) ([]FileProvider, error) {
+	res, err := dht.GetValue(ctx, contentHash)
+	var providers []FileProvider
+	if err != nil {
+		fmt.Printf("Failed to get record: %v\n", err)
+		return providers, err
+	}
+	json.Unmarshal(res, &providers)
+	return providers, nil
+}
+
+func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.AddrInfo, error) {
+	id, err := peer.Decode(peerId)
+
+	if err != nil {
+		fmt.Printf("Failed to decode peer: %v\n", err)
+		return peer.AddrInfo{}, err
+	}
+
+	fmt.Println(id)
+
+	res, err := dht.FindPeer(ctx, id)
+	if err != nil {
+		fmt.Printf("Failed to get peer: %v\n", err)
+		return peer.AddrInfo{}, err
+	}
+	return res, err
 }
 
 func provideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price int) error {
@@ -427,6 +541,7 @@ func provideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	}
 
 	fmt.Println("hash: ", c.String())
+	uploadFile(fileContent, c.String())
 	return nil
 }
 

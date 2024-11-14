@@ -18,6 +18,18 @@ type FileProvider struct {
 	Price  int
 }
 
+func uploadFile(fileContent []byte, hash string) {
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	copy, err := os.Create("uploaded_files/" + hash)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer copy.Close()
+	// write this byte array to our temporary file
+	copy.Write(fileContent)
+}
+
 func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price int) error {
 	// Read file content
 	fileContent, err := os.ReadFile(filePath)
@@ -73,23 +85,36 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	}
 
 	fmt.Println("hash: ", c.String())
+	uploadFile(fileContent, c.String())
+
 	return nil
 }
 
-func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) ([]byte, error) {
+func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) ([]FileProvider, error) {
 	res, err := dht.GetValue(ctx, contentHash)
+	var providers []FileProvider
 	if err != nil {
 		fmt.Printf("Failed to get record: %v\n", err)
-		return res, err
+		return providers, err
 	}
-	return res, nil
+	json.Unmarshal(res, &providers)
+	return providers, nil
 }
 
-func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId peer.ID) (peer.AddrInfo, error) {
-	res, err := dht.FindPeer(ctx, peerId)
+func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.AddrInfo, error) {
+	id, err := peer.Decode(peerId)
+
+	if err != nil {
+		fmt.Printf("Failed to decode peer: %v\n", err)
+		return peer.AddrInfo{}, err
+	}
+
+	fmt.Println(id)
+
+	res, err := dht.FindPeer(ctx, id)
 	if err != nil {
 		fmt.Printf("Failed to get peer: %v\n", err)
-		return res, err
+		return peer.AddrInfo{}, err
 	}
 	return res, err
 }
