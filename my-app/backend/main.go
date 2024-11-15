@@ -381,19 +381,30 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 func httpserver(server_node host.Host) error {
 	listener, _ := gostream.Listen(server_node, "/mock-http/1.0.0")
 	defer listener.Close()
-	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hi!"))
-	})
-	return http.Serve(listener, nil)
+	http.Handle("/", http.FileServer(http.Dir("../uploaded_files")))
+
+	http.Serve(listener, nil)
 }
 
-func httpclient(client_node host.Host, peerid string, hash string) {
-	server_id, err := peer.Decode(peerid)
+func httpclient(client_node host.Host, targetpeerid string, hash string) {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetpeerid)
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
 	if err != nil {
-		log.Fatalf("Failed to open stream to peer: %v", err)
+		log.Printf("Failed to create relay multiaddr: %v", err)
+	}
+	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+	}
+	if err := client_node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
 		return
 	}
-	stream, err := gostream.Dial(context.Background(), client_node, server_id, "/mock-http/1.0.0")
+
+	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/mock-http/1.0.0"), client_node, peerinfo.ID, "/mock-http/1.0.0")
 	if err != nil {
 		log.Fatalf("Failed to open stream to peer: %v", err)
 		return
@@ -408,7 +419,7 @@ func httpclient(client_node host.Host, peerid string, hash string) {
 		},
 	}
 
-	res, err := client.Get("http://mock-http/hello")
+	res, err := client.Get("http://mock-http/" + hash)
 	if err != nil {
 		fmt.Println("Error fetching file:", err)
 		return
