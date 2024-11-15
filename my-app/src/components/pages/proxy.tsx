@@ -7,6 +7,7 @@ import { useTheme } from '../../ThemeContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
 import { proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
+import { startHeartbeat, stopHeartbeat } from '../general/Heartbeat';
 
 export default function ProxyPage(){
     const {isDarkMode} = useTheme();
@@ -32,7 +33,10 @@ export default function ProxyPage(){
     const [isViewAvailable, setViewAvailable] = useState(false);
     const [isProxyEnabled, setIsProxyEnabled] = useState(false);
     const [isUsingProxy, setIsUsingProxy] = useState(false);
-    const [pricePerMB, setPricePerMB] = useState('');
+    const [pricePerMB, setPricePerMB] = useState(() => {
+        const savedPrice = localStorage.getItem("pricePerMB");
+        return savedPrice ? savedPrice : "";
+    });
     const [enableError, setEnableError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [useError, setUseError] = useState('');
@@ -51,8 +55,11 @@ export default function ProxyPage(){
     const HEARTBEAT_INTERVAL = 10000;
     useEffect(() => {
         const fecthData = async () => {
-            const data = await fetchProxies();
-            setProxyNodes(data);
+            const [proxies, status] = await Promise.all([fetchProxies(), fetchProxyStatus()]);
+            setProxyNodes(proxies);
+            setIsProxyEnabled(status);
+            if(!status)
+                setSuccessMessage('');
         };
         fecthData();
         const interval = setInterval(() => {
@@ -62,21 +69,16 @@ export default function ProxyPage(){
     }, []);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout | null = null;
-        if(isProxyEnabled) {
-            interval = setInterval(() => {
-                sendHeartbeat();
-            }, HEARTBEAT_INTERVAL);
-        }else if (interval !== null) {
-            clearInterval(interval);
-            interval = null;
-        }
-        return () => {
-            if (interval !== null) {
-                clearInterval(interval);
-            }
+        const handleUnload = () => {
+            stopHeartbeat();
         };
-    }, [isProxyEnabled])
+    
+        window.addEventListener("beforeunload", handleUnload);
+    
+        return () => {
+            window.removeEventListener("beforeunload", handleUnload);
+        };
+    }, []);
 
     const DataTransferred = 0;
     const DataUsed = 0;
@@ -105,6 +107,7 @@ export default function ProxyPage(){
                 if(response.ok) {
                     setSuccessMessage(result.status);
                     setIsProxyEnabled(true);
+                    startHeartbeat();
                 }else {
                     setEnableError('Failed to enable proxy.');
                     console.error('Error enabling proxy:', result);
@@ -125,6 +128,7 @@ export default function ProxyPage(){
             if(response.ok) {
                 setIsProxyEnabled(false);
                 setSuccessMessage('');
+                stopHeartbeat();
             }else {
                 console.error(result)
             }
@@ -152,6 +156,23 @@ export default function ProxyPage(){
         }
     };
 
+    const fetchProxyStatus = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/proxy-status");
+            const status = await response.json();
+            return status.isProxyEnabled;
+        }catch(error) {
+            console.error("Failed to fetch proxy status:", error);
+            return false
+        }
+    }
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setPricePerMB(value);
+        localStorage.setItem("pricePerMB", value);
+    };
+
     const fetchLocation = async (ipAddress: string): Promise<string> => {
         try {
             const response = await fetch(`http://ip-api.com/json/${ipAddress}`);
@@ -166,14 +187,6 @@ export default function ProxyPage(){
         }catch (error) {
             console.error(`Failed to fetch location for IP: ${ipAddress}`, error);
             return "Unknown";
-        }
-    };
-
-    const sendHeartbeat = async () => {
-        try {
-            await fetch('http://localhost:8080/heartbeat', { method: 'POST' });
-        } catch (error) {
-            console.error('Failed to send heartbeat:', error);
         }
     };
 
@@ -209,7 +222,7 @@ export default function ProxyPage(){
                 <SimpleBox title='Enable My IP as a Proxy'>
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
-                        <input type="text" value={pricePerMB} onChange={(e) => setPricePerMB(e.target.value)} disabled={isProxyEnabled} />
+                        <input type="text" value={pricePerMB} onChange={handlePriceChange} disabled={isProxyEnabled} />
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>

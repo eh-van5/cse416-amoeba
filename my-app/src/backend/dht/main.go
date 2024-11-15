@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -278,6 +279,7 @@ func main() {
 	mux.HandleFunc("/disable-proxy", disableProxyHandler(ctx, dht, peerID))
 	mux.HandleFunc("/get-proxies", getAvailableProxiesHandler(ctx, dht, node))
 	mux.HandleFunc("/heartbeat", heartbeatHandler(dht, peerID))
+	mux.HandleFunc("/proxy-status", proxyStatusHandler())
 
 	// Start the HTTP server
 	go func() {
@@ -485,6 +487,8 @@ func enableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, peerID string) ht
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Proxy Enabled"})
+
+		proxyStatusCache.isProxyEnabled = true
 	}
 }
 
@@ -501,6 +505,8 @@ func disableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, peerID string) h
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Proxy Disabled"})
+
+		proxyStatusCache.isProxyEnabled = false
 	}
 }
 
@@ -611,14 +617,39 @@ func heartbeatHandler(dht *dht.IpfsDHT, peerID string) http.HandlerFunc {
 	}
 }
 
+/* Proxy node Status */
+var proxyStatusCache = struct {
+	sync.RWMutex
+	isProxyEnabled bool
+}{
+	isProxyEnabled: false,
+}
+
 func monitorProxyStatus(node host.Host, dht *dht.IpfsDHT) {
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
+	ctx := context.Background()
+	peerID := node.ID().String()
+	key := "/orcanet/proxy/" + peerID
+
 	for {
 		<-ticker.C
-		ctx := context.Background()
 
+		// Check self proxy node status
+		value, err := dht.GetValue(ctx, key)
+		if err != nil || value == nil {
+			proxyStatusCache.Lock()
+			proxyStatusCache.isProxyEnabled = false
+			proxyStatusCache.Unlock()
+			continue
+		}
+
+		proxyStatusCache.Lock()
+		proxyStatusCache.isProxyEnabled = true
+		proxyStatusCache.Unlock()
+
+		// Check all other proxy nodes' status
 		for _, peer := range node.Peerstore().Peers() {
 			peerID := peer.String()
 			key := "/orcanet/proxy/" + peerID
@@ -638,8 +669,23 @@ func monitorProxyStatus(node host.Host, dht *dht.IpfsDHT) {
 				if err := dht.PutValue(ctx, key, nil); err != nil {
 					log.Printf("Failed to store updated proxy info for key %s: %v", key, err)
 				}
+				proxyStatusCache.isProxyEnabled = false
 				log.Printf("Proxy %s is deleted due to inactivity", proxyInfo.IPAddress)
 			}
 		}
+	}
+}
+
+func proxyStatusHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		proxyStatusCache.RLock()
+		defer proxyStatusCache.RUnlock()
+
+		status := map[string]bool{
+			"isProxyEnabled": proxyStatusCache.isProxyEnabled,
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(status)
 	}
 }
