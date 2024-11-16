@@ -41,13 +41,36 @@ export default function Login(props: Props){
         setCopied(newValues);
         navigator.clipboard.writeText(walletAddress);
     }
+
+    function inputField(name:string, placeholder:string){
+        return(
+            <div className="login-input-box">
+                <p className="login-input-text">{name}</p>
+                <input className="login-input" type="text" placeholder={placeholder}/>
+            </div>
+        )
+    }
+
+    function outputField(name:string, text:string, clipboardindex:number, width:number=450, height:number=45){
+        return(
+            <div>
+                <p className="create-wallet-key-name">{name}</p>
+                <div className="create-wallet-key-box" style={{width:width+"px", height:height+"px"}}>
+                    <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{text}</p>
+                    <div className="copy-clipboard" onClick={() => copyToClipboard(clipboardindex)}><CopyIcon/></div>
+                </div>
+                <p style={{visibility: copied[clipboardindex] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+            </div>
+        )
+    }
+
     function loginPage(){
         return(
             <div className="login-box">
                 <h1 className="login-text">Login</h1>
                 {/* <span style={{fontSize: "small", color: "red"}}>Incorrect address or password. Please try again.</span> */}
-                <input className="login-input" type="text" placeholder={"Wallet Address..."}/>
-                <input className="login-input" type="text" placeholder={"Password..."}/>
+                {inputField("Login", "Enter Wallet Address")}
+                {inputField("Password", "Enter Password")}
                 <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
 
                 <p className="login"><i>Don't have an account?</i></p>
@@ -58,48 +81,22 @@ export default function Login(props: Props){
 
     function createWalletPage(){
         return(
-            <div className="login-box" style={{width: "60%", minWidth: "500px", maxWidth: "700px"}}>
+            <div className="login-box" style={{width: "80%", minWidth: "500px", maxWidth: "1200px"}}>
                 <h1 className="login-text">Create Wallet</h1>
-                <div>
-                    <p className="create-wallet-key-name">Wallet Address</p>
-                    <div className="create-wallet-key-box">
-                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
-                        <div className="copy-clipboard" onClick={() => copyToClipboard(0)}><CopyIcon/></div>
+                <div style={{display: "flex", flexDirection: "row"}}>
+                    <div style={{width:"400px", display:"flex", flexDirection:"column", alignItems:"center"}}>
+                        {inputField("New Password", "Enter Password")}
+                        {inputField("Confirm Password", "Re-enter Password")}
+                        <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
+                        <p className="login"><i>Already have an account?</i></p>
+                        <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
                     </div>
-                    <p style={{visibility: copied[0] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
-                </div>
-                <div>
-                    <p className="create-wallet-key-name">Public Key</p>
-                    <div className="create-wallet-key-box">
-                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
-                        <div className="copy-clipboard" onClick={() => copyToClipboard(1)}><CopyIcon/></div>
+                    <div className="vertical-line"></div>
+                    <div>
+                        {outputField("Wallet", "Generate Wallet...", 0, 450, 100)}
+                        <button id="export-wallet-button" type="button">Export Wallet</button>
                     </div>
-                    <p style={{visibility: copied[1] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
                 </div>
-                <div>
-                    <p className="create-wallet-key-name">Private Key</p>
-                    <div className="create-wallet-key-box">
-                        <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{walletAddress}</p>
-                        <div className="copy-clipboard" onClick={() => copyToClipboard(2)}><CopyIcon/></div>
-                    </div>
-                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
-                </div>
-                <div>
-                    <p className="create-wallet-key-name">Password</p>
-                    <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Enter your password"
-                    style={{width: "20%"}}/>
-                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
-                </div>
-                <div>
-                    <p className="create-wallet-key-name">Confirm Password</p>
-                    <input className="create-wallet-key-box" type="password" name="profile-password" placeholder="Reenter your password"
-                    style={{width: "20%"}}/>
-                    <p style={{visibility: copied[2] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
-                </div>
-                <button id="export-wallet-button" type="button">Export Wallet</button>
-                <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
-                <p className="login"><i>Already have an account?</i></p>
-                <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
             </div>
         )
     }
