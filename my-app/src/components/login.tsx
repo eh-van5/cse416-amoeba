@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 import { CopyIcon } from "../images/icons/icons";
-
 // Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
 
 enum LoginPage{
@@ -31,7 +30,14 @@ export default function Login(props: Props){
     }
     const createWallet = () => {
         setWalletAddress("Loading...");
-        setTimeout(() => {setWalletCreated(true); setWalletAddress("bcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z");}, 1000);
+        setTimeout(() => {
+            setWalletCreated(true);
+            setWalletAddress(
+                "[Private Key]\nbcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z\n"+
+                "\n[Public Key]\nbcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z\n"+
+                "\n[Wallet Address]\nbcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z\n"
+            );
+        }, 1000);
     }
     const copyToClipboard = (i:number) => {
         const newValues = copied.map((v, index) => {
@@ -40,6 +46,15 @@ export default function Login(props: Props){
         });
         setCopied(newValues);
         navigator.clipboard.writeText(walletAddress);
+    }
+
+    const downloadTxtFile = () => {
+        const element = document.createElement("a");
+        const file = new Blob([walletAddress], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = "Wallet_info.txt";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
     }
 
     function inputField(name:string, placeholder:string){
@@ -55,11 +70,11 @@ export default function Login(props: Props){
         return(
             <div>
                 <p className="create-wallet-key-name">{name}</p>
-                <div className="create-wallet-key-box" style={{width:width+"px", height:height+"px"}}>
+                <div className="create-wallet-key-box" style={{maxWidth:width+"px", height:height+"px"}}>
                     <p style={{color: walletCreated ? "black" : "#ababad"}} className="create-wallet-key">{text}</p>
-                    <div className="copy-clipboard" onClick={() => copyToClipboard(clipboardindex)}><CopyIcon/></div>
+                    {/* <div className="copy-clipboard" onClick={() => copyToClipboard(clipboardindex)}><CopyIcon/></div> */}
                 </div>
-                <p style={{visibility: copied[clipboardindex] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p>
+                {/* <p style={{visibility: copied[clipboardindex] ? "visible" : "hidden"}} className="copy-clipboard-status">Copied to clipboard ✓</p> */}
             </div>
         )
     }
@@ -81,9 +96,9 @@ export default function Login(props: Props){
 
     function createWalletPage(){
         return(
-            <div className="login-box" style={{width: "80%", minWidth: "500px", maxWidth: "1200px"}}>
+            <div className="login-box" style={{width: "1200px"}}>
                 <h1 className="login-text">Create Wallet</h1>
-                <div style={{display: "flex", flexDirection: "row"}}>
+                <div style={{display: "flex", flexDirection: "row", gap: "40px"}}>
                     <div style={{width:"400px", display:"flex", flexDirection:"column", alignItems:"center"}}>
                         {inputField("New Password", "Enter Password")}
                         {inputField("Confirm Password", "Re-enter Password")}
@@ -92,9 +107,10 @@ export default function Login(props: Props){
                         <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
                     </div>
                     <div className="vertical-line"></div>
-                    <div>
-                        {outputField("Wallet", "Generate Wallet...", 0, 450, 100)}
-                        <button id="export-wallet-button" type="button">Export Wallet</button>
+                    <div style={{width:"500px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        {outputField("Wallet", walletAddress, 0, 450, 200)}
+                        <button id='create-wallet-export-button' className="create-wallet-button" type="button" onClick={downloadTxtFile} style={{visibility: walletCreated ? "visible" : "hidden"}}>Export Wallet</button>
+                        <button id='create-wallet-login-button' className="create-wallet-button" type="button" onClick={() => setCurrentPage(LoginPage.Login)} style={{visibility: walletCreated ? "visible" : "hidden"}}>Login</button>
                     </div>
                 </div>
             </div>

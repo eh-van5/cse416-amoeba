@@ -138,6 +138,7 @@ body{
 }
 
 .create-wallet-key-name{
+  font-size: 14px;
   position: relative;
   margin: 5px 0;
 
@@ -147,8 +148,8 @@ body{
 .create-wallet-key-box{
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+  /* align-items: center; */
+  /* gap: 20px; */
   border: 0.5px solid #abadad;
   border-radius: 3px;
 
@@ -159,11 +160,47 @@ body{
 }
 
 .create-wallet-key{
+  font-size: 14px;
+
   margin: 10px 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+#create-wallet-export-button{
+  background-color: #f0f0f0;
+  width: 80%;
+}
+
+#create-wallet-export-button:hover{
+  background-color: #c5c5c5;
+}
+
+#create-wallet-login-button{
+  background-color: #4470ff;
+  width: 80%;
+}
+
+#create-wallet-login-button:hover{
+  background-color: #2c56df;
+}
+
+.create-wallet-button{
+  border-radius: 3px;
+  border-style: none;
+
+  font-size: medium;
+
+  width: 80%;
+  max-width: 320px;
+  margin: 5px 0 0 0;
+  padding: 10px 10px;
+
+  cursor: pointer;
 }
 
 .copy-clipboard{
-  width: 25px;
+  min-width: 25px;
 }
 
 .copy-clipboard:hover{
