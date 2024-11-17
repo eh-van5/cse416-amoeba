@@ -39,6 +39,14 @@ func uploadFile(fileContent []byte, hash string) {
 	defer copy.Close()
 	// write this byte array to our temporary file
 	copy.Write(fileContent)
+
+	// set to read-only so no one modifies the file
+	errs := os.Chmod("uploaded_files/"+hash, 0444)
+
+	if err != nil {
+		fmt.Println("Error making file read-only:", errs)
+		return
+	}
 }
 
 func generateContentHash(fileContent []byte) (cid.Cid, error) {
@@ -167,3 +175,12 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 	}
 	return res, err
 }
+
+// TODO get all available files -- idea: make a key whose value is purely for contributing file metadata
+// another idea: go look at kubo
+
+// TODO reconcile conflicting file names, modified, etc
+// For now, just accept teh first node to upload a file as complete truth
+
+// TODO file chunking -- gross
+

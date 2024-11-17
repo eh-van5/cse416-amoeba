@@ -112,10 +112,16 @@ func HttpClient(
 	res, err := client.Get("http://get-file/" + hash)
 
 	if err != nil {
-		fmt.Println("Error fetching file:", err)
+		fmt.Println("Error fetching file: ", err)
 		return
 	}
+
 	defer res.Body.Close()
+
+	if res.StatusCode >= 400 {
+		fmt.Println("HTTP Error Code: ", res.StatusCode)
+		return
+	}
 
 	downloadDir := getDownloadsDirectory()
 	// Create a file to save the downloaded data
@@ -135,3 +141,7 @@ func HttpClient(
 
 	fmt.Println("File downloaded successfully!")
 }
+
+// TODO: double check the file content against the hash to ensure nothing has been changed
+
+// TODO bitcoin transactions
