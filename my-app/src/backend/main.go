@@ -131,6 +131,11 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 
 			fshare.HttpClient(node, peerid, hash)
 
+		case "REMOVE_FILEINFO":
+			hash := args[1]
+			var b []byte
+			dht.PutValue(ctx, "/orcanet/"+hash, b)
+
 		default:
 			fmt.Println("Expected GET, GET_IP, PUT or PUT_PROVIDER")
 		}
