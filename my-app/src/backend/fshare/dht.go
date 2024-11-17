@@ -184,3 +184,4 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 
 // TODO file chunking -- gross
 
+// TODO removing files from dht
