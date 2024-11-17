@@ -129,7 +129,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			// 	fmt.Println("peerid failed")
 			// }
 
-			fshare.HttpClient(node, peerid, hash)
+			fshare.HttpClient(ctx, dht, node, peerid, hash)
 
 		case "REMOVE_FILEINFO":
 			hash := args[1]
