@@ -63,7 +63,7 @@ func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, err
 		return &net.IPConn{}, err
 	}
 
-	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/http/get-file"), client_node, peerinfo.ID, "/mock-http/1.0.0")
+	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/get-file"), client_node, peerinfo.ID, "/get-file")
 	if err != nil {
 		log.Fatalf("Failed to open stream to peer: %v", err)
 		return &net.IPConn{}, err
