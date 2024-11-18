@@ -85,8 +85,7 @@ export default function ProxyPage(){
 
     const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
-        const validNumberPattern = /^[0-9]*\.?[0-9]+$/;
-        if(!pricePerMB || !validNumberPattern.test(pricePerMB) || price < 0) {
+        if(!pricePerMB || isNaN(price) || price < 0) {
             setEnableError('Please enter a valid positive number or 0.');
             setSuccessMessage('');
         }else {
@@ -144,7 +143,8 @@ export default function ProxyPage(){
 
             const proxiesWithLocation = await Promise.all(
                 proxies.map(async (proxy: proxyNodeStructure) => {
-                    const location = await fetchLocation(proxy.ipAddress);
+                    //const location = await fetchLocation(proxy.ipAddress);
+                    const location = "N/A";
                     return {...proxy, location};
                 })
             );
@@ -190,14 +190,48 @@ export default function ProxyPage(){
         }
     };
 
-    const handleUseProxy = () => {
+    const handleUseProxy = async () => {
         if (!selectedProxyNode.ipAddress) {
             setUseError('Please select a proxy node before using.');
-        } else {
-            setUseError('');
-            setIsUsingProxy(!isUsingProxy);
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:8080/use-proxy", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ targetPeerID: selectedProxyNode.ipAddress }),
+            });
+
+            const result = await response.json();
+            if(response.ok) {
+                setIsUsingProxy(true);
+                setUseError('');
+            }else {
+                setUseError('Failed to connect to proxy node.');
+                console.error(result);
+            }
+        }catch(error) {
+            console.error(error);
+            setUseError('Network error while connecting to proxy.');
         }
     };
+
+    const handleStopUsingProxy = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/stop-using-proxy', {
+                method: 'POST',
+            });
+            if(response.ok) {
+                setIsUsingProxy(false);
+            }else {
+                console.error('Failed to stop using proxy.');
+            }
+        }catch(error) {
+            console.error('Network error while stopping proxy.');
+        }
+    }
 
     const handleSelectProxyNode = (node: proxyNodeStructure) => {
         if(isViewAvailable)
@@ -253,7 +287,7 @@ export default function ProxyPage(){
                         <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={handleUseProxy} />
+                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={isUsingProxy ? handleStopUsingProxy : handleUseProxy} />
                     </div>
                 </SimpleBox>
             </div> )}
