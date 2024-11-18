@@ -41,12 +41,12 @@ func uploadFile(fileContent []byte, hash string) {
 	copy.Write(fileContent)
 
 	// set to read-only so no one modifies the file
-	errs := os.Chmod("../userFiles/"+hash, 0444)
+	// errs := os.Chmod("../userFiles/"+hash, 0444)
 
-	if err != nil {
-		fmt.Println("Error making file read-only:", errs)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Println("Error making file read-only:", errs)
+	// 	return
+	// }
 }
 
 func generateContentHash(fileContent []byte) (cid.Cid, error) {
