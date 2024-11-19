@@ -12,8 +12,9 @@ import { useTheme } from './ThemeContext';
 import UserFilesPage from './components/pages/userFiles';
 import NetworkFilesPage from './components/pages/networkFiles';
 import ProfilePage from './components/pages/profile';
+import { useWebSocket } from './components/WebSocket';
 
-export enum Page{
+export enum Page {
   Proxy,
   UserFiles,
   NetworkFiles,
@@ -32,39 +33,42 @@ function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Proxy);
   const { isDarkMode } = useTheme();
+  const [message, setMessage] = useState<string | null>(null);
+  const { sendMessage, wsRef } = useWebSocket("ws://localhost:8080/ws", setMessage)
 
-  const[notifications, setNotifications] = useState<boolean>(true);
+  const [notifications, setNotifications] = useState<boolean>(true);
   useEffect(() => {
     setCurrentPage(Page.Proxy);
-  }, [loggedIn]);
-
-  return(
+  }, [loggedIn, sendMessage, wsRef]);
+  console.log('Received Message: ', message);
+  return (
     <div>
+      <button onClick={() => {sendMessage(message === null ? 'Click' : message +"Modified")}}>Click Me</button>
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
-      {loggedIn && 
-      <div className={`page${isDarkMode ? '-dark' : ''}`}>
-        <Navbar
-          setPage={setCurrentPage}
-          logout={() => setLoggedIn(false)}
-        ></Navbar>
-        {
-          ({
-            [Page.Proxy]: <DashboardPage/> ,
-            [Page.UserFiles]: <UserFilesPage/>,
-            [Page.NetworkFiles]: <NetworkFilesPage />,
-            [Page.Transactions]: <TransactionsPage/>,
-            [Page.Wallet]: <WalletPage/>,
-            [Page.Mining]: <MiningPage/>,
-            [Page.Settings]: <SettingsPage 
-                            notifications={notifications} 
-                            setNotifications={setNotifications}
-                            />,    
-            [Page.Profile]: <ProfilePage/>
+      {loggedIn &&
+        <div className={`page${isDarkMode ? '-dark' : ''}`}>
+          <Navbar
+            setPage={setCurrentPage}
+            logout={() => setLoggedIn(false)}
+          ></Navbar>
+          {
+            ({
+              [Page.Proxy]: <DashboardPage />,
+              [Page.UserFiles]: <UserFilesPage />,
+              [Page.NetworkFiles]: <NetworkFilesPage />,
+              [Page.Transactions]: <TransactionsPage />,
+              [Page.Wallet]: <WalletPage />,
+              [Page.Mining]: <MiningPage />,
+              [Page.Settings]: <SettingsPage
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />,
+              [Page.Profile]: <ProfilePage />
             })[currentPage]
-        }
-      </div>}
+          }
+        </div>}
     </div>
-    
+
   )
 }
 

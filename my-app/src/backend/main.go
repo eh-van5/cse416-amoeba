@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"log"
 	"main/fshare"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gorilla/websocket"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -22,7 +25,22 @@ var (
 	globalCtx           context.Context
 )
 
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func main() {
+	http.HandleFunc("/ws", handleConnection)
+
+	go func() {
+		log.Println("Starting webscoket server on 8080")
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatal("Failed to start websocket server")
+		}
+	}()
+
 	node, dht, err := CreateNode()
 	if err != nil {
 		log.Fatalf("Failed to create node: %s", err)
@@ -48,6 +66,29 @@ func main() {
 	defer node.Close()
 
 	select {}
+}
+
+func handleConnection(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Upgrade error: ", err)
+		return
+	}
+	defer conn.Close()
+	log.Println("Client Connected")
+
+	for {
+		msgType, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Read error: ", err)
+			break
+		}
+		log.Printf("Received message: %s\n", msg)
+		if err := conn.WriteMessage(msgType, msg); err != nil {
+			log.Println("Write error: ", err)
+			break
+		}
+	}
 }
 
 func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
