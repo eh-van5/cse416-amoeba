@@ -84,7 +84,8 @@ func handleConnection(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		log.Printf("Received message: %s\n", msg)
-		if err := conn.WriteMessage(msgType, msg); err != nil {
+		newMsg := append(msg, []byte(" - Modified ")...)
+		if err := conn.WriteMessage(msgType, newMsg); err != nil {
 			log.Println("Write error: ", err)
 			break
 		}
