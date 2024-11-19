@@ -1,18 +1,26 @@
+import { ReactElement } from "react";
 import { useTheme } from "../../ThemeContext";
-import ItemsTable from "./itemsTable"
 
-export default function FileTable () {
-    const {isDarkMode} = useTheme();
-
-    // pull items from backend
-    let items = [];
-    for (let i = 0; i < 4*60; i++){
-        items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>test</span>);
-    }
-    const headings = ["Name", "Shared By", "Last Modified", "Status", "Size"];
-    return (
-        <div id="filesTable">
-            <ItemsTable headings={headings} items={items}/>
-        </div>
-    )
+interface itemsTableProps {
+    headings: string[],
+    items: ReactElement[],
 }
+export default function FilesTable ({
+    headings,
+    items
+}: itemsTableProps){
+    const {isDarkMode} = useTheme();
+    const formattedHeader = headings.map(heading => {
+        return <span className={`items-table-header${isDarkMode? '-dark' : ''}`}>{heading}</span>
+    });
+
+    return (
+        <div className={`items-table${isDarkMode? '-dark' : ''}`}>
+            {formattedHeader}
+            {items}
+        </div>
+    );
+};
+
+
+

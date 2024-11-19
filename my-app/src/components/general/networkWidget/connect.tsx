@@ -7,7 +7,7 @@ export default function Connect() {
             <label htmlFor="networkUrl" style={(isDarkMode ? {color: 'white'} : {})}>Connect To Network</label>
             <br></br>
             <input placeholder="Link" id="networkUrl" type="text"/>
-            <input type="submit"/>
+            <input value="Connect" type="submit"/>
         </div>
     );
 }

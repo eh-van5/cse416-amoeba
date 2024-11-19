@@ -1,44 +1,37 @@
 import { UploadFileIcon } from "../../images/icons/icons";
 import { useTheme } from "../../ThemeContext";
+import { UserFileData } from "../pages/userFiles";
 
-export default function UploadFileWidget(){
+interface UploadFileWidgetProps{
+    files: Map<string, UserFileData>
+    setItems: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>
+}
+export default function UploadFileWidget({files, setItems}: UploadFileWidgetProps){
     const {isDarkMode} = useTheme();
 
-    function readFile(file: File){
-        const reader = new FileReader();
-        reader.addEventListener('loadstart', (function(f) {
-            return (event) =>{
-                const loadingBar = document.getElementById("file-progress-bar");
-                if (loadingBar){
-                    console.log(loadingBar);
-                    // loadingBar.innerHTML = "Loading " + file.name;
-                    loadingBar.style.width = "0%";
-                } 
-                console.log(f);
-            }
-        })(file))
-        reader.addEventListener('progress', (function(f) {
-            return (event) => {
-                if (event.loaded && event.total) {
-                    const percent = (event.loaded / event.total) * 100;
-                    const loadingBar = document.getElementById("file-progress-bar");
-                    const files = document.getElementById("files-uploaded");
-                    if (loadingBar && files){
-                        console.log(f.name);
-                        if (percent >= 100){
-                            loadingBar.style.width = "100%";
-                            files.innerHTML = "Loaded " + f.name;
-                        } else {
-                            loadingBar.style.width = percent + "%";
-                        }
-                    }
+    // function readFile(file: File){
+    //     const reader = new FileReader();
+    //     reader.addEventListener('loadstart', (function(f) {
+    //         return (event) =>{
+    //             const loadingBar = document.getElementById("file-progress-bar");
+    //             if (loadingBar){
+    //                 console.log(loadingBar);
+    //                 // loadingBar.innerHTML = "Loading " + file.name;
+    //                 loadingBar.style.width = "0%";
+    //             } 
+    //             console.log(f);
+    //         }
+    //     })(file))
+    //     reader.addEventListener('loadend', (function(f) {
+    //         return (event) => {
+    //             setItems(prevItems => [...prevItems, f]);
+    //         }
+    //     })(file));
+    //     reader.readAsDataURL(file);
+    // }
 
-                    console.log(`Progress: ${Math.round(percent)}`)
-                }
-            }
-        })(file));
-        reader.readAsDataURL(file);
-    }
+    
+    // register files into dht
     function dropHandler(event: React.DragEvent){
         event.preventDefault();
         console.log("Something has been dropped");
@@ -49,24 +42,27 @@ export default function UploadFileWidget(){
                 if (file === null){
                     throw Error("Parsing something that isn't a file");
                 }
-                readFile(file);
+                files.set(file.name, {file: file, price: 0, shared: false});
             }
         })
+        setItems(new Map(files));
     }
     function dragOverHandler(event: React.DragEvent){
         event.preventDefault();
     }
+    // here is where u register files into dht
     function fileSelectorHandler(event: React.ChangeEvent){
         const target = event.target as HTMLInputElement;
         const filesList = target.files;
         if (filesList === null){
             throw Error;
         }
-
         Object.values(filesList).forEach(file => {
-            readFile(file);
+            files.set(file.name, {file: file, price: 0, shared: false});
         })
+        setItems(new Map(files));
     }
+
     return (
         <div id = "file-widget">
             <div             
