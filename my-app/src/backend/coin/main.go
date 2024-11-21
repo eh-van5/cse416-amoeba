@@ -9,9 +9,17 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	//this package is in cse416-amoeba\coins\btcd\mining
+	//"github.com/btcsuite/btcd"
+	//"github.com/btcsuite/btcd/peer"
+	//"github.com/btcsuite/btcd/blockchain"
+	//"github.com/btcsuite/btcd/chaincfg"
+	//"github.com/btcsuite/btcd/mining"
+	//"github.com/btcsuite/btcd/mining/cpuminer"
+	//"github.com/btcsuite/btcd/txscript"
 	//"btcd/mining"
 )
+
+//todo reconnect if it goes down welpy
 
 // Starts the btcd process
 func StartBtcd() {
@@ -249,30 +257,6 @@ func OutputStream(stream io.ReadCloser, name string) {
 	}
 }
 
-// Creates a new PeerManager
-func CreatePeerManager() {
-	peerManager := peer.NewPeerManager()
-	return peerManager
-}
-
-// Starts a new PeerManager (should be when you open the page?????), gotta discover peers somehow
-func StartPeerManager(PeerManager peerManager) {
-	go PeerManager.Start() //does not need args
-}
-
-// i think string should be the address, for testing prob
-func AddPeer(peer string) {
-
-}
-
-// calls mining package to make a new block template
-func GetBlockTemplate() {
-
-}
-
-func SubmitBlock() {
-
-}
 func mine(numblocks int) {
 	// Define the name of the executable
 	executable := "../../btcd/mining/./mining"
