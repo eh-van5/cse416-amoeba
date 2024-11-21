@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -12,7 +13,8 @@ import (
 )
 
 // Starts the btcd process
-func StartBtcd() {
+// miningAddress is used for mining, obtained by calling GetNewAdrress
+func StartBtcd(miningAddress string, sigchan chan os.Signal) {
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -23,6 +25,11 @@ func StartBtcd() {
 		"--rpcpass=password",
 		"--notls",
 		"--debuglevel=info",
+	}
+
+	// If a mining address is given
+	if miningAddress != "" {
+		args = append(args, "--miningaddr="+miningAddress)
 	}
 
 	cmd := exec.Command(executable, args...)
@@ -47,18 +54,77 @@ func StartBtcd() {
 	go OutputStream(stderr, name)
 
 	// Waits for cmd to terminate
-	if err := cmd.Wait(); err != nil {
-		fmt.Printf("Error waiting for %s: %s\n", name, err)
+	// if err := cmd.Wait(); err != nil {
+	// 	fmt.Printf("Error waiting for %s: %s\n", name, err)
+	// }
+	go func() {
+		<-sigchan
+		fmt.Printf("%s Terminated.\n", name)
+		cmd.Process.Signal(os.Kill)
+	}()
+}
+
+// Starts the btcwallet process
+// Assumes that wallet already exists
+func StartWallet(walletpass string, sigchan chan os.Signal) {
+	name := "btcwallet"
+	fmt.Printf("Starting %s...\n", name)
+
+	// Gets path to command and arguments to pass into command
+	executable := "../../coin/btcwallet/./btcwallet"
+	args := []string{
+		"--btcdusername=user",
+		"--btcdpassword=password",
+		"--rpcconnect=127.0.0.1:8334",
+		"--noclienttls",
+		"--noservertls",
+		"--username=user",
+		"--password=password",
+		fmt.Sprintf("--walletpass=%s", walletpass),
+	}
+	fmt.Printf("Before command init\n")
+	cmd := exec.Command(executable, args...)
+
+	fmt.Printf("After command init\n")
+	// Gets output stream of process
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Printf("Error getting %s stdout: %s\n", name, err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Printf("Error getting %s stderr: %s\n", name, err)
+	}
+	fmt.Printf("Before start\n")
+
+	// Starts running command
+	if err := cmd.Start(); err != nil {
+		fmt.Printf("Error starting %s: %s\n", name, err)
 	}
 
-	fmt.Printf("%s Terminated.\n", name)
+	fmt.Printf("After start\n")
+	// Print
+	go OutputStream(stdout, name)
+	go OutputStream(stderr, name)
+
+	// Waits for cmd to terminate
+	// if err := cmd.Wait(); err != nil {
+	// 	fmt.Printf("Error waiting for %s to exit: %s\n", name, err)
+	// }
+	fmt.Printf("Wait term\n")
+	go func() {
+		<-sigchan
+		fmt.Printf("%s Terminated.\n", name)
+		cmd.Process.Signal(os.Kill)
+	}()
+
 }
 
 // Starts btcwallet to create a wallet
 // Typically used when calling btcwallet for the first time
-func CreateWallet(privatepass string, publicpass string) {
+func CreateWallet(privatepass string, publicpass string) (privateKey string, err error) {
 	name := "btcwallet"
-	fmt.Printf("Starting %s...\n", name)
+	// fmt.Printf("Starting %s...\n", name)
 
 	// Gets path to executable file and arguments to pass into it
 	executable := "../../coin/btcwallet/./btcwallet"
@@ -79,6 +145,7 @@ func CreateWallet(privatepass string, publicpass string) {
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		fmt.Printf("Error starting %s with pty: %s\n", name, err)
+		return "", err
 	}
 
 	defer func() { _ = ptmx.Close() }()
@@ -97,9 +164,20 @@ func CreateWallet(privatepass string, publicpass string) {
 	// Print stdout from pty
 	go func() {
 		scanner := bufio.NewScanner(ptmx)
+		foundPrivateKey := false
 		for scanner.Scan() {
 			text := scanner.Text()
+
+			// the next line will be the private key, store this and return at the end
+			if foundPrivateKey {
+				privateKey = text
+				foundPrivateKey = false
+			}
 			fmt.Printf("%s> %s\n", name, text)
+
+			if strings.Contains(text, "Your wallet generation seed is:") {
+				foundPrivateKey = true
+			}
 		}
 	}()
 
@@ -121,101 +199,56 @@ func CreateWallet(privatepass string, publicpass string) {
 	// Waits for cmd to terminate
 	if err := cmd.Wait(); err != nil {
 		fmt.Printf("Error waiting for %s: %s\n", name, err)
+		return "", nil
 	}
 
 	fmt.Printf("%s Terminated.\n", name)
+
+	return privateKey, nil
 }
 
-// Starts the btcwallet process
-// Assumes that wallet already exists
-func StartWallet(walletpass string) {
-	name := "btcwallet"
-	fmt.Printf("Starting %s...\n", name)
+// // Runs btcctl commands
+// func RunBtcCommand(command string) {
+// 	name := "btcctl"
 
-	// Gets path to command and arguments to pass into command
-	executable := "../../coin/btcwallet/./btcwallet"
-	args := []string{
-		"--btcdusername=user",
-		"--btcdpassword=password",
-		"--rpcconnect=127.0.0.1:8334",
-		"--noclienttls",
-		"--noservertls",
-		"--username=user",
-		"--password=password",
-		fmt.Sprintf("--walletpass=%s", walletpass),
-	}
-	cmd := exec.Command(executable, args...)
-	fmt.Println("Starting btcwallet...")
+// 	fmt.Printf("%s %s\n", name, command)
+// 	// Gets path to command
+// 	executable := "../../coin/btcd/cmd/btcctl/./btcctl"
+// 	// Parses command string into multiple arguments
+// 	args := []string{
+// 		"--rpcuser=user",
+// 		"--rpcpass=password",
+// 		"--rpcserver=127.0.0.1:8332",
+// 		"--notls",
+// 		"--wallet",
+// 	}
 
-	// Gets output stream of process
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Printf("Error getting %s stdout: %s\n", name, err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		fmt.Printf("Error getting %s stderr: %s\n", name, err)
-	}
+// 	args = append(args, strings.Split(command, " ")...)
 
-	// Starts running command
-	if err := cmd.Start(); err != nil {
-		fmt.Printf("Error starting %s: %s\n", name, err)
-	}
+// 	cmd := exec.Command(executable, args...)
 
-	// Print
-	go OutputStream(stdout, name)
-	go OutputStream(stderr, name)
+// 	// Gets stdout and stderr of cmd
+// 	stdout, err := cmd.StdoutPipe()
+// 	if err != nil {
+// 		fmt.Printf("Error getting %s stdout: %s\n", name, err)
+// 	}
+// 	stderr, err := cmd.StderrPipe()
+// 	if err != nil {
+// 		fmt.Printf("Error getting %s stderr: %s\n", name, err)
+// 	}
 
-	// Waits for cmd to terminate
-	if err := cmd.Wait(); err != nil {
-		fmt.Printf("Error waiting for %s to exit: %s\n", name, err)
-	}
+// 	if err := cmd.Start(); err != nil {
+// 		fmt.Printf("Error starting %s\n", name)
+// 	}
 
-	fmt.Printf("%s Terminated.\n", name)
-}
+// 	go OutputStream(stdout, name)
+// 	go OutputStream(stderr, name)
 
-// Runs btcctl commands
-func RunBtcCommand(command string) {
-	name := "btcctl"
-
-	fmt.Printf("%s %s\n", name, command)
-	// Gets path to command
-	executable := "../../coin/btcd/cmd/btcctl/./btcctl"
-	// Parses command string into multiple arguments
-	args := []string{
-		"--rpcuser=user",
-		"--rpcpass=password",
-		"--rpcserver=127.0.0.1:8332",
-		"--notls",
-		"--wallet",
-	}
-
-	args = append(args, strings.Split(command, " ")...)
-
-	cmd := exec.Command(executable, args...)
-
-	// Gets stdout and stderr of cmd
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Printf("Error getting %s stdout: %s\n", name, err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		fmt.Printf("Error getting %s stderr: %s\n", name, err)
-	}
-
-	if err := cmd.Start(); err != nil {
-		fmt.Printf("Error starting %s\n", name)
-	}
-
-	go OutputStream(stdout, name)
-	go OutputStream(stderr, name)
-
-	// Waits for cmd to terminate
-	if err := cmd.Wait(); err != nil {
-		fmt.Printf("Error waiting for %s: %s", name, err)
-	}
-}
+// 	// Waits for cmd to terminate
+// 	if err := cmd.Wait(); err != nil {
+// 		fmt.Printf("Error waiting for %s: %s", name, err)
+// 	}
+// }
 
 // OLD CODE *******
 // Runs a command
@@ -236,6 +269,7 @@ func RunBtcCommand(command string) {
 // 	}
 // }
 
+// Prints output from stream
 func OutputStream(stream io.ReadCloser, name string) {
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
