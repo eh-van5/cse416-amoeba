@@ -11,3 +11,10 @@ npm install
 ```
 npm start
 ```
+
+# Start btcd and wallet
+```
+cd my-app/src/backend/coin
+go build
+go run .
+```
