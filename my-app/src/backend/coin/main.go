@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,25 +18,9 @@ import (
 	"github.com/eh-van5/cse416-amoeba/server"
 )
 
-// import (
-// 	"log"
-
-// 	"github.com/gofiber/fiber/v2"
-// )
-
-// func main() {
-// 	app := fiber.New()
-
-// 	app.Get("/", GetTest)
-
-// 	log.Fatal(app.Listen(":4000"))
-// }
-
-// func GetTest(c *fiber.Ctx) error {
-// 	return c.Status(200).JSON(fiber.Map{"msg": "Hello World"})
-// }
-
 func main() {
+	name := "Colony"
+
 	ntfnHandlers := rpcclient.NotificationHandlers{
 		OnFilteredBlockConnected: func(height int32, header *wire.BlockHeader, txns []*btcutil.Tx) {
 			log.Printf("Block connected: %v (%d) %v",
@@ -46,12 +32,19 @@ func main() {
 		},
 	}
 
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	btcdDone := make(chan bool)
+	walletDone := make(chan bool)
+	defer cancel()
 
-	server.StartBtcd("", sigchan)
+	// Starts btcd process
+	server.StartBtcd(ctx, btcdDone, "")
+	// Wait for btcd to start
 	time.Sleep(3 * time.Second)
-	server.StartWallet("pass2", sigchan)
+
+	// Starts btcwallet
+	server.StartWallet(ctx, walletDone, "pass2")
+	// Wait for btcwallet to start
 	time.Sleep(3 * time.Second)
 
 	// // btcd configurations
@@ -73,6 +66,8 @@ func main() {
 	}
 
 	client, err := rpcclient.New(connCfg, &ntfnHandlers)
+	defer client.Shutdown()
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -84,24 +79,32 @@ func main() {
 	http.HandleFunc("/", c.GetTest)
 	http.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 
-	// api.CreateWallet()
-	// api.StartWallet()
-	// server.StartBtcd()
-	// server.StartWallet("pass2")
-
 	PORT := "8000"
-
-	fmt.Printf("Colony> server listening on :%s\n", PORT)
-	err = http.ListenAndServe(":"+PORT, nil)
-
-	if err != nil {
-		log.Fatal(err)
+	fmt.Printf("%s> created http server on port %s\n", name, PORT)
+	server := &http.Server{
+		Addr:    ":" + PORT,
+		Handler: nil,
 	}
 
+	fmt.Printf("%s> server listening on :%s\n", name, PORT)
 	go func() {
-		<-sigchan
-		fmt.Printf("Received signal. Terminating Colony.\n")
-		c.Rpc.Shutdown()
-		fmt.Printf("Terminated.")
+		err = server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("HTTP server error: %v", err)
+		}
 	}()
+
+	// Waits for signal to terminate program
+	<-ctx.Done()
+
+	// Waits for all other processes to terminate before shutting down main process
+	<-btcdDone
+	<-walletDone
+	fmt.Printf("%s> Processes terminated, shutting down HTTP server...\n", name)
+	if err := server.Shutdown(context.Background()); err != nil {
+		log.Fatalf("HTTP server shutdown error: %v", err)
+	}
+	fmt.Printf("%s> Shut down HTTP server\n", name)
+
+	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }

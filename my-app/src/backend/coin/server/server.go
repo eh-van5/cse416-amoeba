@@ -2,9 +2,9 @@ package server
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -14,7 +14,7 @@ import (
 
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func StartBtcd(miningAddress string, sigchan chan os.Signal) {
+func StartBtcd(ctx context.Context, done chan bool, miningAddress string) {
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -53,20 +53,18 @@ func StartBtcd(miningAddress string, sigchan chan os.Signal) {
 	go OutputStream(stdout, name)
 	go OutputStream(stderr, name)
 
-	// Waits for cmd to terminate
-	// if err := cmd.Wait(); err != nil {
-	// 	fmt.Printf("Error waiting for %s: %s\n", name, err)
-	// }
+	// Waits for stop signals to terminate process
 	go func() {
-		<-sigchan
-		fmt.Printf("%s Terminated.\n", name)
-		cmd.Process.Signal(os.Kill)
+		<-ctx.Done()
+		fmt.Printf("Stopping %s...\n", name)
+		done <- true
+		cmd.Process.Kill()
 	}()
 }
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func StartWallet(walletpass string, sigchan chan os.Signal) {
+func StartWallet(ctx context.Context, done chan bool, walletpass string) {
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -82,10 +80,8 @@ func StartWallet(walletpass string, sigchan chan os.Signal) {
 		"--password=password",
 		fmt.Sprintf("--walletpass=%s", walletpass),
 	}
-	fmt.Printf("Before command init\n")
 	cmd := exec.Command(executable, args...)
 
-	fmt.Printf("After command init\n")
 	// Gets output stream of process
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -95,29 +91,23 @@ func StartWallet(walletpass string, sigchan chan os.Signal) {
 	if err != nil {
 		fmt.Printf("Error getting %s stderr: %s\n", name, err)
 	}
-	fmt.Printf("Before start\n")
 
 	// Starts running command
 	if err := cmd.Start(); err != nil {
 		fmt.Printf("Error starting %s: %s\n", name, err)
 	}
 
-	fmt.Printf("After start\n")
 	// Print
 	go OutputStream(stdout, name)
 	go OutputStream(stderr, name)
 
-	// Waits for cmd to terminate
-	// if err := cmd.Wait(); err != nil {
-	// 	fmt.Printf("Error waiting for %s to exit: %s\n", name, err)
-	// }
-	fmt.Printf("Wait term\n")
+	// Waits for stop signals to terminate process
 	go func() {
-		<-sigchan
-		fmt.Printf("%s Terminated.\n", name)
-		cmd.Process.Signal(os.Kill)
+		<-ctx.Done()
+		fmt.Printf("Stopping %s...\n", name)
+		done <- true
+		cmd.Process.Kill()
 	}()
-
 }
 
 // Starts btcwallet to create a wallet
