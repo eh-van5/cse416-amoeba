@@ -12,9 +12,47 @@ import (
 	"github.com/creack/pty"
 )
 
+type ProcessManager struct {
+	btcdCmd    *exec.Cmd
+	walletCmd  *exec.Cmd
+	BtcdDone   chan bool
+	WalletDone chan bool
+}
+
+// Stops any existing btcd and btcwallet processes
+func (pm *ProcessManager) StopServer() {
+	fmt.Printf("Stopping server...\n")
+
+	go func() {
+		if pm.btcdCmd != nil && pm.btcdCmd.Process != nil {
+			fmt.Printf("btcd> Stopping btcd...\n")
+			if err := pm.btcdCmd.Process.Kill(); err != nil {
+				fmt.Printf("btcd> Error stopping btcd, %v", err)
+			} else {
+				fmt.Printf("btcd> Stopped btcd.\n")
+			}
+			pm.BtcdDone <- true
+		}
+	}()
+
+	go func() {
+		if pm.walletCmd != nil && pm.walletCmd.Process != nil {
+			fmt.Printf("btcwallet> Stopping btcwallet...\n")
+			if err := pm.walletCmd.Process.Kill(); err != nil {
+				fmt.Printf("btcwallet> Error stopping btcwallet, %v", err)
+			} else {
+				fmt.Printf("btcwallet> Stopped btcwallet.\n")
+			}
+			pm.WalletDone <- true
+		}
+	}()
+
+	fmt.Printf("Server stopped.\n")
+}
+
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func StartBtcd(ctx context.Context, done chan bool, miningAddress string) {
+func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) {
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -32,20 +70,20 @@ func StartBtcd(ctx context.Context, done chan bool, miningAddress string) {
 		args = append(args, "--miningaddr="+miningAddress)
 	}
 
-	cmd := exec.Command(executable, args...)
+	pm.btcdCmd = exec.Command(executable, args...)
 
 	// Gets output stream of process
-	stdout, err := cmd.StdoutPipe()
+	stdout, err := pm.btcdCmd.StdoutPipe()
 	if err != nil {
 		fmt.Printf("Error getting %s stdout: %s\n", name, err)
 	}
-	stderr, err := cmd.StderrPipe()
+	stderr, err := pm.btcdCmd.StderrPipe()
 	if err != nil {
 		fmt.Printf("Error reading %s stderr: %s\n", name, err)
 	}
 
 	// Starts running command
-	if err := cmd.Start(); err != nil {
+	if err := pm.btcdCmd.Start(); err != nil {
 		fmt.Println("Error starting cmd: ", err)
 	}
 
@@ -57,14 +95,14 @@ func StartBtcd(ctx context.Context, done chan bool, miningAddress string) {
 	go func() {
 		<-ctx.Done()
 		fmt.Printf("Stopping %s...\n", name)
-		done <- true
-		cmd.Process.Kill()
+		pm.BtcdDone <- true
+		pm.btcdCmd.Process.Kill()
 	}()
 }
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func StartWallet(ctx context.Context, done chan bool, walletpass string) {
+func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) {
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -80,20 +118,20 @@ func StartWallet(ctx context.Context, done chan bool, walletpass string) {
 		"--password=password",
 		fmt.Sprintf("--walletpass=%s", walletpass),
 	}
-	cmd := exec.Command(executable, args...)
+	pm.walletCmd = exec.Command(executable, args...)
 
 	// Gets output stream of process
-	stdout, err := cmd.StdoutPipe()
+	stdout, err := pm.walletCmd.StdoutPipe()
 	if err != nil {
 		fmt.Printf("Error getting %s stdout: %s\n", name, err)
 	}
-	stderr, err := cmd.StderrPipe()
+	stderr, err := pm.walletCmd.StderrPipe()
 	if err != nil {
 		fmt.Printf("Error getting %s stderr: %s\n", name, err)
 	}
 
 	// Starts running command
-	if err := cmd.Start(); err != nil {
+	if err := pm.walletCmd.Start(); err != nil {
 		fmt.Printf("Error starting %s: %s\n", name, err)
 	}
 
@@ -105,8 +143,8 @@ func StartWallet(ctx context.Context, done chan bool, walletpass string) {
 	go func() {
 		<-ctx.Done()
 		fmt.Printf("Stopping %s...\n", name)
-		done <- true
-		cmd.Process.Kill()
+		pm.WalletDone <- true
+		pm.walletCmd.Process.Kill()
 	}()
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +22,44 @@ import (
 func main() {
 	name := "Colony"
 
+	// Functions in the login page
+	http.HandleFunc("/", api.GetTest)
+	http.HandleFunc("/createWallet/{pass1}/{pass2}", api.CreateWallet)
+	http.HandleFunc("/login/{password}", Login)
+
+	PORT := 8000
+	fmt.Printf("%s> created http server on port %d\n", name, PORT)
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", PORT),
+		Handler: nil,
+	}
+
+	fmt.Printf("%s> server listening on :%d\n", name, PORT)
+	// go func() {
+	err := httpServer.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("HTTP server error: %v", err)
+	}
+	// }()
+
+	// Login("pass2") // placeholder password
+
+	fmt.Printf("%s> Processes terminated, shutting down HTTP server...\n", name)
+	if err := httpServer.Shutdown(context.Background()); err != nil {
+		log.Fatalf("HTTP server shutdown error: %v", err)
+	}
+	fmt.Printf("%s> Shut down HTTP server\n", name)
+
+	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	password := r.PathValue("password")
+	if password == "" {
+		return
+	}
+
+	// name := "Colony"
 	ntfnHandlers := rpcclient.NotificationHandlers{
 		OnFilteredBlockConnected: func(height int32, header *wire.BlockHeader, txns []*btcutil.Tx) {
 			log.Printf("Block connected: %v (%d) %v",
@@ -31,32 +70,25 @@ func main() {
 				header.BlockHash(), height, header.Timestamp)
 		},
 	}
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	btcdDone := make(chan bool)
-	walletDone := make(chan bool)
 	defer cancel()
 
+	pm := &server.ProcessManager{
+		BtcdDone:   make(chan bool),
+		WalletDone: make(chan bool),
+	}
+
 	// Starts btcd process
-	server.StartBtcd(ctx, btcdDone, "")
+	pm.StartBtcd(ctx, "")
 	// Wait for btcd to start
 	time.Sleep(3 * time.Second)
 
 	// Starts btcwallet
-	server.StartWallet(ctx, walletDone, "pass2")
+	pm.StartWallet(ctx, password)
 	// Wait for btcwallet to start
 	time.Sleep(3 * time.Second)
 
-	// // btcd configurations
-	// connCfg := &rpcclient.ConnConfig{
-	// 	Host:       "localhost:8334",
-	// 	Endpoint:   "ws",
-	// 	User:       "user",
-	// 	Pass:       "password",
-	// 	DisableTLS: true,
-	// }
-
-	// btcwallet configurations
+	// RPC configurations
 	connCfg := &rpcclient.ConnConfig{
 		Host:       "localhost:8332",
 		Endpoint:   "ws",
@@ -73,38 +105,19 @@ func main() {
 	}
 
 	c := api.Client{
-		Rpc: client,
+		ProcessManager: pm,
+		Rpc:            client,
 	}
 
-	http.HandleFunc("/", c.GetTest)
+	// handle
 	http.HandleFunc("/generateAddress", c.GenerateWalletAddress)
+	http.HandleFunc("/stopServer", c.StopServer)
 
-	PORT := "8000"
-	fmt.Printf("%s> created http server on port %s\n", name, PORT)
-	server := &http.Server{
-		Addr:    ":" + PORT,
-		Handler: nil,
-	}
-
-	fmt.Printf("%s> server listening on :%s\n", name, PORT)
-	go func() {
-		err = server.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("HTTP server error: %v", err)
-		}
-	}()
-
+	io.WriteString(w, "Logged into server!")
 	// Waits for signal to terminate program
 	<-ctx.Done()
 
 	// Waits for all other processes to terminate before shutting down main process
-	<-btcdDone
-	<-walletDone
-	fmt.Printf("%s> Processes terminated, shutting down HTTP server...\n", name)
-	if err := server.Shutdown(context.Background()); err != nil {
-		log.Fatalf("HTTP server shutdown error: %v", err)
-	}
-	fmt.Printf("%s> Shut down HTTP server\n", name)
-
-	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
+	<-pm.BtcdDone
+	<-pm.WalletDone
 }
