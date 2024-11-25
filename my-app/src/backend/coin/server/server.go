@@ -150,7 +150,7 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) {
 
 // Starts btcwallet to create a wallet
 // Typically used when calling btcwallet for the first time
-func CreateWallet(privatepass string, publicpass string) (privateKey string, err error) {
+func CreateWallet(username string, password string) (privateKey string, err error) {
 	name := "btcwallet"
 	// fmt.Printf("Starting %s...\n", name)
 
@@ -180,13 +180,13 @@ func CreateWallet(privatepass string, publicpass string) (privateKey string, err
 
 	// All responses to inputs
 	responses := []string{
-		privatepass, // Enter the private passphrase for your new wallet
-		privatepass, // Confirm passphrase
-		"yes",       // Do you want to add an additional layer of encryption for public data? (n/no/y/yes) [no]
-		publicpass,  // Enter the public passphrase for your new wallet
-		publicpass,  // Confirm passphrase
-		"no",        // Do you have an existing wallet seed you want to use? (n/no/y/yes) [no]
-		"OK",        // Once you have stored the seed in a safe and secure location, enter "OK" to continue
+		password, // Enter the private passphrase for your new wallet
+		password, // Confirm passphrase
+		"yes",    // Do you want to add an additional layer of encryption for public data? (n/no/y/yes) [no]
+		username, // Enter the public passphrase for your new wallet
+		username, // Confirm passphrase
+		"no",     // Do you have an existing wallet seed you want to use? (n/no/y/yes) [no]
+		"OK",     // Once you have stored the seed in a safe and secure location, enter "OK" to continue
 	}
 
 	// Print stdout from pty

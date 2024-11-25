@@ -13,6 +13,7 @@ import (
 type Client struct {
 	ProcessManager *server.ProcessManager
 	Rpc            *rpcclient.Client
+	Username       string
 	Password       string
 }
 
@@ -43,10 +44,10 @@ func (c *Client) StopServer(w http.ResponseWriter, r *http.Request) {
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /createWallet request\n")
 
-	pass1 := r.PathValue("pass1")
-	pass2 := r.PathValue("pass2")
+	username := r.PathValue("username")
+	password := r.PathValue("password")
 
-	privateKey, err := server.CreateWallet(pass1, pass2)
+	privateKey, err := server.CreateWallet(username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,18 +55,27 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, privateKey)
 }
 
+// func (c *Client) CreateAccount(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Printf("got /createAccount request\n")
+
+// 	c.LockWallet()
+// }
+
 // Gets new wallet address for mining
 func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
-	// defer c.Rpc.Shutdown()
 	fmt.Printf("got /generateAddress request\n")
 
 	c.UnlockWallet()
 
-	// c.Rpc.CreateNewAccount("testaccount")
-
-	info, err := c.Rpc.GetNewAddress("testaccount")
+	// Username name will be used as account name
+	err := c.Rpc.CreateNewAccount(c.Username)
 	if err != nil {
-		fmt.Printf("Error getting new mining address: %v", err)
+		fmt.Printf("Error creating new wallet account: %v\n", err)
+	}
+
+	info, err := c.Rpc.GetNewAddress(c.Username)
+	if err != nil {
+		fmt.Printf("Error getting new mining address: %v\n", err)
 	}
 
 	// fmt.Println(info)
