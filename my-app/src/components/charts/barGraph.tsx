@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 interface barGraphProps {
     data: {name: string, value1: number, value2?: number}[];
@@ -30,7 +30,7 @@ const BarGraph: React.FC<barGraphProps> = ({
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useAppContext();
 
     const menuItems = useChartMenu(chartRef, graphData);
 

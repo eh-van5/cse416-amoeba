@@ -8,11 +8,10 @@ import TransactionsPage from './components/pages/transactions';
 import WalletPage from './components/pages/wallet';
 import MiningPage from './components/pages/mining';
 import SettingsPage from './components/pages/settings';
-import { useTheme } from './ThemeContext';
+import { useAppContext } from './AppContext';
 import UserFilesPage from './components/pages/userFiles';
 import NetworkFilesPage from './components/pages/networkFiles';
 import ProfilePage from './components/pages/profile';
-import { useWebSocket } from './components/WebSocket';
 
 export enum Page {
   Proxy,
@@ -32,18 +31,15 @@ export type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 function App() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Proxy);
-  const { isDarkMode } = useTheme();
-  const [message, setMessage] = useState<string | null>(null);
-  const { sendMessage, wsRef } = useWebSocket("ws://localhost:8080/ws", setMessage)
+  const { isDarkMode, sendMessage } = useAppContext();
 
   const [notifications, setNotifications] = useState<boolean>(true);
   useEffect(() => {
     setCurrentPage(Page.Proxy);
-  }, [loggedIn, sendMessage, wsRef]);
-  console.log('Received Message: ', message);
+  }, [loggedIn]);
   return (
     <div>
-      <button onClick={() => {sendMessage(message === null ? 'Click' : message +"Modified")}}>Click Me</button>
+      {/*<button onClick={() => sendMessage("Test", {testInt: 1})}>Test</button>*/}
       {!loggedIn && <Login setLoggedIn={setLoggedIn}></Login>}
       {loggedIn &&
         <div className={`page${isDarkMode ? '-dark' : ''}`}>

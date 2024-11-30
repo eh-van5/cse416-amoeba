@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import { proxyNodeStructure } from "./proxyNodes"
 
 interface selectButtonProps {
@@ -7,7 +7,7 @@ interface selectButtonProps {
 }
 
 export default function ProxySelectButton({ item, onSelect }: selectButtonProps) {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useAppContext();
     const handleSelect = () => {
         onSelect(item); // Trigger the selection logic when the button is clicked
     };

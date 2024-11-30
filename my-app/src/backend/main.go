@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"main/fshare"
@@ -68,6 +69,11 @@ func main() {
 	select {}
 }
 
+type MessageStruct struct {
+	Text      string
+	ExtraData map[string]interface{}
+}
+
 func handleConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -78,14 +84,30 @@ func handleConnection(w http.ResponseWriter, r *http.Request) {
 	log.Println("Client Connected")
 
 	for {
-		msgType, msg, err := conn.ReadMessage()
-		if err != nil {
+		msgType, msg, msgErr := conn.ReadMessage()
+		if msgErr != nil {
 			log.Println("Read error: ", err)
 			break
 		}
-		log.Printf("Received message: %s\n", msg)
-		newMsg := append(msg, []byte(" - Modified ")...)
-		if err := conn.WriteMessage(msgType, newMsg); err != nil {
+		log.Printf("Raw message: %s\n", msg)
+		var data map[string]interface{}
+		parseErr := json.Unmarshal(msg, &data)
+		if parseErr != nil {
+			log.Fatalf("Error parsing JSON: %s", err)
+		}
+
+		parsedMessage := MessageStruct{
+			Text:      data["message"].(string),
+			ExtraData: data,
+		}
+
+		log.Printf("Received message: %s\n", parsedMessage.Text)
+		parsedMessage.Text += "Modified"
+		returnMsg, encodeErr := json.Marshal(parsedMessage)
+		if encodeErr != nil {
+			log.Fatalf("Error marshalling JSON: %s", err)
+		}
+		if err := conn.WriteMessage(msgType, returnMsg); err != nil {
 			log.Println("Write error: ", err)
 			break
 		}

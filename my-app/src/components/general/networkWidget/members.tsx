@@ -1,5 +1,5 @@
 import { UserIcon } from "../../../images/icons/icons"
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 
 interface memberProps {
     name: string;
@@ -16,7 +16,7 @@ function Member(props: memberProps) {
 }
 
 export default function Members() {
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     const ms = ["test", "test", "test", "test", "test", "test", "test"]
     const members = ms.map(name => { return Member({name: name, theme: isDarkMode})});
