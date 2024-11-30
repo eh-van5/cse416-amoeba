@@ -22,7 +22,7 @@ import (
 
 var (
 	relay_node_addr           = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	DownloadDirNames []string = []string{"Downloads", "downloads", "downloads", "download"}
+	DownloadDirNames []string = []string{"Downloads", "downloads", "downloads", "download", "AmeobaDownloads"}
 )
 
 func getDownloadsDirectory() string {
@@ -42,6 +42,12 @@ func getDownloadsDirectory() string {
 			break
 		}
 	}
+
+	if downloadDir == "" {
+		os.Mkdir("AmeobaDownloads", 0777)
+		downloadDir = filepath.Join(homeDir, "AmeobaDownloads")
+	}
+
 	return downloadDir
 }
 

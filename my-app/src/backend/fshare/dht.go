@@ -32,7 +32,7 @@ type FileMetadata struct {
 func uploadFile(fileContent []byte, hash string) {
 	// Create a temporary file within our temp-images directory that follows
 	// a particular naming pattern
-	copy, err := os.Create("uploaded_files/" + hash)
+	copy, err := os.Create("../userFiles/" + hash)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -41,12 +41,12 @@ func uploadFile(fileContent []byte, hash string) {
 	copy.Write(fileContent)
 
 	// set to read-only so no one modifies the file
-	errs := os.Chmod("uploaded_files/"+hash, 0444)
+	// errs := os.Chmod("../userFiles/"+hash, 0444)
 
-	if err != nil {
-		fmt.Println("Error making file read-only:", errs)
-		return
-	}
+	// if err != nil {
+	// 	fmt.Println("Error making file read-only:", errs)
+	// 	return
+	// }
 }
 
 func generateContentHash(fileContent []byte) (cid.Cid, error) {
