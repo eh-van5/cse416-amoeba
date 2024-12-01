@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/server"
 )
@@ -97,4 +99,59 @@ func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, e
 	}
 
 	return blockCount, nil
+}
+
+// starts mining 1 block
+func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Mining starting")
+	c.UnlockWallet()
+
+	address, err := btcutil.DecodeAddress(c.Username, &chaincfg.MainNetParams)
+	if err != nil {
+		fmt.Printf("Error decoding Mining address (StartMining): %v\n", err)
+		c.LockWallet()
+		io.WriteString(w, "Mining stopped")
+		return
+
+	}
+	/*
+		_, err = c.Rpc.GenerateToAddress(1,address,nil)
+
+		if err != nil {
+			fmt.Printf("Error Generating to Address (StartMining): %v\n", err)
+			c.LockWallet()
+			return
+		}
+		io.WriteString(w,"Mining started")*/
+
+	for {
+		// mine one block
+		blockHashes, err := c.Rpc.GenerateToAddress(1, address, nil)
+
+		if err != nil {
+			fmt.Printf("Error generating to address (StartMining): %v\n", err)
+			io.WriteString(w, "Error mining block. Retrying...\n")
+			continue
+		}
+
+		// Check if the block was successfully mined by checking the response
+		if len(blockHashes) > 0 {
+			// Block successfully mined
+			fmt.Printf("Successfully mined block: %s\n", blockHashes[0])
+		} else {
+			// no block mined
+			fmt.Printf("Mining attempt failed (no block hashes returned)\n")
+			io.WriteString(w, "Mining attempt failed. Retrying...\n")
+		}
+
+	}
+}
+
+func (c *Client) StopMining(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Stopping mining...")
+
+	// locks wallet (stops mining)
+	c.LockWallet()
+
+	io.WriteString(w, "Mining stopped")
 }
