@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elazarl/goproxy"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -35,9 +36,12 @@ import (
 var (
 	node_id             = "SBU_Id" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
+	bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
 	globalCtx           context.Context
 )
+
+//bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
+//bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 
 func generatePrivateKeyFromSeed(seed []byte) (crypto.PrivKey, error) {
 	hash := sha256.Sum256(seed) // Generate deterministic key material
@@ -440,66 +444,96 @@ type ProxyInfo struct {
 	LastActive time.Time `json:"lastActive"`
 }
 
-var proxyServer *http.Server
-
 var proxyStatusCache struct {
 	sync.RWMutex
-	isProxyEnabled    bool
-	isUsingProxy      bool
-	activeProxyStream net.Conn
+	isProxyEnabled  bool
+	isUsingProxy    bool
+	listener        net.Listener
+	activeProxyPeer peer.ID
 }
 
-func handleStream(conn net.Conn) {
-	log.Printf("New connection from: %s", conn.RemoteAddr())
+var localHTTPProxy *http.Server
+var httpProxyListener net.Listener
 
-	reader := bufio.NewReader(conn)
-	for {
-		req, err := http.ReadRequest(reader)
-		if err != nil {
-			if err == io.EOF {
-				log.Printf("Connection closed by peer: %v", err)
-				return
-			}
-			log.Printf("Error reading HTTP request: %v", err)
-			return
-		}
-
-		log.Printf("Received HTTP request: %s %s", req.Method, req.URL)
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("Error forwarding request: %v", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		if err := resp.Write(conn); err != nil {
-			log.Printf("Error writing response: %v", err)
-			break
-		}
-		log.Println("Connection handled successfully.")
-	}
-	log.Printf("Closing connection: %s", conn.RemoteAddr())
-	conn.Close()
-}
-
-func startStreamListener(node host.Host) {
+func startProxyNode(node host.Host) net.Listener {
 	listener, err := gostream.Listen(node, "/amoeba-proxy/1.0.0")
 	if err != nil {
 		log.Fatalf("Failed to create gostream listener: %v", err)
 	}
-	defer listener.Close()
 
 	log.Println("Proxy node is ready, waiting for connections...")
 
-	for {
-		conn, err := listener.Accept()
+	proxy := goproxy.NewProxyHttpServer()
+	proxy.Verbose = true
+
+	// For HTTPS
+	proxy.OnRequest().HandleConnectFunc(func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+		log.Printf("Proxy node handling CONNECT request for host: %s", host)
+
+		conn, err := net.Dial("tcp", host)
 		if err != nil {
-			log.Printf("Failed to accept connection: %v", err)
-			continue
+			log.Printf("Failed to connect to target server %s: %v", host, err)
+			return goproxy.RejectConnect, ""
 		}
-		go handleStream(conn)
-	}
+
+		ctx.UserData = conn
+		return goproxy.OkConnect, host
+	})
+
+	proxy.OnRequest().DoFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+		log.Printf("Proxying HTTP request: %s %s", req.Method, req.URL)
+
+		client := &http.Client{}
+
+		newReq, err := http.NewRequest(req.Method, req.URL.String(), req.Body)
+		if err != nil {
+			log.Printf("Failed to create new request: %v", err)
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusInternalServerError, "Failed to create request")
+		}
+
+		newReq.Header = req.Header
+
+		resp, err := client.Do(newReq)
+		if err != nil {
+			log.Printf("Error forwarding request: %v", err)
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to forward request")
+		}
+
+		return nil, resp
+	})
+
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Printf("Failed to accept connection: %v", err)
+				return
+			}
+
+			go func(c net.Conn) {
+				defer c.Close()
+				http.Serve(&singleConnListener{c}, proxy)
+			}(conn)
+		}
+	}()
+
+	return listener
+}
+
+type singleConnListener struct {
+	net.Conn
+}
+
+func (l *singleConnListener) Accept() (net.Conn, error) {
+	return l.Conn, nil
+}
+
+func (l *singleConnListener) Close() error {
+	return l.Conn.Close()
+}
+
+func (l *singleConnListener) Addr() net.Addr {
+	return l.Conn.LocalAddr()
 }
 
 func storeProxyInfo(ctx context.Context, dht *dht.IpfsDHT, proxyInfo ProxyInfo, peerID string) error {
@@ -539,6 +573,9 @@ func enableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) h
 			http.Error(w, "Failed to retrieve public IP", http.StatusInternalServerError)
 			return
 		} */
+
+		listener := startProxyNode(node)
+
 		peerID := node.ID().String()
 		proxyInfo.IPAddress = peerID
 		proxyInfo.Status = "available"
@@ -550,14 +587,9 @@ func enableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) h
 			return
 		}
 
-		go startStreamListener(node)
-
-		for _, proto := range node.Mux().Protocols() {
-			log.Printf("Node is listening on protocol: %s", proto)
-		}
-
 		proxyStatusCache.Lock()
 		proxyStatusCache.isProxyEnabled = true
+		proxyStatusCache.listener = listener
 		proxyStatusCache.Unlock()
 
 		w.WriteHeader(http.StatusOK)
@@ -568,6 +600,14 @@ func enableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) h
 
 func disableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		proxyStatusCache.Lock()
+		defer proxyStatusCache.Unlock()
+
+		if !proxyStatusCache.isProxyEnabled {
+			http.Error(w, "Proxy is not enabled", http.StatusBadRequest)
+			return
+		}
+
 		peerID := node.ID().String()
 		key := "/orcanet/proxy/" + peerID
 
@@ -578,20 +618,17 @@ func disableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) 
 		}
 
 		// Stop HTTP service
-		if proxyServer != nil {
-			log.Println("Stopping proxy server...")
-			if err := proxyServer.Close(); err != nil {
-				log.Printf("Error stopping proxy server: %v", err)
+		if proxyStatusCache.listener != nil {
+			log.Println("Stopping proxy node listener...")
+			if err := proxyStatusCache.listener.Close(); err != nil {
+				log.Printf("Error stopping listener: %v", err)
 			} else {
-				log.Println("Proxy server stopped successfully.")
+				log.Println("Proxy node listener stopped successfully.")
 			}
-			proxyServer = nil
+			proxyStatusCache.listener = nil
 		}
-		node.RemoveStreamHandler("/amoeba-proxy/1.0.0")
 
-		proxyStatusCache.Lock()
 		proxyStatusCache.isProxyEnabled = false
-		proxyStatusCache.Unlock()
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Proxy Disabled"})
@@ -624,16 +661,11 @@ func useProxyHandler(node host.Host) http.HandlerFunc {
 			return
 		}
 
-		conn, err := gostream.Dial(network.WithAllowLimitedConn(context.Background(), "/amoeba-proxy/1.0.0"), node, targetPeer, "/amoeba-proxy/1.0.0")
-		if err != nil {
-			http.Error(w, "Failed to connect to target peer", http.StatusInternalServerError)
-			return
-		}
-		go serveProxy(conn, "127.0.0.1:8888")
+		go serveProxy(node)
 
 		proxyStatusCache.Lock()
 		proxyStatusCache.isUsingProxy = true
-		proxyStatusCache.activeProxyStream = conn
+		proxyStatusCache.activeProxyPeer = targetPeer
 		proxyStatusCache.Unlock()
 
 		w.WriteHeader(http.StatusOK)
@@ -646,20 +678,29 @@ func stopUsingProxyHandler() http.HandlerFunc {
 		proxyStatusCache.Lock()
 		defer proxyStatusCache.Unlock()
 
-		if !proxyStatusCache.isUsingProxy || proxyStatusCache.activeProxyStream == nil {
-			http.Error(w, "No active proxy connection to stop", http.StatusBadRequest)
+		if !proxyStatusCache.isUsingProxy {
+			http.Error(w, "Proxy is not in use", http.StatusBadRequest)
 			return
 		}
 
-		err := proxyStatusCache.activeProxyStream.Close()
-		if err != nil {
-			log.Printf("Failed to close proxy stream: %v", err)
-			http.Error(w, "Failed to stop using proxy", http.StatusInternalServerError)
-			return
+		if localHTTPProxy != nil {
+			log.Println("Shutting down local HTTP proxy...")
+			if err := localHTTPProxy.Close(); err != nil {
+				log.Printf("Error shutting down HTTP proxy: %v", err)
+			}
+			localHTTPProxy = nil
+		}
+
+		if httpProxyListener != nil {
+			log.Println("Closing HTTP proxy listener...")
+			if err := httpProxyListener.Close(); err != nil {
+				log.Printf("Error closing HTTP proxy listener: %v", err)
+			}
+			httpProxyListener = nil
 		}
 
 		proxyStatusCache.isUsingProxy = false
-		proxyStatusCache.activeProxyStream = nil
+		proxyStatusCache.activeProxyPeer = peer.ID("")
 
 		log.Println("Client stopped using proxy")
 		w.WriteHeader(http.StatusOK)
@@ -667,39 +708,70 @@ func stopUsingProxyHandler() http.HandlerFunc {
 	}
 }
 
-func serveProxy(conn net.Conn, addr string) {
-	proxy := &http.Server{
-		Addr: addr,
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Printf("Proxying request: %s %s", r.Method, r.URL)
-			err := r.Write(conn)
-			if err != nil {
-				log.Printf("Error writing request to stream: %v", err)
-				http.Error(w, "Proxy error", http.StatusInternalServerError)
-				return
-			}
+func serveProxy(node host.Host) {
+	proxy := goproxy.NewProxyHttpServer()
+	proxy.Verbose = true
 
-			resp, err := http.ReadResponse(bufio.NewReader(conn), r)
-			if err != nil {
-				log.Printf("Error reading response from stream: %v", err)
-				http.Error(w, "Proxy error", http.StatusInternalServerError)
-				return
-			}
-			defer resp.Body.Close()
+	proxy.OnRequest().HandleConnect(goproxy.FuncHttpsHandler(func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+		log.Printf("Handling CONNECT request for host: %s", host)
 
-			for k, v := range resp.Header {
-				for _, s := range v {
-					w.Header().Add(k, s)
-				}
-			}
-			w.WriteHeader(resp.StatusCode)
-			io.Copy(w, resp.Body)
-		}),
+		// Create a stream to the proxy node
+		conn, err := gostream.Dial(network.WithAllowLimitedConn(context.Background(), "/amoeba-proxy/1.0.0"), node, proxyStatusCache.activeProxyPeer, "/amoeba-proxy/1.0.0")
+		if err != nil {
+			log.Printf("Failed to connect to proxy node: %v", err)
+			return goproxy.RejectConnect, ""
+		}
+		defer conn.Close()
+
+		fmt.Fprintf(conn, "CONNECT %s HTTP/1.1\r\n\r\n", host)
+
+		// Returns transparent forwarding instructions
+		ctx.UserData = conn
+		return goproxy.OkConnect, host
+	}))
+
+	proxy.OnRequest().DoFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+		log.Printf("Proxying request: %s %s", req.Method, req.URL)
+
+		conn, err := gostream.Dial(network.WithAllowLimitedConn(context.Background(), "/amoeba-proxy/1.0.0"), node, proxyStatusCache.activeProxyPeer, "/amoeba-proxy/1.0.0")
+		if err != nil {
+			log.Printf("Failed to connect to proxy node: %v", err)
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to connect to proxy node")
+		}
+		defer conn.Close()
+
+		// Write the HTTP request to the P2P connection
+		err = req.Write(conn)
+		if err != nil {
+			log.Printf("Error writing request to stream: %v", err)
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to connect to proxy node")
+		}
+
+		// Read the HTTP response from the P2P connection
+		resp, err := http.ReadResponse(bufio.NewReader(conn), req)
+		if err != nil {
+			log.Printf("Error reading response from stream: %v", err)
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to receive response from proxy node")
+		}
+
+		return nil, resp
+	})
+
+	listener, err := net.Listen("tcp", "127.0.0.1:8888")
+	if err != nil {
+		log.Fatalf("Failed to start HTTP proxy: %v", err)
 	}
+	httpProxyListener = listener
 
-	log.Printf("Starting local HTTP proxy on %s", addr)
-	if err := proxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Failed to start local HTTP proxy: %v", err)
+	// Start a local HTTP Proxy Server
+	server := &http.Server{
+		Handler: proxy,
+	}
+	localHTTPProxy = server
+
+	log.Println("Starting local HTTP proxy on 127.0.0.1:8888")
+	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
+		log.Printf("HTTP proxy server stopped with error: %v", err)
 	}
 }
 
