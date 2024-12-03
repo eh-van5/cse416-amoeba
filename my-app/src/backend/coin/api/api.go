@@ -78,7 +78,7 @@ func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error getting new mining address: %v\n", err)
 	}
 
-	// fmt.Println(info)
+	fmt.Println(info)
 	io.WriteString(w, info.String())
 
 	// time.AfterFunc(time.Second*5, func() {
