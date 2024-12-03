@@ -17,6 +17,7 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
 	"github.com/eh-van5/cse416-amoeba/server"
+	//"backend/coin/api"
 )
 
 func main() {
@@ -131,6 +132,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		// handle
 		http.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 		http.HandleFunc("/stopServer", c.StopServer)
+		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
+		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
+		http.HandleFunc("/mineOneBlock/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+			c.MineOneBlock(w, r)
+		})
+		http.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+			c.StopMining(w, r)
+		})
 
 		// Waits for signal to terminate program
 		// <-ctx.Done()

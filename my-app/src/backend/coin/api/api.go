@@ -149,9 +149,6 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
 
 func (c *Client) StopMining(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Stopping mining...")
-
-	// locks wallet (stops mining)
 	c.LockWallet()
-
 	io.WriteString(w, "Mining stopped")
 }
