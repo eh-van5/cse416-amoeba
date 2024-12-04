@@ -5,14 +5,17 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore/leveldb"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multihash"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type FileProvider struct {
@@ -90,6 +93,29 @@ func getFileInfo(
 	return fileInfo, nil
 }
 
+func storeFilePrice(contentHash string, price int) {
+	// Open a LevelDB datastore
+	ds, err := leveldb.NewDatastore("/ameoba/prices", nil)
+	if err != nil {
+		log.Fatalf("Error creating datastore: %v", err)
+	}
+
+	// Put a key-value pair into the datastore
+	err = ds.Put([]byte(contentHash), []byte(price))
+	if err != nil {
+		log.Fatalf("Error putting value into datastore: %v", err)
+	}
+
+	// Retrieve the value using the key
+	val, err := ds.Get([]byte(contentHash))
+	if err != nil {
+		log.Fatalf("Error getting value from datastore: %v", err)
+	}
+
+	// Print the value
+	fmt.Println("Value retrieved:", int(val))
+}
+
 func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price int) error {
 	// read file content
 	fileMetadata, err := os.Stat(filePath)
@@ -141,6 +167,8 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 		return fmt.Errorf("failed to start providing key: %v", err)
 	}
 
+	storeFilePrice(c.String(), price)
+
 	fmt.Println("hash: ", c.String())
 	uploadFile(fileContent, c.String())
 
@@ -155,6 +183,10 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (Fi
 		return fileInfo, err
 	}
 	json.Unmarshal(res, &fileInfo)
+
+	// findProviders
+	// query each provider for the file price, if there isn't don't add it in
+	// provide providers and file price array
 	return fileInfo, nil
 }
 
@@ -175,6 +207,10 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 	}
 	return res, err
 }
+
+// func StopProvide(ctx context.Context, dht *dht.IpfsDHT, peerId string) err {
+// 	// remove from local storage
+// }
 
 // TODO get all available files -- idea: make a key whose value is purely for contributing file metadata
 // another idea: go look at kubo
