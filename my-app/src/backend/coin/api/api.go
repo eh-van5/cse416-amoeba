@@ -160,8 +160,12 @@ func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, peer := range peers {
-		fmt.Printf("Peer ID: %v, Address: %v, Services: %v, Version: %v, BytesSent: %v\n",
-			peer.ID, peer.Addr, peer.Services, peer.Version, peer.BytesSent)
+		fmt.Printf("Peer ID: %v, Address: %v, Connection time: %v, BytesSent: %v, PingTime %v\n",
+			peer.ID, peer.Addr, peer.ConnTime, peer.BytesSent, peer.PingTime)
 	}
 	io.WriteString(w, "Peers fetched")
+}
+func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Connecting to peer...")
+
 }
