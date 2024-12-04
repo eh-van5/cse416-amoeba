@@ -71,10 +71,11 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 				continue
 			}
 			key := args[1]
-			dhtKey := "/orcanet/" + key
-			res, err := fshare.GetProviders(ctx, dht, dhtKey)
+			// dhtKey := "/orcanet/" + key
+			res, err := fshare.GetProviders(ctx, dht, key)
 			if err != nil {
 				fmt.Println("get failed")
+				fmt.Println(err)
 			}
 			fmt.Println("Record ", res)
 
