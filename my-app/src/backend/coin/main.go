@@ -17,7 +17,11 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
 	"github.com/eh-van5/cse416-amoeba/server"
+<<<<<<< HEAD
 	//"backend/coin/api"
+=======
+	"github.com/rs/cors"
+>>>>>>> 9757a29723bfbb5419235fc40dcfe2fa64bef974
 )
 
 func main() {
@@ -34,16 +38,29 @@ func main() {
 		done <- true
 	}()
 
+	// Create new server mux and set cors options to allow requests from react server at port 3000
+	mux := http.NewServeMux()
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(mux)
+
 	// Functions in the login page
-	http.HandleFunc("/", api.GetTest)
-	http.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
-	http.HandleFunc("/login/{username}/{password}", Login)
+	mux.HandleFunc("/", api.GetTest)
+	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
+	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		Login(w, r, mux)
+	})
 
 	PORT := 8000
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", PORT),
-		Handler: nil,
+		Handler: handler,
 	}
 
 	fmt.Printf("%s> server listening on :%d\n", name, PORT)
@@ -65,7 +82,7 @@ func main() {
 	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	if password == "" {
@@ -73,6 +90,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(w, "Logged into server!")
+
+	started := make(chan bool, 1)
 
 	go func() {
 
@@ -130,6 +149,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Username: %s\nPassword:%s\n", c.Username, c.Password)
 
 		// handle
+<<<<<<< HEAD
 		http.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 		http.HandleFunc("/stopServer", c.StopServer)
 		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
@@ -140,6 +160,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			c.StopMining(w, r)
 		})
+=======
+		mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
+		mux.HandleFunc("/stopServer", c.StopServer)
+
+		fmt.Printf("HTTP handling functions\n")
+
+		// Signals login complete
+		started <- true
+>>>>>>> 9757a29723bfbb5419235fc40dcfe2fa64bef974
 
 		// Waits for signal to terminate program
 		// <-ctx.Done()
@@ -148,4 +177,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		<-pm.BtcdDone
 		<-pm.WalletDone
 	}()
+
+	// Waits for server to complete login before returning
+	<-started
 }

@@ -82,6 +82,11 @@ body{
   left: 20px;
 }
 
+.login-input-text::after{
+  content: " *";
+  color: red;
+}
+
 #login-button{
   cursor: pointer;
   width: 80%;
@@ -131,6 +136,11 @@ body{
 .login-link-red:hover{
   color: #6c1515;
   cursor: pointer;
+}
+
+.error-message{
+  color: red;
+  font-size: 12px;
 }
 
 .vertical-line{
