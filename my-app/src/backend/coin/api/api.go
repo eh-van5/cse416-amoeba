@@ -101,7 +101,7 @@ func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, e
 	return blockCount, nil
 }
 
-// starts mining 1 block
+// starts mining blocks till stop request
 func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
@@ -134,12 +134,9 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Check if the block was successfully mined by checking the response
 		if len(blockHashes) > 0 {
-			// Block successfully mined
 			fmt.Printf("Successfully mined block: %s\n", blockHashes[0])
 		} else {
-			// no block mined
 			fmt.Printf("Mining attempt failed (no block hashes returned)\n")
 			io.WriteString(w, "Mining attempt failed. Retrying...\n")
 		}
@@ -147,8 +144,24 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Stops mining by locking the wallet
 func (c *Client) StopMining(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Stopping mining...")
 	c.LockWallet()
 	io.WriteString(w, "Mining stopped")
+}
+
+// function to return all the peers that are connected(?)
+func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Getting all peers...")
+	peers, err := c.Rpc.GetPeerInfo()
+	if err != nil {
+		fmt.Printf("Error Getting All Peers (GetAllPeers): %v\n", err)
+		return
+	}
+	for _, peer := range peers {
+		fmt.Printf("Peer ID: %v, Address: %v, Services: %v, Version: %v, BytesSent: %v\n",
+			peer.ID, peer.Addr, peer.Services, peer.Version, peer.BytesSent)
+	}
+	io.WriteString(w, "Peers fetched")
 }
