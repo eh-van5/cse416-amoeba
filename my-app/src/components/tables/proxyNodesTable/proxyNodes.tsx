@@ -3,4 +3,5 @@ export interface proxyNodeStructure {
     pricePerMB: number;
     location: string;
     status: string;
+    peerID: string;
 }

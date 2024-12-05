@@ -20,6 +20,7 @@ type ProxyInfo struct {
 	PricePerMB float64   `json:"pricePerMB"`
 	Status     string    `json:"status"`
 	LastActive time.Time `json:"lastActive"`
+	PeerID     string    `json:"peerID"`
 }
 
 // ProxyStatusCache holds the shared status for proxies.

@@ -115,11 +115,11 @@ func EnableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) h
 			return
 		}
 
-		/* ip, err := getPublicIP()
+		ip, err := getPublicIP()
 		if err != nil {
 			http.Error(w, "Failed to retrieve public IP", http.StatusInternalServerError)
 			return
-		} */
+		}
 
 		listener, err := startProxyNode(node)
 		if err != nil {
@@ -128,9 +128,10 @@ func EnableProxyHandler(ctx context.Context, dht *dht.IpfsDHT, node host.Host) h
 		}
 
 		peerID := node.ID().String()
-		proxyInfo.IPAddress = peerID
+		proxyInfo.IPAddress = ip
 		proxyInfo.Status = "available"
 		proxyInfo.LastActive = time.Now()
+		proxyInfo.PeerID = peerID
 
 		err = storeProxyInfo(ctx, dht, proxyInfo, peerID)
 		if err != nil {

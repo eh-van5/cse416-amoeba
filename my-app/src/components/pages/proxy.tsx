@@ -43,7 +43,8 @@ export default function ProxyPage(){
     const [selectedProxyNode, setSelectedProxyNode] = useState({
         ipAddress: '',
         location: '',
-        pricePerMB: 0
+        pricePerMB: 0,
+        peerID: ''
     });
     const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
 
@@ -143,8 +144,7 @@ export default function ProxyPage(){
 
             const proxiesWithLocation = await Promise.all(
                 proxies.map(async (proxy: proxyNodeStructure) => {
-                    //const location = await fetchLocation(proxy.ipAddress);
-                    const location = "N/A";
+                    const location = await fetchLocation(proxy.ipAddress);
                     return {...proxy, location};
                 })
             );
@@ -179,7 +179,8 @@ export default function ProxyPage(){
             const data = await response.json();
     
             if(data.status === "success") {
-                return `${data.city}, ${data.country}`;
+                const region = data.regionName || data.city
+                return `${region}, ${data.country}`;
             }else {
                 console.warn(`Failed to fetch location for IP: ${ipAddress}`);
                 return "Unknown";
@@ -191,7 +192,7 @@ export default function ProxyPage(){
     };
 
     const handleUseProxy = async () => {
-        if (!selectedProxyNode.ipAddress) {
+        if (!selectedProxyNode.peerID) {
             setUseError('Please select a proxy node before using.');
             return;
         }
@@ -201,7 +202,7 @@ export default function ProxyPage(){
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ targetPeerID: selectedProxyNode.ipAddress }),
+                body: JSON.stringify({ targetPeerID: selectedProxyNode.peerID }),
             });
 
             const result = await response.json();
@@ -219,6 +220,12 @@ export default function ProxyPage(){
     };
 
     const handleStopUsingProxy = async () => {
+        setSelectedProxyNode({
+            ipAddress: '',
+            location: '',
+            pricePerMB: 0,
+            peerID: ''
+        });
         try {
             const response = await fetch('http://localhost:8080/stop-using-proxy', {
                 method: 'POST',
@@ -239,7 +246,8 @@ export default function ProxyPage(){
         setSelectedProxyNode({
             ipAddress: node.ipAddress,
             location: node.location,
-            pricePerMB: node.pricePerMB
+            pricePerMB: node.pricePerMB,
+            peerID: node.peerID
         });
     };
 

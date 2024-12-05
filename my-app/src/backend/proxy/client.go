@@ -147,8 +147,11 @@ func StopUsingProxyHandler() http.HandlerFunc {
 
 		if httpProxyListener != nil {
 			log.Println("Closing HTTP proxy listener...")
-			if err := httpProxyListener.Close(); err != nil {
+			err := httpProxyListener.Close()
+			if err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
 				log.Printf("Error closing HTTP proxy listener: %v", err)
+			} else {
+				log.Println("HTTP proxy listener closed successfully.")
 			}
 			httpProxyListener = nil
 		}
