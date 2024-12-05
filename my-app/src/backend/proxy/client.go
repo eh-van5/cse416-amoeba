@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"log"
 	"net"
 	"net/http"
@@ -20,79 +20,7 @@ import (
 var localHTTPProxy *http.Server
 var httpProxyListener net.Listener
 
-func UseProxyHandler(node host.Host) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var requestData struct {
-			TargetPeerID string `json:"targetPeerID"`
-		}
-
-		// Decode target peer ID from the request
-		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-			http.Error(w, "Invalid request payload", http.StatusBadRequest)
-			return
-		}
-
-		// Validate and decode the target peer ID
-		targetPeerID := strings.TrimSpace(requestData.TargetPeerID)
-		if targetPeerID == "" {
-			http.Error(w, "Target peer ID is required", http.StatusBadRequest)
-			return
-		}
-
-		targetPeer, err := peer.Decode(targetPeerID)
-		if err != nil {
-			http.Error(w, "Invalid target Peer ID", http.StatusBadRequest)
-			return
-		}
-
-		go serveProxy(node)
-
-		proxyStatusCache.Lock()
-		proxyStatusCache.isUsingProxy = true
-		proxyStatusCache.activeProxyPeer = targetPeer
-		proxyStatusCache.Unlock()
-
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "Using Proxy Node"})
-	}
-}
-
-func StopUsingProxyHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		proxyStatusCache.Lock()
-		defer proxyStatusCache.Unlock()
-
-		if !proxyStatusCache.isUsingProxy {
-			http.Error(w, "Proxy is not in use", http.StatusBadRequest)
-			return
-		}
-
-		if localHTTPProxy != nil {
-			log.Println("Shutting down local HTTP proxy...")
-			if err := localHTTPProxy.Close(); err != nil {
-				log.Printf("Error shutting down HTTP proxy: %v", err)
-			}
-			localHTTPProxy = nil
-		}
-
-		if httpProxyListener != nil {
-			log.Println("Closing HTTP proxy listener...")
-			if err := httpProxyListener.Close(); err != nil {
-				log.Printf("Error closing HTTP proxy listener: %v", err)
-			}
-			httpProxyListener = nil
-		}
-
-		proxyStatusCache.isUsingProxy = false
-		proxyStatusCache.activeProxyPeer = peer.ID("")
-
-		log.Println("Client stopped using proxy")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "Stopped Using Proxy"})
-	}
-}
-
-func serveProxy(node host.Host) {
+func startClientNode(node host.Host) {
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = true
 
@@ -106,8 +34,6 @@ func serveProxy(node host.Host) {
 			return goproxy.RejectConnect, ""
 		}
 		defer conn.Close()
-
-		fmt.Fprintf(conn, "CONNECT %s HTTP/1.1\r\n\r\n", host)
 
 		// Returns transparent forwarding instructions
 		ctx.UserData = conn
@@ -156,5 +82,82 @@ func serveProxy(node host.Host) {
 	log.Println("Starting local HTTP proxy on 127.0.0.1:8888")
 	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 		log.Printf("HTTP proxy server stopped with error: %v", err)
+	}
+}
+
+func UseProxyHandler(node host.Host) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestData struct {
+			TargetPeerID string `json:"targetPeerID"`
+		}
+
+		// Decode target peer ID from the request
+		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
+
+		// Validate and decode the target peer ID
+		targetPeerID := strings.TrimSpace(requestData.TargetPeerID)
+		if targetPeerID == "" {
+			http.Error(w, "Target peer ID is required", http.StatusBadRequest)
+			return
+		}
+
+		targetPeer, err := peer.Decode(targetPeerID)
+		if err != nil {
+			http.Error(w, "Invalid target Peer ID", http.StatusBadRequest)
+			return
+		}
+		proxyStatusCache.Lock()
+		defer proxyStatusCache.Unlock()
+
+		if proxyStatusCache.isUsingProxy {
+			http.Error(w, "Proxy is already in use", http.StatusBadRequest)
+			return
+		}
+
+		go startClientNode(node)
+
+		proxyStatusCache.isUsingProxy = true
+		proxyStatusCache.activeProxyPeer = targetPeer
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "Using Proxy Node"})
+	}
+}
+
+func StopUsingProxyHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		proxyStatusCache.Lock()
+		defer proxyStatusCache.Unlock()
+
+		if !proxyStatusCache.isUsingProxy {
+			http.Error(w, "Proxy is not in use", http.StatusBadRequest)
+			return
+		}
+
+		if localHTTPProxy != nil {
+			log.Println("Shutting down local HTTP proxy...")
+			if err := localHTTPProxy.Close(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Printf("Error shutting down HTTP proxy: %v", err)
+			}
+			localHTTPProxy = nil
+		}
+
+		if httpProxyListener != nil {
+			log.Println("Closing HTTP proxy listener...")
+			if err := httpProxyListener.Close(); err != nil {
+				log.Printf("Error closing HTTP proxy listener: %v", err)
+			}
+			httpProxyListener = nil
+		}
+
+		proxyStatusCache.isUsingProxy = false
+		proxyStatusCache.activeProxyPeer = peer.ID("")
+
+		log.Println("Client stopped using proxy")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "Stopped Using Proxy"})
 	}
 }
