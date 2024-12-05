@@ -28,6 +28,7 @@ var proxyStatusCache struct {
 	isProxyEnabled  bool
 	isUsingProxy    bool
 	listener        net.Listener
+	activeConns     sync.Map
 	activeProxyPeer peer.ID
 }
 

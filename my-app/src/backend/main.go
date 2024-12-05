@@ -68,7 +68,7 @@ func main() {
 
 	// Start the HTTP server
 	go func() {
-		if err := http.ListenAndServe(":8088", proxy.EnableCORS(mux)); err != nil {
+		if err := http.ListenAndServe(":8080", proxy.EnableCORS(mux)); err != nil {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
