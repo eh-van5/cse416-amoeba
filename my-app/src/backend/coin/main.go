@@ -50,10 +50,10 @@ func main() {
 	// Functions in the login page
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
-	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
 		Login(w, r, mux)
 	})
-
+	// 1F6zt9RztTi5ytUGmZeeoVY3tqD2cBNKtv
 	PORT := 8000
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
@@ -83,6 +83,7 @@ func main() {
 func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
+	miningaddr := r.PathValue("miningaddr")
 	if password == "" {
 		return
 	}
@@ -112,7 +113,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		}
 
 		// Starts btcd process
-		pm.StartBtcd(ctx, "")
+		pm.StartBtcd(ctx, miningaddr)
 		// Wait for btcd to start
 		time.Sleep(3 * time.Second)
 
@@ -148,14 +149,18 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 
 		// handle
 
-		http.HandleFunc("/generateAddress", c.GenerateWalletAddress)
-		http.HandleFunc("/stopServer", c.StopServer)
+		mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
+		io.WriteString(w, fmt.Sprintf("Mining Address: %s ", miningaddr))
+		mux.HandleFunc("/stopServer", c.StopServer)
 		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
 		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
-		http.HandleFunc("/mineOneBlock/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			c.MineOneBlock(w, r)
+		mux.HandleFunc("/mineOneBlock/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("---- MineOneBlock 1")
+			io.WriteString(w, "Mining a block")
+			c.MineOneBlock(w, r, miningaddr)
 		})
-		http.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/StopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("---- stopMining 1")
 			c.StopMining(w, r)
 		})
 
