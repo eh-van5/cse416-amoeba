@@ -1,11 +1,13 @@
 package api
 
 import (
+	//"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
@@ -101,47 +103,35 @@ func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, e
 	return blockCount, nil
 }
 
-// starts mining blocks till stop request
-func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request) {
+// starts mining blocks , possibly forever idk man
+func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr string) {
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
 
-	address, err := btcutil.DecodeAddress(c.Username, &chaincfg.MainNetParams)
+	address, err := btcutil.DecodeAddress(miningaddr, &chaincfg.MainNetParams)
+	fmt.Printf("Decoded Address: %s", address)
 	if err != nil {
 		fmt.Printf("Error decoding Mining address (StartMining): %v\n", err)
 		c.LockWallet()
 		io.WriteString(w, "Mining stopped")
 		return
-
 	}
-	/*
-		_, err = c.Rpc.GenerateToAddress(1,address,nil)
-
-		if err != nil {
-			fmt.Printf("Error Generating to Address (StartMining): %v\n", err)
-			c.LockWallet()
-			return
-		}
-		io.WriteString(w,"Mining started")*/
-
-	for {
-		// mine one block
-		blockHashes, err := c.Rpc.GenerateToAddress(1, address, nil)
-
-		if err != nil {
-			fmt.Printf("Error generating to address (StartMining): %v\n", err)
-			io.WriteString(w, "Error mining block. Retrying...\n")
-			continue
-		}
-
-		if len(blockHashes) > 0 {
-			fmt.Printf("Successfully mined block: %s\n", blockHashes[0])
-		} else {
-			fmt.Printf("Mining attempt failed (no block hashes returned)\n")
-			io.WriteString(w, "Mining attempt failed. Retrying...\n")
-		}
-
+	//var tryAmt int64 = 10
+	//blockHashes, err := c.Rpc.GenerateToAddress(1, address, &tryAmt) //this does not work (idk why)
+	blockHashes, err := c.Rpc.Generate(1)
+	if err != nil {
+		fmt.Printf("Error generating to address (StartMining): %v\n", err)
+		io.WriteString(w, "Error mining block. Retrying...\n")
+		//continue
 	}
+
+	if len(blockHashes) > 0 {
+		fmt.Printf("Successfully mined block: %s\n", blockHashes[0])
+	} else {
+		fmt.Printf("Mining attempt failed (no block hashes returned)\n")
+		io.WriteString(w, "Mining attempt failed. Retrying...\n")
+	}
+
 }
 
 // Stops mining by locking the wallet
@@ -165,7 +155,48 @@ func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) {
 	}
 	io.WriteString(w, "Peers fetched")
 }
-func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Connecting to peer...")
 
+// function to connect to a particular peer (?)
+func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request, peer *btcjson.GetPeerInfoResult) {
+	peerAddr := peer.Addr
+	fmt.Printf("Connecting to peer with address: %s\n", peerAddr)
+	err := c.Rpc.AddNode(peerAddr, "add")
+	if err != nil {
+		fmt.Printf("Error connecting to peer: %v\n", err)
+		io.WriteString(w, "Error connecting to peer\n")
+		return
+	}
+	fmt.Printf("Connected to peer: %s\n", peerAddr)
+	io.WriteString(w, "Connected to Peer\n")
+}
+
+// function to query the value of a wallet
+func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAddr string) {
+	fmt.Printf("Getting value of wallet... %s\n", walletAddr)
+	c.UnlockWallet()
+	info, err := c.Rpc.GetBalance(walletAddr)
+
+	if err != nil {
+		fmt.Printf("Error Getting Wallet Info: %v\n", err)
+		io.WriteString(w, "Error Getting Wallet Info\n")
+		return
+	}
+	c.LockWallet()
+	fmt.Printf("Value of Wallet %s is : %s\n", walletAddr, info)
+	io.WriteString(w, "Wallet Value Fetched\n")
+}
+
+// sends to this walletAddr (????)
+func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr btcutil.Address, amt btcutil.Amount) {
+	fmt.Printf("Sending %s coin to wallet %s", amt, walletAddr)
+	c.UnlockWallet()
+	hash, err := c.Rpc.SendToAddress(walletAddr, amt)
+	if err != nil {
+		fmt.Printf("Error Sending amount to wallet: %v\n", err)
+		io.WriteString(w, "Error Getting Wallet Info\n")
+		return
+	}
+	c.LockWallet()
+	fmt.Printf("Hash of sent coin: %s\n", hash)
+	io.WriteString(w, "Sent to Wallet\n")
 }

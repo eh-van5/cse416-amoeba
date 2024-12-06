@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -156,12 +157,23 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
 		mux.HandleFunc("/mineOneBlock/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("---- MineOneBlock 1")
-			io.WriteString(w, "Mining a block")
 			c.MineOneBlock(w, r, miningaddr)
 		})
-		mux.HandleFunc("/StopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("---- stopMining 1")
 			c.StopMining(w, r)
+		})
+
+		mux.HandleFunc("/getWalletValue/{username}/{password}/{walletAddr}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("---- GetWalletVal 1")
+			path := r.URL.Path
+			// Remove the initial "/getWalletValue/" from the path
+			path = strings.TrimPrefix(path, "/getWalletValue/")
+
+			// Split the remaining path by "/"
+			parts := strings.Split(path, "/")
+			walletAddr := parts[2]
+			c.GetWalletValue(w, r, walletAddr) //probably the wallet address also
 		})
 
 		fmt.Printf("HTTP handling functions\n")
