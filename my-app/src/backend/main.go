@@ -23,7 +23,7 @@ import (
 var (
 	node_id             = "sbu_id" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
+	bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
 	globalCtx           context.Context
 )
 
@@ -78,7 +78,7 @@ func main() {
 
 	// Start the HTTP server
 	go func() {
-		if err := http.ListenAndServe(":8080", proxy.EnableCORS(mux)); err != nil {
+		if err := http.ListenAndServe(":8088", proxy.EnableCORS(mux)); err != nil {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()

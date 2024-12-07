@@ -6,7 +6,7 @@ export const startHeartbeat = async () => {
 
     interval = setInterval(async () => {
         try {
-            await fetch("http://localhost:8080/heartbeat", { method: "POST" });
+            await fetch("http://localhost:8088/heartbeat", { method: "POST" });
             console.log("Heartbeat sent");
         }catch (error) {
             console.error("Failed to send heartbeat:", error);

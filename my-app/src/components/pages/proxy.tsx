@@ -94,7 +94,7 @@ export default function ProxyPage(){
 
             try {
                 // Send a request
-                const response = await fetch('http://localhost:8080/enable-proxy', {
+                const response = await fetch('http://localhost:8088/enable-proxy', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ export default function ProxyPage(){
 
     const handleDisableProxy = async () => {
         try {
-            const response = await fetch('http://localhost:8080/disable-proxy', {
+            const response = await fetch('http://localhost:8088/disable-proxy', {
                 method: 'POST'
             });
             const result = await response.json();
@@ -139,7 +139,7 @@ export default function ProxyPage(){
 
     const fetchProxies = async (): Promise<proxyNodeStructure[]> => {
         try {
-            const response = await fetch('http://localhost:8080/get-proxies');
+            const response = await fetch('http://localhost:8088/get-proxies');
             const proxies = await response.json();
 
             const proxiesWithLocation = await Promise.all(
@@ -158,7 +158,7 @@ export default function ProxyPage(){
 
     const fetchProxyStatus = async () => {
         try {
-            const response = await fetch("http://localhost:8080/proxy-status");
+            const response = await fetch("http://localhost:8088/proxy-status");
             const status = await response.json();
             return status.isProxyEnabled;
         }catch(error) {
@@ -197,7 +197,7 @@ export default function ProxyPage(){
             return;
         }
         try {
-            const response = await fetch("http://localhost:8080/use-proxy", {
+            const response = await fetch("http://localhost:8088/use-proxy", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ export default function ProxyPage(){
             peerID: ''
         });
         try {
-            const response = await fetch('http://localhost:8080/stop-using-proxy', {
+            const response = await fetch('http://localhost:8088/stop-using-proxy', {
                 method: 'POST',
             });
             if(response.ok) {
