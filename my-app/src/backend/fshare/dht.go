@@ -25,6 +25,7 @@ type FileMetadata struct {
 	Name     string
 	Size     int
 	FileType string
+	Price    int
 }
 
 func uploadFile(fileContent []byte, hash string) {
@@ -63,6 +64,7 @@ func getFileInfo(
 	dhtKey string,
 	file_metadata os.FileInfo,
 	file_type string,
+	price int,
 ) (FileMetadata, error) {
 
 	var fileInfo FileMetadata
@@ -81,21 +83,17 @@ func getFileInfo(
 			Name:     file_metadata.Name(),
 			Size:     int(file_metadata.Size()),
 			FileType: file_type,
+			Price: price
 		}
 	}
 
 	return fileInfo, nil
 }
 
-func storeFilePrice(ctx context.Context, dht *dht.IpfsDHT, contentHash string, price int) error {
-	dhtKey := string(dht.PeerKey())
-
-	anotherDHTKey := "/orcanet/" + dht.PeerID().String()
-	fmt.Println("Peer key ", dhtKey)
-	fmt.Println("another dht key ", anotherDHTKey)
-
+func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, fileInfo FileMetadata) error {
+	dhtKey := "/orcanet/" + dht.PeerID().String()
 	existingValue, err := dht.GetValue(ctx, dhtKey)
-	var priceInfo map[string]int
+	var priceInfo map[string]FileMetadata
 	if err == nil {
 		// decode existing provider list if found
 		err = json.Unmarshal(existingValue, &priceInfo)
@@ -103,22 +101,21 @@ func storeFilePrice(ctx context.Context, dht *dht.IpfsDHT, contentHash string, p
 			return fmt.Errorf("failed to decode existing providers: %v", err)
 		}
 	} else {
-		priceInfo = make(map[string]int)
+		priceInfo = make(map[string]FileMetadata)
 	}
 
-	priceInfo[contentHash] = price
+	priceInfo[contentHash] = fileInfo
 	priceInfoBytes, err := json.Marshal(priceInfo)
 	if err != nil {
 		return fmt.Errorf("failed to encode file info: %v", err)
 	}
 
 	err = dht.PutValue(ctx, dhtKey, priceInfoBytes)
-	err = dht.PutValue(ctx, anotherDHTKey, priceInfoBytes)
 	if err != nil {
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	nodeHash, err := generateContentHash([]byte(anotherDHTKey))
+	nodeHash, err := generateContentHash([]byte(dhtKey))
 	if err != nil {
 		return fmt.Errorf("failed to generate content hash: %v", err)
 	}
@@ -147,7 +144,7 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	dhtKey := "/orcanet/" + c.String()
 	fileType := http.DetectContentType(fileContent)
 
-	fileInfo, err := getFileInfo(ctx, dht, dhtKey, fileMetadata, fileType)
+	fileInfo, err := getFileInfo(ctx, dht, dhtKey, fileMetadata, fileType, price)
 	if err != nil {
 		return fmt.Errorf("failed to get file info from dht: %v", err)
 	}
@@ -160,6 +157,7 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	// 	LastModified: fileMetadata.ModTime().Format(time.ANSIC),
 	// }
 	// fileInfo.Providers[newProvider.PeerId.String()] = newProvider
+
 	fileInfoBytes, err := json.Marshal(fileInfo)
 	if err != nil {
 		return fmt.Errorf("failed to encode file info: %v", err)
@@ -171,7 +169,7 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	storeFilePrice(ctx, dht, c.String(), price)
+	storeFileInfo(ctx, dht, c.String(), fileInfo)
 	// provide file
 	err = dht.Provide(ctx, c, true)
 	if err != nil {
@@ -201,22 +199,17 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (ma
 		return priceMap, fmt.Errorf("error getting providers %v", err)
 	}
 
-	fmt.Println(providers)
-
 	for _, peer := range providers {
-		fmt.Println("/orcanet/" + peer.ID.String())
 		pricesBytes, err := dht.GetValue(ctx, "/orcanet/"+peer.ID.String())
 		if err != nil {
 			return priceMap, fmt.Errorf("error getting peer price %v", err)
 		}
-		fmt.Println(pricesBytes)
 		var prices map[string]int
-		err = json.Unmarshal(pricesBytes, &prices)
 
+		err = json.Unmarshal(pricesBytes, &prices)
 		if err != nil {
 			return priceMap, fmt.Errorf("error unmarshaling prices %v", err)
 		}
-		fmt.Println(prices)
 
 		if price, exists := prices[contentHash]; exists {
 			priceMap[peer.ID.String()] = price
@@ -253,7 +246,5 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 
 // TODO reconcile conflicting file names, modified, etc
 // For now, just accept teh first node to upload a file as complete truth
-
-// TODO file chunking -- gross
 
 // TODO removing files from dht
