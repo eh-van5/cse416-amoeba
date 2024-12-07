@@ -14,11 +14,9 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-type FileProvider struct {
-	PeerId       peer.ID
-	Price        int
-	FileName     string
-	LastModified string
+type FileInfo struct {
+	Price    int
+	FileMeta FileMetadata
 }
 
 type FileMetadata struct {
@@ -93,7 +91,7 @@ func getFileInfo(
 func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, fileInfo FileMetadata) error {
 	dhtKey := "/orcanet/" + dht.PeerID().String()
 	existingValue, err := dht.GetValue(ctx, dhtKey)
-	var priceInfo map[string]FileMetadata
+	var priceInfo map[string]FileInfo
 	if err == nil {
 		// decode existing provider list if found
 		err = json.Unmarshal(existingValue, &priceInfo)
@@ -101,10 +99,10 @@ func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, fi
 			return fmt.Errorf("failed to decode existing providers: %v", err)
 		}
 	} else {
-		priceInfo = make(map[string]FileMetadata)
+		priceInfo = make(map[string]FileInfo)
 	}
 
-	priceInfo[contentHash] = fileInfo
+	priceInfo[contentHash] = FileInfo{Price: price, FileMeta: data}
 	priceInfoBytes, err := json.Marshal(priceInfo)
 	if err != nil {
 		return fmt.Errorf("failed to encode file info: %v", err)
@@ -169,7 +167,7 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	storeFileInfo(ctx, dht, c.String(), fileInfo)
+	storeFilePrice(ctx, dht, c.String(), price, fileInfo)
 	// provide file
 	err = dht.Provide(ctx, c, true)
 	if err != nil {
@@ -182,12 +180,12 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	return nil
 }
 
-func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (map[string]int, error) {
+func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (map[string]FileInfo, error) {
 
 	// findProviders
 	// query each provider for the file price, if there isn't don't add it in
 	// provide providers and, put the file price in the node's key
-	priceMap := make(map[string]int)
+	priceMap := make(map[string]FileInfo)
 
 	cid, err := cid.Decode(contentHash)
 	if err != nil {
@@ -204,8 +202,8 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (ma
 		if err != nil {
 			return priceMap, fmt.Errorf("error getting peer price %v", err)
 		}
-		var prices map[string]int
-
+		fmt.Println(pricesBytes)
+		var prices map[string]FileInfo
 		err = json.Unmarshal(pricesBytes, &prices)
 		if err != nil {
 			return priceMap, fmt.Errorf("error unmarshaling prices %v", err)
@@ -237,9 +235,44 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 	return res, err
 }
 
-// func StopProvide(ctx context.Context, dht *dht.IpfsDHT, peerId string) err {
-// 	// remove from local storage
-// }
+func PauseProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
+	dhtKey := "/orcanet/" + dht.PeerID().String()
+	fmt.Println("Peer key ", dhtKey)
+
+	existingValue, err := dht.GetValue(ctx, dhtKey)
+	var priceInfo map[string]FileInfo
+	if err == nil {
+		// decode existing provider list if found
+		err = json.Unmarshal(existingValue, &priceInfo)
+		if err != nil {
+			return fmt.Errorf("failed to decode existing providers: %v", err)
+		}
+		delete(priceInfo, contentHash)
+	} else {
+		priceInfo = make(map[string]FileInfo)
+	}
+
+	priceInfoBytes, err := json.Marshal(priceInfo)
+	if err != nil {
+		return fmt.Errorf("failed to encode file info: %v", err)
+	}
+
+	err = dht.PutValue(ctx, dhtKey, priceInfoBytes)
+	if err != nil {
+		return fmt.Errorf("failed to store provider info in DHT: %v", err)
+	}
+
+	return nil
+}
+
+func StopProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
+	PauseProvide(ctx, dht, contentHash)
+	err := os.Remove("../userFiles/" + contentHash)
+	if err != nil {
+		return fmt.Errorf("failed to remove file from DHT: %v", err)
+	}
+	return nil
+}
 
 // TODO get all available files -- idea: make a key whose value is purely for contributing file metadata
 // another idea: go look at kubo
