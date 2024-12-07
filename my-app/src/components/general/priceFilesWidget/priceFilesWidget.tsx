@@ -2,6 +2,7 @@ import { ReactElement } from "react";
 import { useTheme } from "../../../ThemeContext";
 import { UserFileData } from "../../pages/userFiles";
 import FilesTable from "../../tables/filesTable";
+import { stringify } from "querystring";
 
 interface priceFilesProps {
     sharedFiles: UserFileData[];
@@ -32,12 +33,38 @@ function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
     return filesAndPrice;
 }
 
+async function uploadFileHelper(file: File, price: string){
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('filename', file.name)
+    formData.append('filesize', file.size.toString())
+    formData.append('filetype', file.type)
+    formData.append('price', price)
+
+    const response = await fetch('http://localhost:8000/uploadFile', {
+        method:'POST',
+        body: formData,
+    })
+
+    if (response.ok) {
+        // Handle success
+        console.log("uploaded files");
+    }  else {
+        // Handle error
+        console.log(JSON.stringify(response));
+        console.error('Error uploading files');
+    }
+}
 export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
     const headings = ["File Name", "Size", "Set Price"]
     const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.values())});
-    function uploadFiles(e : React.FormEvent<HTMLFormElement>){
+    async function uploadFiles(e : React.FormEvent<HTMLFormElement>){
         e.preventDefault();
-        Array.from(uploadedFiles.keys()).forEach((fileName) => {
+        
+        const files = Array.from(uploadedFiles.keys())
+        
+        for(var i = 0; i < files.length; i++){
+            const fileName = files[i];
             const price = fileName+"-price";
             const input = document.getElementById(price) as HTMLInputElement;
             if (input !== null){
@@ -45,10 +72,10 @@ export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedF
                 if (file === undefined){
                     throw Error();
                 }
-                uploadedFiles.set(fileName, {file: file, price: parseFloat(input.value), shared: true});
+                await uploadFileHelper(file, input.value);
             }
-        })
-        setSharedFiles([...sharedFiles, ...Array.from(uploadedFiles.values())]);
+        }
+        // setSharedFiles([...sharedFiles, ...Array.from(uploadedFiles.values())]);
         setUploadedFiles(new Map());
     }
     return(

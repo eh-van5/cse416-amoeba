@@ -30,7 +30,6 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
     //     reader.readAsDataURL(file);
     // }
 
-    
     // register files into dht
     function dropHandler(event: React.DragEvent){
         event.preventDefault();
@@ -69,13 +68,15 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
             onDrop={dropHandler} 
             onDragOver={dragOverHandler}
             id = "drop-zone" style={(isDarkMode ? {backgroundColor: '#215F64'} : {})}> 
-                <label id = "upload-methods" htmlFor="file-upload">
-                    <br /> {UploadFileIcon()}
-                    <p style={(isDarkMode ? {color: 'white'} : {})}>Drag and Drop</p>
-                    <p style={(isDarkMode ? {color: 'white'} : {})}>or</p>
-                    <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
-                    <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
-                </label>
+                <form>
+                    <label id = "upload-methods" htmlFor="file-upload">
+                        <br /> {UploadFileIcon()}
+                        <p style={(isDarkMode ? {color: 'white'} : {})}>Drag and Drop</p>
+                        <p style={(isDarkMode ? {color: 'white'} : {})}>or</p>
+                        <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
+                        <input type="file" id="file-upload" multiple onChange={fileSelectorHandler} />
+                    </label>
+                </form>
             </div>
             {/* <div id = "file-progress">
                 <div id = "file-progress-bar">

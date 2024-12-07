@@ -34,7 +34,7 @@ function buy(e : React.FormEvent<HTMLFormElement>){
 }
 
 export default function BuyForm({item}: buyFormProps) {
-    const owners = item.prices.keys()
+    const owners = item.hostToFile.keys()
     const options = Array.from(owners).map((owner: string) => {
         return (
             <div id="provider-options">

@@ -23,7 +23,6 @@ type FileMetadata struct {
 	Name     string
 	Size     int
 	FileType string
-	Price    int
 }
 
 func uploadFile(fileContent []byte, hash string) {
@@ -56,39 +55,7 @@ func generateContentHash(fileContent []byte) (cid.Cid, error) {
 	return cid.NewCidV1(cid.Raw, mh), nil
 }
 
-func getFileInfo(
-	ctx context.Context,
-	dht *dht.IpfsDHT,
-	dhtKey string,
-	file_metadata os.FileInfo,
-	file_type string,
-	price int,
-) (FileMetadata, error) {
-
-	var fileInfo FileMetadata
-	// check if there are prev providers for this file
-	existingValue, err := dht.GetValue(ctx, dhtKey)
-	fmt.Println(string(existingValue))
-	// found file
-	if err == nil {
-		// decode existing provider list if found
-		err = json.Unmarshal(existingValue, &fileInfo)
-		if err != nil {
-			return FileMetadata{}, fmt.Errorf("failed to decode existing providers: %v", err)
-		}
-	} else {
-		fileInfo = FileMetadata{
-			Name:     file_metadata.Name(),
-			Size:     int(file_metadata.Size()),
-			FileType: file_type,
-			Price: price
-		}
-	}
-
-	return fileInfo, nil
-}
-
-func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, fileInfo FileMetadata) error {
+func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, price int, data FileMetadata) error {
 	dhtKey := "/orcanet/" + dht.PeerID().String()
 	existingValue, err := dht.GetValue(ctx, dhtKey)
 	var priceInfo map[string]FileInfo
@@ -122,18 +89,8 @@ func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, fi
 	return nil
 }
 
-func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price int) error {
-	// read file content
-	fileMetadata, err := os.Stat(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read file metadata: %v", err)
-	}
-
-	fileContent, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read file: %v", err)
-	}
-
+func ProvideFileHelper(ctx context.Context, dht *dht.IpfsDHT, filename string, filesize int, price int, fileContent []byte) error {
+	fmt.Println("providing a file")
 	c, err := generateContentHash(fileContent)
 	if err != nil {
 		return fmt.Errorf("failed to generate cid: %v", err)
@@ -142,7 +99,12 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	dhtKey := "/orcanet/" + c.String()
 	fileType := http.DetectContentType(fileContent)
 
-	fileInfo, err := getFileInfo(ctx, dht, dhtKey, fileMetadata, fileType, price)
+	fileMeta := FileMetadata{
+		Name:     filename,
+		Size:     filesize,
+		FileType: fileType,
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to get file info from dht: %v", err)
 	}
@@ -156,18 +118,18 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	// }
 	// fileInfo.Providers[newProvider.PeerId.String()] = newProvider
 
-	fileInfoBytes, err := json.Marshal(fileInfo)
+	fileMetaBytes, err := json.Marshal(fileMeta)
 	if err != nil {
 		return fmt.Errorf("failed to encode file info: %v", err)
 	}
 
 	// store the updated provider list in the DHT
-	err = dht.PutValue(ctx, dhtKey, fileInfoBytes)
+	err = dht.PutValue(ctx, dhtKey, fileMetaBytes)
 	if err != nil {
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	storeFilePrice(ctx, dht, c.String(), price, fileInfo)
+	storeFileInfo(ctx, dht, c.String(), price, fileMeta)
 	// provide file
 	err = dht.Provide(ctx, c, true)
 	if err != nil {
@@ -180,7 +142,7 @@ func ProvideKey(ctx context.Context, dht *dht.IpfsDHT, filePath string, price in
 	return nil
 }
 
-func GetProviders(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (map[string]FileInfo, error) {
+func GetProvidersHelper(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (map[string]FileInfo, error) {
 
 	// findProviders
 	// query each provider for the file price, if there isn't don't add it in
@@ -279,5 +241,3 @@ func StopProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) erro
 
 // TODO reconcile conflicting file names, modified, etc
 // For now, just accept teh first node to upload a file as complete truth
-
-// TODO removing files from dht

@@ -4,7 +4,10 @@ go 1.23.2
 
 require github.com/libp2p/go-libp2p-http v0.5.0
 
-require github.com/ugorji/go/codec v1.2.6 // indirect
+require (
+	github.com/rs/cors v1.11.1 // indirect
+	github.com/ugorji/go/codec v1.2.6 // indirect
+)
 
 require (
 	github.com/benbjohnson/clock v1.3.5 // indirect

@@ -7,7 +7,6 @@ import (
 	"log"
 	"main/fshare"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,8 +39,9 @@ func main() {
 	go RefreshReservation(node, 10*time.Minute)
 	ConnectToPeer(node, bootstrap_node_addr) // connect to bootstrap node
 	go HandlePeerExchange(node)
-	go handleInput(node, ctx, dht)
+	// go handleInput(node, ctx, dht)
 
+	go fshare.HttpSetup(ctx, dht)
 	// receiveDataFromPeer(node)
 	// sendDataToPeer(node, "12D3KooWKNWVMpDh5ZWpFf6757SngZfyobsTXA8WzAWqmAjgcdE6")
 
@@ -72,7 +72,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			}
 			key := args[1]
 			// dhtKey := "/orcanet/" + key
-			res, err := fshare.GetProviders(ctx, dht, key)
+			res, err := fshare.GetProvidersHelper(ctx, dht, key)
 			if err != nil {
 				fmt.Println("get failed")
 				fmt.Println(err)
@@ -92,21 +92,21 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			fmt.Println("Multiaddr: ", res)
 
 		case "PUT":
-			if len(args) < 3 {
-				fmt.Println("Expected key and value")
-				continue
-			}
+			// if len(args) < 3 {
+			// 	fmt.Println("Expected key and value")
+			// 	continue
+			// }
 
-			filePath := args[1]
-			price, err := strconv.Atoi(args[2])
-			if err != nil {
-				fmt.Println("price conversion gone awry")
-			}
-			err = fshare.ProvideKey(ctx, dht, filePath, price)
-			if err != nil {
-				fmt.Println("error: %v", err)
-			}
-			fmt.Println("Record stored successfully")
+			// filePath := args[1]
+			// price, err := strconv.Atoi(args[2])
+			// if err != nil {
+			// 	fmt.Println("price conversion gone awry")
+			// }
+			// err = fshare.ProvideKey(ctx, dht, filePath, price)
+			// if err != nil {
+			// 	fmt.Println("error: %v", err)
+			// }
+			// fmt.Println("Record stored successfully")
 
 		case "PUT_PROVIDER":
 			if len(args) < 2 {
