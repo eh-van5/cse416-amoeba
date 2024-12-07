@@ -6,7 +6,7 @@ import { formatBytes, translateDate } from "../../general/formatHelpers";
 import SearchBar from "./findFile";
 
 interface FileTableProps {
-    items:networkFileStructure
+    items:networkFileStructure[]
     headings: string[]
 }
 
@@ -15,17 +15,19 @@ export default function NetworkFilesTable ({items, headings} : FileTableProps) {
     const {isDarkMode} = useTheme();
 
     // pull actual items from backend
-    items
     const formattedItems: JSX.Element[] = items.map((item) => {
         // const status = item.shared ? "sharing" : "not sharing"
         return (
-        <div key = {item.host.name} className = "items-table-row">
+        <div key = {item.file.name} className = "items-table-row">
 
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                 <NetworkBuyButton item = {item} />
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                 {item.file.name}
+            </span>
+            <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
+                {translateDate(item.file.lastModified)}
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                 {formatBytes(item.file.size)}
@@ -36,7 +38,7 @@ export default function NetworkFilesTable ({items, headings} : FileTableProps) {
 
     return (
         <div id = "filesTable" className={`items-table${isDarkMode? '-dark' : ''}`}>
-            <SearchBar/>
+            <SearchBar />
             <FilesTable headings={headings} items={formattedItems} />
         </div>
     )

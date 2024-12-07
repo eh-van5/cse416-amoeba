@@ -19,7 +19,6 @@ export default function NetworkBuyButton({item}: buyButtonProps) {
     // just hoping duplicate handling is done on the backend
     return (
         <>
-        <BuyForm item = {item} />
         <button onClick={Buy} className={`buy-button ${isDarkMode ? '-dark' : ''}`}>
             Buy
         </button>

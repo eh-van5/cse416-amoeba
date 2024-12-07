@@ -5,24 +5,40 @@ import UploadFileWidget from "../general/uploadFileWidget";
 import FileTable from "../tables/userFilesTable/userFilesTable";
 import NetworkFilesTable from "../tables/networkFilesTable/networkFiles";
 
+export interface networkFileStructure {
+    file: {
+        "name": string,
+        "lastModified": number,
+        "size": number
+    }
+    prices: Map<string, number>
+}
+
+
 interface FileMetadata {
     "Name" : string,
     "Size" : number, 
     "FileType": "string"
 }
 
-interface FileInfo {
+export interface FileInfo {
     "Price": number, 
     "FileMeta": FileMetadata
 }
 
-export interface networkFileStructure {
-    hostToFile: Map<string, FileInfo>
-}
 export default function NetworkFilesPage(){
-    const headings = ["", "Name", "Size"];
+    const headings = ["", "Name", "Last Modified", "Size"];
     // pull items from backend
-    const tempItems: networkFileStructure;
+    const tempItems: networkFileStructure[] = [
+        { 
+            file: {
+                name: "file name",
+                lastModified: 123456789,
+                size: 0
+            },
+            prices: new Map<string, number>().set('owner1', 10000000000).set('owner2', 20)
+        }
+    ]
     const {isDarkMode} = useTheme();
 
     return(

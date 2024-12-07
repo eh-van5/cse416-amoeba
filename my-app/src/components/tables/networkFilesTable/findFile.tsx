@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import BuyForm from './buyForm';
 
 function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [responseData, setResponseData] = useState<any>({}); 
 
   // Handle input change
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,8 +25,16 @@ function SearchBar() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log(JSON.stringify(data))
+        const data = await response.json(); 
+
+        setResponseData(data);
+    
+        console.log(Array.from(Object.keys(data))); 
+        const purchaseForm : HTMLDialogElement = document.getElementById("purchase-form") as HTMLDialogElement;
+        if (purchaseForm !== null) {
+            purchaseForm.showModal();
+        }
+
       } else {
         alert("Error fetching search results.");
       }
@@ -33,10 +43,9 @@ function SearchBar() {
       alert("Error occurred while fetching data.");
     }
   };
-
   return (
     <div>
-      <h2>Search for a File</h2>
+      <h2>Find Providers Using Content Hash</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -45,8 +54,9 @@ function SearchBar() {
           placeholder="Enter file hash"
           required
         />
-        <button type="submit">Search</button>
+        <button type="submit">Buy</button>
       </form>
+      <BuyForm hostToFile={responseData} />
     </div>
   );
 }
