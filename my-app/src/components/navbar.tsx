@@ -4,7 +4,7 @@ import logo from "../images/colony-logo-transparent.png";
 import user from "../images/user.png";
 import { DashboardIcon, FileIcon, TransactionIcon, WalletIcon, MiningIcon, SettingsIcon, ExitIcon} from "../images/icons/icons";
 import { Page } from "../App";
-import { useTheme } from "../ThemeContext";
+import { useAppContext } from "../AppContext";
 
 interface NavbarProps{
     setPage: Dispatcher<Page>;
@@ -13,7 +13,7 @@ interface NavbarProps{
 
 export default function Navbar(props: NavbarProps){
     const[minimized, setMinimized] = useState<boolean>(false);
-    const{isDarkMode} = useTheme();
+    const{isDarkMode} = useAppContext();
 
     return (
         <div className={`navbar-box${isDarkMode ? '-dark' : ''} ${minimized ? "minimized" : ""}`}>

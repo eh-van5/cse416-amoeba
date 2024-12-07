@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 
 interface pieGraphProps {
     data: {name: string, value: number} [];
@@ -20,7 +20,7 @@ const PieGraph: React.FC<pieGraphProps> = ({
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     const menuItems = useChartMenu(chartRef, graphData);
 

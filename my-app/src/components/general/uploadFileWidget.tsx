@@ -1,5 +1,5 @@
 import { UploadFileIcon } from "../../images/icons/icons";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 import { UserFileData } from "../pages/userFiles";
 
 interface UploadFileWidgetProps{
@@ -7,7 +7,7 @@ interface UploadFileWidgetProps{
     setItems: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>
 }
 export default function UploadFileWidget({files, setItems}: UploadFileWidgetProps){
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     // function readFile(file: File){
     //     const reader = new FileReader();

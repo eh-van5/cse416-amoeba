@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
 import ProxySelectButton from "./proxySelectButton";
 import { proxyNodeStructure } from "./proxyNodes";
@@ -10,7 +10,7 @@ interface ProxyTableProps {
 }
 
 export default function ProxyNodesTable({ items, headings, onSelect }: ProxyTableProps) {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useAppContext();
 
     const formattedItems: JSX.Element[] = items.map((item) => {
         return (

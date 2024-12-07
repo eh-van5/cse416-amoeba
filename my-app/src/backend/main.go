@@ -3,36 +3,49 @@ package main
 import (
 	"bufio"
 	"context"
-	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"log"
+	"main/fshare"
+	"main/proxy"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"main/proxy"
+	"github.com/gorilla/websocket"
 
-	"github.com/ipfs/go-cid"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	"github.com/libp2p/go-libp2p/core/peer"
-	"github.com/multiformats/go-multihash"
+	"github.com/libp2p/go-libp2p/core/host"
 )
 
 var (
-	node_id             = "SBU_Id" // give your SBU ID
+	node_id             = "sbu_id" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
+	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
 	globalCtx           context.Context
 )
 
-//bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
-//bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61000/p2p/12D3KooWQd1K1k8XA9xVEzSAu7HUCodC7LJB6uW5Kw4VwkRdstPE"
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 func main() {
 	if len(os.Args) > 1 {
 		node_id = os.Args[1]
 	}
+	http.HandleFunc("/ws", handleConnection)
+
+	go func() {
+		log.Println("Starting webscoket server on 8080")
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatal("Failed to start websocket server")
+		}
+	}()
+
 	node, dht, err := CreateNode()
 	if err != nil {
 		log.Fatalf("Failed to create node: %s", err)
@@ -50,9 +63,6 @@ func main() {
 	go RefreshReservation(node, 10*time.Minute)
 	ConnectToPeer(node, bootstrap_node_addr) // connect to bootstrap node
 	go HandlePeerExchange(node)
-
-	defer node.Close()
-
 	// Get the current node ID
 	peerID := node.ID().String()
 
@@ -73,15 +83,63 @@ func main() {
 		}
 	}()
 	go proxy.MonitorProxyStatus(node, dht)
-	go handleInput(ctx, dht)
+
+	go handleInput(node, ctx, dht)
 
 	// receiveDataFromPeer(node)
 	// sendDataToPeer(node, "12D3KooWKNWVMpDh5ZWpFf6757SngZfyobsTXA8WzAWqmAjgcdE6")
 
+	defer node.Close()
+
 	select {}
 }
 
-func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
+type MessageStruct struct {
+	Text      string
+	ExtraData map[string]interface{}
+}
+
+func handleConnection(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Upgrade error: ", err)
+		return
+	}
+	defer conn.Close()
+	log.Println("Client Connected")
+
+	for {
+		msgType, msg, msgErr := conn.ReadMessage()
+		if msgErr != nil {
+			log.Println("Read error: ", err)
+			break
+		}
+		log.Printf("Raw message: %s\n", msg)
+		var data map[string]interface{}
+		parseErr := json.Unmarshal(msg, &data)
+		if parseErr != nil {
+			log.Fatalf("Error parsing JSON: %s", err)
+		}
+
+		parsedMessage := MessageStruct{
+			Text:      data["message"].(string),
+			ExtraData: data,
+		}
+
+		log.Printf("Received message: %s\n", parsedMessage.Text)
+		parsedMessage.Text += "Modified"
+		returnMsg, encodeErr := json.Marshal(parsedMessage)
+		if encodeErr != nil {
+			log.Fatalf("Error marshalling JSON: %s", err)
+		}
+		if err := conn.WriteMessage(msgType, returnMsg); err != nil {
+			log.Println("Write error: ", err)
+			break
+		}
+	}
+}
+
+func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("User Input \n ")
 	for {
@@ -103,55 +161,39 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 			}
 			key := args[1]
 			dhtKey := "/orcanet/" + key
-			res, err := dht.GetValue(ctx, dhtKey)
+			res, err := fshare.GetProviders(ctx, dht, dhtKey)
 			if err != nil {
-				fmt.Printf("Failed to get record: %v\n", err)
-				continue
+				fmt.Println("get failed")
 			}
-			fmt.Printf("Record: %s\n", res)
+			fmt.Println("Record ", res)
 
-		case "GET_PROVIDERS":
+		case "GET_IP":
 			if len(args) < 2 {
 				fmt.Println("Expected key")
 				continue
 			}
-			key := args[1]
-			data := []byte(key)
-			hash := sha256.Sum256(data)
-			mh, err := multihash.EncodeName(hash[:], "sha2-256")
+			peerid := args[1]
+			res, err := fshare.GetPeerAddr(ctx, dht, peerid)
 			if err != nil {
-				fmt.Printf("Error encoding multihash: %v\n", err)
-				continue
+				fmt.Println("peerid failed")
 			}
-			c := cid.NewCidV1(cid.Raw, mh)
-			providers := dht.FindProvidersAsync(ctx, c, 20)
-
-			fmt.Println("Searching for providers...")
-			for p := range providers {
-				if p.ID == peer.ID("") {
-					break
-				}
-				fmt.Printf("Found provider: %s\n", p.ID.String())
-				for _, addr := range p.Addrs {
-					fmt.Printf(" - Address: %s\n", addr.String())
-				}
-			}
+			fmt.Println("Multiaddr: ", res)
 
 		case "PUT":
 			if len(args) < 3 {
 				fmt.Println("Expected key and value")
 				continue
 			}
-			key := args[1]
-			value := args[2]
-			dhtKey := "/orcanet/" + key
-			log.Println(dhtKey)
-			err := dht.PutValue(ctx, dhtKey, []byte(value))
+
+			filePath := args[1]
+			price, err := strconv.Atoi(args[2])
 			if err != nil {
-				fmt.Printf("Failed to put record: %v\n", err)
-				continue
+				fmt.Println("price conversion gone awry")
 			}
-			// provideKey(ctx, dht, key)
+			err = fshare.ProvideKey(ctx, dht, filePath, price)
+			if err != nil {
+				fmt.Println("error: %v", err)
+			}
 			fmt.Println("Record stored successfully")
 
 		case "PUT_PROVIDER":
@@ -159,10 +201,32 @@ func handleInput(ctx context.Context, dht *dht.IpfsDHT) {
 				fmt.Println("Expected key")
 				continue
 			}
-			key := args[1]
-			ProvideKey(ctx, dht, key)
+			// key := args[1]
+
+		case "START_SERVER":
+			fshare.HttpServer(node)
+
+		case "GET_FILE":
+			if len(args) < 3 {
+				fmt.Println("Expected key")
+				continue
+			}
+			peerid := args[1]
+			hash := args[2]
+			// res, err := GetPeerAddr(ctx, dht, peerid)
+			// if err != nil {
+			// 	fmt.Println("peerid failed")
+			// }
+
+			fshare.HttpClient(ctx, dht, node, peerid, hash)
+
+		case "REMOVE_FILEINFO":
+			hash := args[1]
+			var b []byte
+			dht.PutValue(ctx, "/orcanet/"+hash, b)
+
 		default:
-			fmt.Println("Expected GET, GET_PROVIDERS, PUT or PUT_PROVIDER")
+			fmt.Println("Expected GET, GET_IP, PUT or PUT_PROVIDER")
 		}
 	}
 }

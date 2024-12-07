@@ -4,13 +4,13 @@ import { generateRandomData } from "../charts/lineGraph"
 import { useState, useRef } from "react"
 import DropdownMenu from "../general/dropdownMenu";
 import useChartMenu from "../charts/useChartMenu";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 // Note: Consider adding a visible timer somehow in the future
 // WIP code for timer drop down menu is commented out
 
 export default function MiningPage() {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode, sendMessage } = useAppContext();
     const [sliderValue, setSliderValue] = useState<number>(50); // Initialize the slider value
     const [hours, setHours] = useState<string>('0');
     const [minutes, setMinutes] = useState<string>('0');
@@ -55,13 +55,15 @@ export default function MiningPage() {
             // setHours('0');
             setTimerValue(totalSeconds);
         }
-        setIsMining((isMining) => !isMining);
         if (isMining) {
             setButtonText('Begin Mining');
+            sendMessage('Stop Mining Request')
         }
         else {
             setButtonText('Stop Mining');
+            sendMessage('Begin Mining Request')
         }
+        setIsMining((isMining) => !isMining);
     }
 
     const handleMouseOver = () => {

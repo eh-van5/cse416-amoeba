@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
 
 interface TransactionProps {
@@ -7,7 +7,7 @@ interface TransactionProps {
 }
 
 export default function RecentTransactionsTable({ items, headings }: TransactionProps) {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useAppContext();
 
     const formattedItems: JSX.Element[] = items.map((item) => {
         return (

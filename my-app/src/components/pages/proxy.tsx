@@ -3,14 +3,14 @@ import SimpleBox from "../general/simpleBox";
 import { BackIcon, ViewAllIcon } from '../../images/icons/icons';
 import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
 import { proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
 import { startHeartbeat, stopHeartbeat } from '../general/Heartbeat';
 
 export default function ProxyPage(){
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     const generateRandomBanwidthData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {

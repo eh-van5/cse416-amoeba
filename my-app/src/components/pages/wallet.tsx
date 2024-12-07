@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import LineGraph from "../charts/lineGraph";
 import SimpleBox from "../general/simpleBox";
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 
 export default function WalletPage(){
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     //Determines the coin amount
     const [coinAmount, setCoinAmount] = useState(0.367);
     const [currencyAmount, setCurrencyAmount] = useState(6.90);

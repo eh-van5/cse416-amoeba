@@ -1,5 +1,5 @@
 import { ThreeDotIcon } from "../../images/icons/icons";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 interface simpleBoxProps {
     title: string;
@@ -9,7 +9,7 @@ interface simpleBoxProps {
 }
 
 const SimpleBox: React.FC<simpleBoxProps> = ({title, style, children,dotIcon = false}) => {
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     return (
         <div className={`box-container${isDarkMode ? '-dark' : ''}`} style={style}>
             <div className="box-header">

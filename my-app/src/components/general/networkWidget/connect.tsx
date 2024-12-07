@@ -1,7 +1,7 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 
 export default function Connect() {
-    const  {isDarkMode} = useTheme();
+    const  {isDarkMode} = useAppContext();
     return (
         <div id = "connection-container" style={(isDarkMode ? {backgroundColor:'#215F64'} : {})}>
             <label htmlFor="networkUrl" style={(isDarkMode ? {color: 'white'} : {})}>Connect To Network</label>
