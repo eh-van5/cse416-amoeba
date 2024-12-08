@@ -23,36 +23,18 @@ type ProcessManager struct {
 func (pm *ProcessManager) StopServer() {
 	fmt.Printf("Stopping server...\n")
 
-	go func() {
-		if pm.btcdCmd != nil && pm.btcdCmd.Process != nil {
-			fmt.Printf("btcd> Stopping btcd...\n")
-			if err := pm.btcdCmd.Process.Kill(); err != nil {
-				fmt.Printf("btcd> Error stopping btcd, %v", err)
-			} else {
-				fmt.Printf("btcd> Stopped btcd.\n")
-			}
-			pm.BtcdDone <- true
-		}
-	}()
+	fmt.Printf("Stopping btcd...\n")
+	pm.BtcdDone <- true
+	// pm.btcdCmd.Process.Kill()
 
-	go func() {
-		if pm.walletCmd != nil && pm.walletCmd.Process != nil {
-			fmt.Printf("btcwallet> Stopping btcwallet...\n")
-			if err := pm.walletCmd.Process.Kill(); err != nil {
-				fmt.Printf("btcwallet> Error stopping btcwallet, %v", err)
-			} else {
-				fmt.Printf("btcwallet> Stopped btcwallet.\n")
-			}
-			pm.WalletDone <- true
-		}
-	}()
-
-	fmt.Printf("Server stopped.\n")
+	fmt.Printf("Stopping btcwallet...\n")
+	pm.WalletDone <- true
+	// pm.walletCmd.Process.Kill()
 }
 
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) {
+func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string){
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -94,15 +76,17 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) {
 	// Waits for stop signals to terminate process
 	go func() {
 		<-ctx.Done()
-		fmt.Printf("Stopping %s...\n", name)
+		fmt.Printf("%s> Stopping %s...\n", name, name)
 		pm.BtcdDone <- true
+		fmt.Printf("btcddone true\n")
 		pm.btcdCmd.Process.Kill()
+		fmt.Printf("process killed\n")
 	}()
 }
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) {
+func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string){
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -142,7 +126,7 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) {
 	// Waits for stop signals to terminate process
 	go func() {
 		<-ctx.Done()
-		fmt.Printf("Stopping %s...\n", name)
+		fmt.Printf("%s> Stopping %s...\n", name, name)
 		pm.WalletDone <- true
 		pm.walletCmd.Process.Kill()
 	}()
