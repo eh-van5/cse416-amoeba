@@ -1,0 +1,6 @@
+[submodule "my-app/my-app/src/coin/btcd"]
+	path = my-app/my-app/src/coin/btcd
+	url = https://github.com/btcsuite/btcd
+[submodule "my-app/my-app/src/coin/btcwallet"]
+	path = my-app/my-app/src/coin/btcwallet
+	url = https://github.com/btcsuite/btcwallet

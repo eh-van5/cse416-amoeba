@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
 import { UserFileData } from "../../pages/userFiles";
 import StatusButton from "./userFilesTableButton";
@@ -13,7 +13,7 @@ interface FileTableProps {
 
 export default function UserFilesTable ({items, setItems, headings} : FileTableProps) {
     // console.log(items)
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     // pull actual items from backend
     const formattedItems: JSX.Element[] = items.map((item) => {

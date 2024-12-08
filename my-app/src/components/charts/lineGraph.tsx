@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { ThreeDotIcon } from '../../images/icons/icons';
 import DropdownMenu from '../general/dropdownMenu';
 import useChartMenu from './useChartMenu';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 
 interface lineGraphProps {
     data: { name: string, value1: number, value2?: number}[];
@@ -47,7 +47,7 @@ const LineGraph: React.FC<lineGraphProps> = ({
     const [isMenuVisible, setMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<HTMLDivElement>(null);
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     // Use hook to get menu items
     const menuItems = useChartMenu(chartRef, graphData);

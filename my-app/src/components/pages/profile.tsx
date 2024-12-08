@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Dispatcher } from "../../App";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 import { UserProfileIcon, CopyIcon } from "../../images/icons/icons";
 
 
 export default function ProfilePage(){
-    const { isDarkMode, toggleTheme } = useTheme();
+    const { isDarkMode, toggleTheme } = useAppContext();
 
     function credentialField(name: string, value: string){
         return(

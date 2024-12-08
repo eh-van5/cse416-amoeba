@@ -4,13 +4,13 @@ import PieGraph from '../charts/pieGraph';
 import SimpleBox from '../general/simpleBox';
 import { BackIcon, DownloadIcon, UploadIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 import RecentTransactionsTable, { transactionData } from '../tables/recentTransactionsTable/recentTransactionstable';
 
 export default function TransactionsPage(){
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     const generateRandomActivityData = () => {
         const data = [];

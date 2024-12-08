@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
 import NetworkBuyButton from "./networkBuyButton";
 import { networkFileStructure } from "../../pages/networkFiles";
@@ -12,7 +12,7 @@ interface FileTableProps {
 
 export default function NetworkFilesTable ({items, headings} : FileTableProps) {
     // console.log(items)
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     // pull actual items from backend
     const formattedItems: JSX.Element[] = items.map((item) => {

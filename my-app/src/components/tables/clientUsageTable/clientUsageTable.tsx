@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
 
 interface ClientUsageProps {
@@ -7,7 +7,7 @@ interface ClientUsageProps {
 }
 
 export default function ClientUsageTable({ items, headings }: ClientUsageProps) {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode } = useAppContext();
 
     const formattedItems: JSX.Element[] = items.map((item) => {
         return (

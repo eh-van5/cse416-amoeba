@@ -1,5 +1,5 @@
 import { ReactElement, useState } from "react";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 import NetworkWidget from "../general/networkWidget/networkWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
 import FileTable from "../tables/userFilesTable/userFilesTable";
@@ -39,7 +39,7 @@ export default function NetworkFilesPage(){
             prices: new Map<string, number>().set('owner1', 10000000000).set('owner2', 20)
         }
     ]
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     return(
         <div className="page-content">

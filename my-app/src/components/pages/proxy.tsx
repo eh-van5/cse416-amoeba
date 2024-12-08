@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import SimpleBox from "../general/simpleBox";
 import { BackIcon, ViewAllIcon } from '../../images/icons/icons';
-import ItemsTable from '../tables/itemsTable';
 import ToggleSwitch from '../general/toggle';
 import LineGraph from '../charts/lineGraph';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
-import { proxyNodes, proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
+import { proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
+import { startHeartbeat, stopHeartbeat } from '../general/Heartbeat';
 
 export default function ProxyPage(){
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     const generateRandomBanwidthData = () => {
         const data = [];
         for(let i = 0; i < 12; i++) {
@@ -33,41 +33,212 @@ export default function ProxyPage(){
     const [isViewAvailable, setViewAvailable] = useState(false);
     const [isProxyEnabled, setIsProxyEnabled] = useState(false);
     const [isUsingProxy, setIsUsingProxy] = useState(false);
-    const [pricePerMB, setPricePerMB] = useState('');
+    const [pricePerMB, setPricePerMB] = useState(() => {
+        const savedPrice = localStorage.getItem("pricePerMB");
+        return savedPrice ? savedPrice : "";
+    });
     const [enableError, setEnableError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [useError, setUseError] = useState('');
     const [selectedProxyNode, setSelectedProxyNode] = useState({
         ipAddress: '',
         location: '',
-        pricePerMB: 0
+        pricePerMB: 0,
+        peerID: ''
     });
+    const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
 
+    const POLLING_INTERVAL = 5000;
+    const HEARTBEAT_INTERVAL = 10000;
+    useEffect(() => {
+        const fecthData = async () => {
+            const [proxies, status] = await Promise.all([fetchProxies(), fetchProxyStatus()]);
+            setProxyNodes(proxies);
+            setIsProxyEnabled(status);
+            if(!status)
+                setSuccessMessage('');
+        };
+        fecthData();
+        const interval = setInterval(() => {
+            fecthData();
+        }, POLLING_INTERVAL);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleUnload = () => {
+            stopHeartbeat();
+        };
+    
+        window.addEventListener("beforeunload", handleUnload);
+    
+        return () => {
+            window.removeEventListener("beforeunload", handleUnload);
+        };
+    }, []);
+
     const DataTransferred = 0;
     const DataUsed = 0;
 
-    const handleEnableProxy = () => {
+    const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
-        const validNumberPattern = /^[0-9]*\.?[0-9]+$/;
-        if(!pricePerMB || !validNumberPattern.test(pricePerMB) || price < 0) {
+        if(!pricePerMB || isNaN(price) || price < 0) {
             setEnableError('Please enter a valid positive number or 0.');
+            setSuccessMessage('');
         }else {
             setEnableError('');
-            setIsProxyEnabled(!isProxyEnabled);
+
+            try {
+                // Send a request
+                const response = await fetch('http://localhost:8088/enable-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ pricePerMB: price }),
+                });
+    
+                const result = await response.json();
+    
+                if(response.ok) {
+                    setSuccessMessage(result.status);
+                    setIsProxyEnabled(true);
+                    startHeartbeat();
+                }else {
+                    setEnableError('Failed to enable proxy.');
+                    console.error('Error enabling proxy:', result);
+                }
+            }catch(error) {
+                setEnableError('Network error. Please try again.');
+                console.error('Failed to enable proxy:', error);
+            }
         }
     };
 
-    const handleUseProxy = () => {
-        if (!selectedProxyNode.ipAddress) {
-            setUseError('Please select a proxy node before using.');
-        } else {
-            setUseError('');
-            setIsUsingProxy(!isUsingProxy);
+    const handleDisableProxy = async () => {
+        try {
+            const response = await fetch('http://localhost:8088/disable-proxy', {
+                method: 'POST'
+            });
+            const result = await response.json();
+            if(response.ok) {
+                setIsProxyEnabled(false);
+                setSuccessMessage('');
+                stopHeartbeat();
+            }else {
+                console.error(result)
+            }
+        }catch(error) {
+            console.error('Failed to disable proxy: ', error);
         }
     };
+
+    const fetchProxies = async (): Promise<proxyNodeStructure[]> => {
+        try {
+            const response = await fetch('http://localhost:8088/get-proxies');
+            const proxies = await response.json();
+
+            const proxiesWithLocation = await Promise.all(
+                proxies.map(async (proxy: proxyNodeStructure) => {
+                    const location = await fetchLocation(proxy.ipAddress);
+                    return {...proxy, location};
+                })
+            );
+
+            return proxiesWithLocation
+        }catch(error) {
+            console.error('Failed to fetch proxies:', error);
+            return [];
+        }
+    };
+
+    const fetchProxyStatus = async () => {
+        try {
+            const response = await fetch("http://localhost:8088/proxy-status");
+            const status = await response.json();
+            return status.isProxyEnabled;
+        }catch(error) {
+            console.error("Failed to fetch proxy status:", error);
+            return false
+        }
+    }
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setPricePerMB(value);
+        localStorage.setItem("pricePerMB", value);
+    };
+
+    const fetchLocation = async (ipAddress: string): Promise<string> => {
+        try {
+            const response = await fetch(`http://ip-api.com/json/${ipAddress}`);
+            const data = await response.json();
+    
+            if(data.status === "success") {
+                const region = data.regionName || data.city
+                return `${region}, ${data.country}`;
+            }else {
+                console.warn(`Failed to fetch location for IP: ${ipAddress}`);
+                return "Unknown";
+            }
+        }catch (error) {
+            console.error(`Failed to fetch location for IP: ${ipAddress}`, error);
+            return "Unknown";
+        }
+    };
+
+    const handleUseProxy = async () => {
+        if (!selectedProxyNode.peerID) {
+            setUseError('Please select a proxy node before using.');
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:8088/use-proxy", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ targetPeerID: selectedProxyNode.peerID }),
+            });
+
+            const result = await response.json();
+            if(response.ok) {
+                setIsUsingProxy(true);
+                setUseError('');
+            }else {
+                setUseError('Failed to connect to proxy node.');
+                console.error(result);
+            }
+        }catch(error) {
+            console.error(error);
+            setUseError('Network error while connecting to proxy.');
+        }
+    };
+
+    const handleStopUsingProxy = async () => {
+        setSelectedProxyNode({
+            ipAddress: '',
+            location: '',
+            pricePerMB: 0,
+            peerID: ''
+        });
+        try {
+            const response = await fetch('http://localhost:8088/stop-using-proxy', {
+                method: 'POST',
+            });
+            if(response.ok) {
+                setIsUsingProxy(false);
+            }else {
+                console.error('Failed to stop using proxy.');
+            }
+        }catch(error) {
+            console.error('Network error while stopping proxy.');
+        }
+    }
 
     const handleSelectProxyNode = (node: proxyNodeStructure) => {
         if(isViewAvailable)
@@ -75,7 +246,8 @@ export default function ProxyPage(){
         setSelectedProxyNode({
             ipAddress: node.ipAddress,
             location: node.location,
-            pricePerMB: node.pricePerMB
+            pricePerMB: node.pricePerMB,
+            peerID: node.peerID
         });
     };
 
@@ -92,7 +264,7 @@ export default function ProxyPage(){
                 <SimpleBox title='Enable My IP as a Proxy'>
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
-                        <input type="text" value={pricePerMB} onChange={(e) => setPricePerMB(e.target.value)} disabled={isProxyEnabled} />
+                        <input type="text" value={pricePerMB} onChange={handlePriceChange} disabled={isProxyEnabled} />
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
@@ -100,10 +272,10 @@ export default function ProxyPage(){
                         <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataTransferred} MB</span>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '12px', color: 'red' }}>{enableError}</span> 
+                        <span style={{ fontSize: '12px', color: enableError ? 'red' : 'green' }}>{enableError || successMessage}</span> 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={handleEnableProxy} />
+                        <ToggleSwitch name="toggle-proxy-node" offText="Off" onText="On" checked={isProxyEnabled} onClick={isProxyEnabled ? handleDisableProxy : handleEnableProxy} />
                     </div>
                 </SimpleBox>
                 <SimpleBox title='Use Proxy Node'>
@@ -123,7 +295,7 @@ export default function ProxyPage(){
                         <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
-                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={handleUseProxy} />
+                        <ToggleSwitch name="toggle-use-proxy-node" offText="Off" onText="On" checked={isUsingProxy} onClick={isUsingProxy ? handleStopUsingProxy : handleUseProxy} />
                     </div>
                 </SimpleBox>
             </div> )}

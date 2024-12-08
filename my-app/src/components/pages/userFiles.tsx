@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
 import UserFilesTable from "../tables/userFilesTable/userFilesTable";
@@ -13,7 +13,7 @@ export interface UserFileData{
 export default function UserFilesPage(){
     const [sharedFiles, setSharedFiles] = useState<UserFileData[]>([]);
     const [uploadedFiles, setUploadedFiles] = useState<Map<string, UserFileData>>(new Map());
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     console.log(uploadedFiles);
 
     const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];

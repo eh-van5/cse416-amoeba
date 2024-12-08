@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dispatcher } from "../../App";
 import { SunIcon, MoonIcon } from "../../images/icons/icons"
 import ToggleSwitch from "../general/toggle";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 enum Tab{
     Appearance,
@@ -16,7 +16,7 @@ interface SettingsProps{
 
 export default function SettingsPage(props: SettingsProps){
     const[currentTab, setCurrentTab] = useState<Tab>(Tab.Appearance);
-    const { isDarkMode, toggleTheme } = useTheme();
+    const { isDarkMode, toggleTheme } = useAppContext();
 
     // All tabs as an array of strings
     const tabs = Object.keys(Tab).filter((v) => isNaN(Number(v)));

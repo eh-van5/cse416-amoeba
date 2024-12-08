@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import { UserFileData } from "../../pages/userFiles";
 import FilesTable from "../../tables/filesTable";
 import { stringify } from "querystring";
@@ -16,7 +16,7 @@ interface formatPriceTableProps {
 }
 
 function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     const filesAndPrice = files.map((file) => {
         return (
             <div key = {file.file.name} className = "items-table-row">
