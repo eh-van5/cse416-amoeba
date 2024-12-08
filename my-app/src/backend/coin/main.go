@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -155,25 +156,34 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		mux.HandleFunc("/stopServer", c.StopServer)
 		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
 		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
-		mux.HandleFunc("/mineOneBlock/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("---- MineOneBlock 1")
-			c.MineOneBlock(w, r, miningaddr)
+		mux.HandleFunc("/mineOneBlock/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("---- MineOneBlock 1\n")
+			path := r.URL.Path
+			path = strings.TrimPrefix(path, "/mineOneBlock/")
+			parts := strings.Split(path, "/")
+			numcpus := parts[3]
+			numcpu, err := strconv.Atoi(numcpus)
+			if err != nil {
+				fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
+			}
+
+			c.MineOneBlock(w, r, miningaddr, numcpu)
 		})
 		mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("---- stopMining 1")
+			fmt.Printf("stopMining 1\n")
 			c.StopMining(w, r)
 		})
-
+		mux.HandleFunc("/GetCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("Get CPU Threads\n")
+			c.GetCPUThreads(w, r)
+		})
 		mux.HandleFunc("/getWalletValue/{username}/{password}/{walletAddr}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("---- GetWalletVal 1")
+			fmt.Printf("-GetWalletVal 1")
 			path := r.URL.Path
-			// Remove the initial "/getWalletValue/" from the path
 			path = strings.TrimPrefix(path, "/getWalletValue/")
-
-			// Split the remaining path by "/"
 			parts := strings.Split(path, "/")
 			walletAddr := parts[2]
-			c.GetWalletValue(w, r, walletAddr) //probably the wallet address also
+			c.GetWalletValue(w, r, walletAddr)
 		})
 
 		fmt.Printf("HTTP handling functions\n")
