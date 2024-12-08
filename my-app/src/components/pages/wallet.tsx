@@ -2,14 +2,28 @@ import React, {useState} from 'react';
 import LineGraph from "../charts/lineGraph";
 import SimpleBox from "../general/simpleBox";
 import { useTheme } from '../../ThemeContext';
+import axios from 'axios';
+
+
+const PORT = 8000;
+//const username = user.username
 
 export default function WalletPage(){
     const {isDarkMode} = useTheme();
     //Determines the coin amount
-    const [coinAmount, setCoinAmount] = useState(0.367);
-    const [currencyAmount, setCurrencyAmount] = useState(6.90);
-    //empty function to send to this wallet
-    const send = () => {
+    const [coinAmount, setCoinAmount] = useState(0.00);
+    const [currencyAmount, setCurrencyAmount] = useState(0.00);
+    //function to update the wallet values
+    const updateWalletValues = async() =>{
+        let res = await axios.get(`http://localhost:${PORT}/createWallet/username/password`)
+        console.log("Updated Wallet Values")
+        //walletNum = res.data;
+        setCoinAmount(res.data)
+        setCurrencyAmount(res.data * 10000)//the currency amount shall be 10,000 * coin amount
+
+    }
+    //function to send to this wallet
+    const send = async() => {
         let numberErrors = 0;
         const walletNum = (document.getElementById('walletNum') as HTMLInputElement).value;
         //console.log(walletNum)
@@ -36,6 +50,8 @@ export default function WalletPage(){
             numberErrors += 1;
 
         }
+        let res = await axios.get(`http://localhost:${PORT}/SendToWallet/username/password/username/${walletNum}/${ambAmount}`)
+
         if(numberErrors===0){
             if(generalError){
                 generalError.innerHTML = 'Successfully sent to wallet!';
@@ -45,8 +61,6 @@ export default function WalletPage(){
             setCoinAmount(coinAmount => coinAmount - ambAmount);
             setCurrencyAmount (currencyAmount => currencyAmount-(ambAmount/currencyAmount));
         }
-
-
     }
 
     const generateRandomLossGainData = () => {

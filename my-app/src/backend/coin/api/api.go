@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -108,7 +109,7 @@ func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, e
 var stopMining bool
 
 // starts mining blocks , possibly forever until stop
-// GIVEN mining address and the number of cpus
+// GIVEN mining address and the number of cpus (this does not use numcpus)
 func (c *Client) MineOneBlocka(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
@@ -193,18 +194,19 @@ func (c *Client) StopMining(w http.ResponseWriter, r *http.Request) {
 }
 
 // function to return all the peers that are connected(?)
-func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) {
+func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) []btcjson.GetPeerInfoResult {
 	fmt.Println("Getting all peers...")
 	peers, err := c.Rpc.GetPeerInfo()
 	if err != nil {
 		fmt.Printf("Error Getting All Peers (GetAllPeers): %v\n", err)
-		return
+		return nil
 	}
 	for _, peer := range peers {
 		fmt.Printf("Peer ID: %v, Address: %v, Connection time: %v, BytesSent: %v, PingTime %v\n",
 			peer.ID, peer.Addr, peer.ConnTime, peer.BytesSent, peer.PingTime)
 	}
 	io.WriteString(w, "Peers fetched")
+	return peers
 }
 
 // function to connect to a particular peer but idk why you need that
@@ -222,7 +224,7 @@ func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request, peer *btc
 }
 
 // function to query the value of a wallet
-func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAddr string) {
+func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAddr string) btcutil.Amount {
 	fmt.Printf("Getting value of wallet... %s\n", walletAddr)
 	c.UnlockWallet()
 	info, err := c.Rpc.GetBalance(walletAddr)
@@ -230,20 +232,39 @@ func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAd
 	if err != nil {
 		fmt.Printf("Error Getting Wallet Info: %v\n", err)
 		io.WriteString(w, "Error Getting Wallet Info\n")
-		return
+		return -1
 	}
 	if stopMining == true {
 		c.LockWallet()
 	}
 	fmt.Printf("Value of Wallet %s is : %s\n", walletAddr, info)
 	io.WriteString(w, "Wallet Value Fetched\n")
+	return info
 }
 
 // sends to this walletAddr (????)
-func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr btcutil.Address, amt btcutil.Amount) {
+func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr string, amt string) {
 	fmt.Printf("Sending %s coin to wallet %s", amt, walletAddr)
+
+	walletAddr_btc, err := btcutil.DecodeAddress(walletAddr, &chaincfg.MainNetParams)
+	if err != nil {
+		fmt.Printf("Error decoding Mining address (sendToWallet): %v\n", err)
+		return
+	}
+	amtFloat, err := strconv.ParseFloat(amt, 64)
+	if err != nil {
+		fmt.Printf("Error converting amount value to Float (sendToWallet): %v\n", err)
+		return
+
+	}
+	amt_btc, err := btcutil.NewAmount(amtFloat)
+	if err != nil {
+		fmt.Printf("Error converting btc amount to btcutil.NewAmount (sendToWallet): %v\n", err)
+		return
+
+	}
 	c.UnlockWallet()
-	hash, err := c.Rpc.SendToAddress(walletAddr, amt)
+	hash, err := c.Rpc.SendToAddress(walletAddr_btc, amt_btc)
 	if err != nil {
 		fmt.Printf("Error Sending amount to wallet: %v\n", err)
 		io.WriteString(w, "Error Getting Wallet Info\n")

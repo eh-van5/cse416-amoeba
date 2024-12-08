@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/btcutil"
+	//"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
@@ -173,17 +174,29 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 			fmt.Printf("stopMining 1\n")
 			c.StopMining(w, r)
 		})
-		mux.HandleFunc("/GetCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("Get CPU Threads\n")
 			c.GetCPUThreads(w, r)
 		})
-		mux.HandleFunc("/getWalletValue/{username}/{password}/{walletAddr}", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("-GetWalletVal 1")
-			path := r.URL.Path
-			path = strings.TrimPrefix(path, "/getWalletValue/")
-			parts := strings.Split(path, "/")
-			walletAddr := parts[2]
+			/*
+				path := r.URL.Path
+				path = strings.TrimPrefix(path, "/getWalletValue/")
+				parts := strings.Split(path, "/")*/
+			//walletAddr := parts[2]
+			walletAddr := c.Username
 			c.GetWalletValue(w, r, walletAddr)
+		})
+		mux.HandleFunc("/sendToWallet/{username}/{password}/{walletAddr}/{amount}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("-send to Wallet 1")
+			path := r.URL.Path
+			path = strings.TrimPrefix(path, "/sendToWallet/")
+			parts := strings.Split(path, "/")
+
+			walletAddr := parts[2]
+			amount := parts[3]
+			c.SendToWallet(w, r, walletAddr, amount)
 		})
 
 		fmt.Printf("HTTP handling functions\n")
