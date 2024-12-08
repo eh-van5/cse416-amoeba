@@ -1,5 +1,5 @@
 import { ReactElement, useEffect } from "react";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 interface formatItemsProps{
     colNum: number,
@@ -29,7 +29,7 @@ export default function ItemsTable ({
         console.log("ItemsTable -> received items:", items); // Log items when received
     }, [items]); // Trigger when items prop changes
     
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     const formattedHeader = headings.map(heading => {
         return <span className={`items-table-header${isDarkMode? '-dark' : ''}`}>{heading}</span>
     });

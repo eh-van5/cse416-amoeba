@@ -7,7 +7,7 @@ import PieGraph from '../charts/pieGraph';
 import SimpleBox from "../general/simpleBox";
 import { BackIcon, ViewAllIcon } from '../../images/icons/icons';
 import ItemsTable from '../tables/itemsTable';
-import { useTheme } from '../../ThemeContext';
+import { useAppContext } from '../../AppContext';
 
 export default function DashboardPage(){
     const coinAmount = 0.367;
@@ -15,7 +15,7 @@ export default function DashboardPage(){
 
     const [isView, setView] = useState(false);
     const toggleView = () => setView(!isView);
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
 
     const items = [];
     for (let i = 0; i < 4*60; i++){

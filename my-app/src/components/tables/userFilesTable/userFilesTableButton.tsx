@@ -1,5 +1,5 @@
 import { PauseIcon, PlayIcon } from "../../../images/icons/icons";
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import { UserFileData } from "../../pages/userFiles";
 
 interface statusButtonProps {
@@ -22,7 +22,7 @@ function FlipSharing({item, items, setItems}: statusButtonProps){
 
 
 export default function StatusButton({item, items, setItems}: statusButtonProps) { 
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     // just hoping duplicate handling is done on the backend
     return (
         <button 

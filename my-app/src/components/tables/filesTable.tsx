@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { useTheme } from "../../ThemeContext";
+import { useAppContext } from "../../AppContext";
 
 interface itemsTableProps {
     headings: string[],
@@ -9,7 +9,7 @@ export default function FilesTable ({
     headings,
     items
 }: itemsTableProps){
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     const formattedHeader = headings.map(heading => {
         return <span className={`items-table-header${isDarkMode? '-dark' : ''}`}>{heading}</span>
     });
