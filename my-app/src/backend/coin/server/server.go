@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	// "errors"
 
 	"github.com/creack/pty"
 )
@@ -45,6 +46,7 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string){
 		"--rpcpass=password",
 		"--notls",
 		"--debuglevel=info",
+		"--addpeer=130.245.173.221:8333",	// Connects to TA network
 	}
 
 	// If a mining address is given
@@ -69,7 +71,19 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string){
 		fmt.Println("Error starting cmd: ", err)
 	}
 
+	// errChan = make(chan error, 1)
+
 	// Print
+	// go func() {
+	// 	if err = OutputStream(stdout, name); err != nil{
+	// 		errChan <- err
+	// 	}
+	// }()
+	// go func() {
+	// 	if err = OutputStream(stderr, name); err != nil{
+	// 		errChan <- err
+	// 	}
+	// }()
 	go OutputStream(stdout, name)
 	go OutputStream(stderr, name)
 
@@ -82,6 +96,11 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string){
 		pm.btcdCmd.Process.Kill()
 		fmt.Printf("process killed\n")
 	}()
+
+	// Wait for btcd to start
+	// time.Sleep(3 * time.Second)
+
+	// return nil
 }
 
 // Starts the btcwallet process
@@ -120,6 +139,16 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string){
 	}
 
 	// Print
+	// go func() {
+	// 	if err = OutputStream(stdout, name); err != nil{
+	// 		return err
+	// 	}
+	// }()
+	// go func() {
+	// 	if err = OutputStream(stderr, name); err != nil{
+	// 		return err
+	// 	}
+	// }()
 	go OutputStream(stdout, name)
 	go OutputStream(stderr, name)
 
@@ -130,6 +159,10 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string){
 		pm.WalletDone <- true
 		pm.walletCmd.Process.Kill()
 	}()
+
+	// Wait for btcwallet to start
+	// time.Sleep(3 * time.Second)
+	// return nil
 }
 
 // Starts btcwallet to create a wallet
@@ -282,9 +315,14 @@ func CreateWallet(username string, password string) (privateKey string, err erro
 // }
 
 // Prints output from stream
-func OutputStream(stream io.ReadCloser, name string) {
+func OutputStream(stream io.ReadCloser, name string){
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
-		fmt.Printf("%s> %s\n", name, scanner.Text())
+		text := scanner.Text()
+		fmt.Printf("%s> %s\n", name, text)
+		// if strings.Contains(text, "[ERR]"){
+		// 	return errors.New("Error encountered in %s\n", name)
+		// }
 	}
+	// return nil
 }
