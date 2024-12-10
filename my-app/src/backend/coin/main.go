@@ -157,10 +157,10 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		mux.HandleFunc("/stopServer", c.StopServer)
 		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
 		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
-		mux.HandleFunc("/mineOneBlock/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/startMining/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("---- MineOneBlock 1\n")
 			path := r.URL.Path
-			path = strings.TrimPrefix(path, "/mineOneBlock/")
+			path = strings.TrimPrefix(path, "/startMining/")
 			parts := strings.Split(path, "/")
 			numcpus := parts[3]
 			numcpu, err := strconv.Atoi(numcpus)
@@ -177,6 +177,10 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("Get CPU Threads\n")
 			c.GetCPUThreads(w, r)
+		})
+		mux.HandleFunc("/getAllPeers/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("Get All Peers\n")
+			c.GetAllPeers(w, r)
 		})
 		mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("-GetWalletVal 1")

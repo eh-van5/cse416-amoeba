@@ -110,7 +110,8 @@ var stopMining bool
 
 // starts mining blocks , possibly forever until stop
 // GIVEN mining address and the number of cpus (this does not use numcpus)
-func (c *Client) MineOneBlocka(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
+// this is an unused function, use MineOneBlock instead
+func (c *Client) MineOneBlockOld(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
 	stopMining = false
@@ -151,17 +152,23 @@ func (c *Client) MineOneBlocka(w http.ResponseWriter, r *http.Request, miningadd
 
 }
 
-// modified version of Mine
+// modified version of Mine, this allows you to specify the cpu rate
 func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
 	stopMining = false
 	address, err := btcutil.DecodeAddress(miningaddr, &chaincfg.MainNetParams)
 	c.Rpc.SetGenerate(false, 0)
+	if err != nil {
+		fmt.Printf("Error Mining (StartMining): %v\n", err)
+		c.LockWallet()
+		io.WriteString(w, "Mining stopped\n")
+		return
+	}
 	fmt.Printf("Stopping previous instances of Mining...")
 	time.Sleep(time.Second * 10)
 	fmt.Printf("Starting Mining with selected cpu cores...")
-	c.Rpc.SetGenerate(true, numcpu)
+	err = c.Rpc.SetGenerate(true, numcpu)
 	time.Sleep(time.Second * 10)
 
 	fmt.Printf("Decoded Address: %s", address)
@@ -171,12 +178,9 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr
 		io.WriteString(w, "Mining stopped\n")
 		return
 	}
-	//var tryAmt int64 = 10
 
-	//blockHashes, err := c.Rpc.GenerateToAddress(1, address, &tryAmt) //this does not work (idk why)
-	//breaks out of the infinite loop
 	if stopMining {
-		fmt.Println("Mining stopped")
+		fmt.Println("Mining stopped (in loop)")
 		c.LockWallet()
 		io.WriteString(w, "Mining stopped\n")
 		return
@@ -234,7 +238,7 @@ func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAd
 		io.WriteString(w, "Error Getting Wallet Info\n")
 		return -1
 	}
-	if stopMining == true {
+	if stopMining {
 		c.LockWallet()
 	}
 	fmt.Printf("Value of Wallet %s is : %s\n", walletAddr, info)
@@ -270,7 +274,7 @@ func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr
 		io.WriteString(w, "Error Getting Wallet Info\n")
 		return
 	}
-	if stopMining == true {
+	if stopMining {
 		c.LockWallet()
 	}
 	//c.LockWallet()
@@ -279,5 +283,8 @@ func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr
 }
 
 func (c *Client) GetCPUThreads(w http.ResponseWriter, r *http.Request) int {
-	return runtime.NumCPU()
+	numCpu := runtime.NumCPU()
+	fmt.Printf("Number of Threads: %d\n", numCpu)
+	return numCpu
+
 }

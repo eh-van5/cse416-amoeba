@@ -63,6 +63,7 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) {
 		"--rpcpass=password",
 		"--notls",
 		"--debuglevel=info",
+		"--addpeer=130.245.173.221:8333",
 	}
 
 	// If a mining address is given
