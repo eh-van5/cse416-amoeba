@@ -51,8 +51,10 @@ func main() {
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux, loggedIn)
-		loggedIn = true
+		Login(w, r, mux, &loggedIn)
+	})
+	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
+		Login(w, r, mux, &loggedIn)
 	})
 
 	PORT := 8088
@@ -81,12 +83,10 @@ func main() {
 	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }
 
-func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn bool) {
+func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn *bool) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
-	if password == "" {
-		return
-	}
+	address := r.PathValue("miningaddr")
 
 	started := make(chan bool, 1)
 
@@ -114,10 +114,10 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 
 		// Starts btcd process
 		go func(){
-			err := pm.StartBtcd(ctx, "")
+			err := pm.StartBtcd(ctx, address)
 			if err != nil{
 				fmt.Printf("Returned from btcd, error: %v\n", err)
-				http.Error(w, "error starting btcd", http.StatusInternalServerError)
+				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
 				started <- false
 				cancel()
 			}
@@ -197,7 +197,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		}
 
 		// handle
-		if !loggedIn{
+		if !*loggedIn{
 			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 			mux.HandleFunc("/stopServer", c.StopServer)
 
@@ -218,6 +218,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 	// Waits for server to complete login before returning
 	graceful :=<-started
 	if graceful{
+		*loggedIn = true
 		io.WriteString(w, "Logged into server!")
 	}
 }

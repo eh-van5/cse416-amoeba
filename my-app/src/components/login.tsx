@@ -18,6 +18,7 @@ interface Props{
 interface User{
     username: string;
     password: string;
+    address: string;
     newPassword: string;
     confirmPassword: string;
 }
@@ -31,6 +32,7 @@ export default function Login(props: Props){
     const[user, setUser] = useState<User>({
         username: "",
         password: "",
+        address: "",
         newPassword: "",
         confirmPassword: "",
     })
@@ -51,6 +53,7 @@ export default function Login(props: Props){
         setUser({
             username: "",
             password: "",
+            address: "",
             newPassword: "",
             confirmPassword: "",
         })
@@ -62,6 +65,7 @@ export default function Login(props: Props){
         setUser({
             username: "",
             password: "",
+            address: "",
             newPassword: "",
             confirmPassword: "",
         })
@@ -72,12 +76,12 @@ export default function Login(props: Props){
     const login = () => {
         console.log("attempting login...")
         setError("")
-        if (user.username == "" || user.password == ""){
+        if (user.username == "" || user.password == "" || user.address == ""){
             setError("There are missing fields. Please try again");
             return;
         }
 
-        axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}`)
+        axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}/${user.address}`)
         .then((response) => {
             console.log(response.data);
             props.setLoggedIn(true);
@@ -178,6 +182,7 @@ export default function Login(props: Props){
                 <h1 className="login-text">Login</h1>
                 <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
                 {inputField("Login", "Enter Username", "username")}
+                {inputField("Wallet Address", "Enter Wallet Address", "address")}
                 {inputField("Password", "Enter Password", "password", true)}
                 <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
 
