@@ -131,7 +131,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(3 * time.Second): // Wait for btcd to start
+		case <-time.After(2 * time.Second): // Wait for btcd to start
 		}
 
 		// Starts btcwallet
@@ -139,7 +139,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 			err := pm.StartWallet(ctx, username)
 			if err != nil {
 				fmt.Printf("Returned from btcwallet, error: %v\n", err)
-				http.Error(w, "error starting btcwallet", http.StatusInternalServerError)
+				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
 				started <- false
 				cancel()
 			}
@@ -147,7 +147,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(3 * time.Second): // Wait for btcwallet to start
+		case <-time.After(2 * time.Second): // Wait for btcwallet to start
 		}
 
 		// RPC configurations
@@ -162,7 +162,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		client, err := rpcclient.New(connCfg, &ntfnHandlers)
 		if err != nil {
 			fmt.Printf("Colony> Unable to connect to rpcclient: %v\n", err)
-			http.Error(w, "error connecting to rpc client", http.StatusInternalServerError)
+			http.Error(w, "Error logging in. Please try again", http.StatusInternalServerError)
 			started <- false
 			cancel()
 		}
@@ -187,6 +187,20 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		}
 
 		fmt.Printf("Username: %s\nPassword: %s\n", c.Username, c.Password)
+
+		// Unlock Wallet using password
+		err = c.UnlockWallet()
+		if err != nil {
+			fmt.Printf("Colony> Unable to unlock wallet, Incorrect password: %v\n", err)
+			http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
+			started <- false
+			cancel()
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 
 		// handle
 

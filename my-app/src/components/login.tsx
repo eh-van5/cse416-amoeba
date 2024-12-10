@@ -2,7 +2,7 @@ import { ChangeEvent, useState } from "react";
 import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 import { CopyIcon } from "../images/icons/icons";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 // Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
 
 enum LoginPage{
@@ -37,9 +37,6 @@ export default function Login(props: Props){
 
     const[error, setError] = useState<string>("")
 
-    console.log(user)
-    // console.log(error)
-
     const[walletCreated, setWalletCreated] = useState<boolean>(false);
     const[copied, setCopied] = useState<boolean[]>([false, false, false]);
 
@@ -72,7 +69,7 @@ export default function Login(props: Props){
     const onUserChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUser({...user, [e.target.name]: e.target.value})
     }
-    const login = async () => {
+    const login = () => {
         console.log("attempting login...")
         setError("")
         if (user.username == "" || user.password == ""){
@@ -80,16 +77,16 @@ export default function Login(props: Props){
             return;
         }
 
-        await axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}`)
-        .then((res) => console.log(res.data))
+        axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}`)
+        .then((response) => {
+            console.log(response.data);
+            props.setLoggedIn(true);
+        })
         .catch((error) => {
-            if (error) {
-                console.log(error.response.status)
-                return;
-            }
-        });
-
-        props.setLoggedIn(true);
+            console.log(error)
+            setError(error.response.data)
+            return;
+        })
     }
     const createWallet = async () => {
         console.log("creating wallet...")
