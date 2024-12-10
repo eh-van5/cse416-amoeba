@@ -53,19 +53,35 @@ export default function ProxyPage(){
     const banwidthData = generateRandomBanwidthData();
 
     const POLLING_INTERVAL = 5000;
-    const HEARTBEAT_INTERVAL = 10000;
     useEffect(() => {
         const fecthData = async () => {
             const [proxies, status] = await Promise.all([fetchProxies(), fetchProxyStatus()]);
             setProxyNodes(proxies);
-            setIsProxyEnabled(status);
-            if(!status)
+            setIsProxyEnabled(status.isProxyEnabled);
+            setIsUsingProxy(status.isUsingProxy)
+            if(!status.isProxyEnabled)
                 setSuccessMessage('');
         };
         fecthData();
         const interval = setInterval(() => {
             fecthData();
         }, POLLING_INTERVAL);
+
+        const savedProxyNode = localStorage.getItem("selectedProxyNode");
+        if(savedProxyNode) {
+            console.log("restoring item.");
+            setSelectedProxyNode(JSON.parse(savedProxyNode));
+        }else {
+            console.log("No item.");
+            localStorage.removeItem("selectedProxyNode");
+            setSelectedProxyNode({
+                ipAddress: '',
+                location: '',
+                pricePerMB: 0,
+                peerID: ''
+            });
+        }
+        
         return () => clearInterval(interval);
     }, []);
 
@@ -160,7 +176,7 @@ export default function ProxyPage(){
         try {
             const response = await fetch("http://localhost:8088/proxy-status");
             const status = await response.json();
-            return status.isProxyEnabled;
+            return status;
         }catch(error) {
             console.error("Failed to fetch proxy status:", error);
             return false
@@ -209,6 +225,8 @@ export default function ProxyPage(){
             if(response.ok) {
                 setIsUsingProxy(true);
                 setUseError('');
+                localStorage.setItem("selectedProxyNode", JSON.stringify(selectedProxyNode));
+                console.log(localStorage.getItem("selectedProxyNode"));
             }else {
                 setUseError('Failed to connect to proxy node.');
                 console.error(result);
@@ -220,6 +238,7 @@ export default function ProxyPage(){
     };
 
     const handleStopUsingProxy = async () => {
+        localStorage.removeItem("selectedProxyNode");
         setSelectedProxyNode({
             ipAddress: '',
             location: '',

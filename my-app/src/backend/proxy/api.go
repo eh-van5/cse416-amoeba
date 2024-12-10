@@ -179,6 +179,7 @@ func ProxyStatusHandler() http.HandlerFunc {
 
 		status := map[string]bool{
 			"isProxyEnabled": proxyStatusCache.isProxyEnabled,
+			"isUsingProxy":   proxyStatusCache.isUsingProxy,
 		}
 
 		w.WriteHeader(http.StatusOK)
