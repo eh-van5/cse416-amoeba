@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import BuyForm from './buyForm';
+import BuyForm from '../tables/networkFilesTable/buyForm';
 
 function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [responseData, setResponseData] = useState<any>({}); 
+  const PORT = 8088; 
 
   // Handle input change
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +21,7 @@ function SearchBar() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/getFile?contentHash=${searchQuery}`, {
+      const response = await fetch(`http://localhost:${PORT}/getFile?contentHash=${searchQuery}`, {
         method: 'GET',
       });
 
@@ -45,16 +46,16 @@ function SearchBar() {
   };
   return (
     <div>
-      <h2>Find Providers Using Content Hash</h2>
-      <form onSubmit={handleSubmit}>
+      <form id = "search-bar" onSubmit={handleSubmit}>
+        <button className = "search-bar-items" type="submit">Buy</button>
         <input
+          className = "search-bar-items"
           type="text"
           value={searchQuery}
           onChange={handleChange}
           placeholder="Enter file hash"
           required
         />
-        <button type="submit">Buy</button>
       </form>
       <BuyForm hostToFile={responseData} />
     </div>

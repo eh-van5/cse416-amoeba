@@ -4,6 +4,7 @@ import NetworkWidget from "../general/networkWidget/networkWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
 import FileTable from "../tables/userFilesTable/userFilesTable";
 import NetworkFilesTable from "../tables/networkFilesTable/networkFiles";
+import SearchBar from "../general/searchBar";
 
 export interface networkFileStructure {
     file: {
@@ -44,17 +45,16 @@ export default function NetworkFilesPage(){
     return(
         <div className="page-content">
             <div className="page-file-header"> 
-                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network</p>
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Purchase Files using Content Hash</p>
             </div>            
             <hr></hr>
-            <br></br>
             <div id = "top-widgets">
-                <NetworkWidget />
+                <SearchBar />
             </div>
             <br></br>
             <hr></hr>
             <div className="page-file-header"> 
-                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network Files</p>
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Explore Network Files</p>
             </div>
             <NetworkFilesTable items={tempItems} headings={headings}/>
         </div>

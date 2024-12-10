@@ -3,7 +3,6 @@ import FilesTable from "../filesTable";
 import NetworkBuyButton from "./networkBuyButton";
 import { networkFileStructure } from "../../pages/networkFiles";
 import { formatBytes, translateDate } from "../../general/formatHelpers";
-import SearchBar from "./findFile";
 
 interface FileTableProps {
     items:networkFileStructure[]
@@ -38,7 +37,6 @@ export default function NetworkFilesTable ({items, headings} : FileTableProps) {
 
     return (
         <div id = "filesTable" className={`items-table${isDarkMode? '-dark' : ''}`}>
-            <SearchBar />
             <FilesTable headings={headings} items={formattedItems} />
         </div>
     )

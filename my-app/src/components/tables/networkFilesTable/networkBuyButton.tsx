@@ -1,6 +1,5 @@
 import { useAppContext } from "../../../AppContext";
 import { networkFileStructure } from "../../pages/networkFiles";
-import BuyForm from "./buyForm";
 
 interface buyButtonProps {
     item: networkFileStructure;

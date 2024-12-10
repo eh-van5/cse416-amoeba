@@ -15,29 +15,28 @@ export default function UserFilesTable ({items, setItems, headings} : FileTableP
     // console.log(items)
     const {isDarkMode} = useAppContext();
 
-    // pull actual items from backend
     const formattedItems: JSX.Element[] = items.map((item) => {
-        if (!item.shared) {
-            return <></>;
-        }
+        // if (!item.shared) {
+        //     return <></>;
+        // }
         // const status = item.shared ? "sharing" : "not sharing"
         return (
-        <div key = {item.file.name} className = "items-table-row">
+        <div key = {item.Name} className = "items-table-row">
 
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                 <StatusButton item = {item} items = {items} setItems={setItems} />
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {item.file.name}
+                {item.Name}
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {item.price}
-            </span>
-                    <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {translateDate(item.file.lastModified)}
+                {item.Price}
             </span>
             <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
-                {formatBytes(item.file.size)}
+                {translateDate(item.LastModified)}
+            </span>
+            <span className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
+                {formatBytes(item.Size)}
             </span>
         </div>
         )
