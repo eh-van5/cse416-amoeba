@@ -40,6 +40,7 @@ func (c *Client) LockWallet() {
 }
 
 func (c *Client) StopServer(w http.ResponseWriter, r *http.Request) {
+	// CURRENT PROBLEM: When signalling or calling this function, the process in ps -e is not killed
 	fmt.Printf("got /stopServer request\n")
 
 	c.ProcessManager.StopServer()

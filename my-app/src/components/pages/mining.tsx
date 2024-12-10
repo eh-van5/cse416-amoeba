@@ -7,14 +7,14 @@ import useChartMenu from "../charts/useChartMenu";
 import { useTheme } from "../../ThemeContext";
 import axios from "axios";
 
-const PORT = 8000
+const PORT = 8800
 // Note: Consider adding a visible timer somehow in the future
 // WIP code for timer drop down menu is commented out
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
 export default function MiningPage() {
-    const { isDarkMode } = useTheme();
+    const { isDarkMode, sendMessage } = useAppContext();
     const [sliderValue, setSliderValue] = useState<number>(50); // Initialize the slider value
     const [hours, setHours] = useState<string>('0');
     const [minutes, setMinutes] = useState<string>('0');
@@ -135,18 +135,20 @@ export default function MiningPage() {
             setTimerValue(totalSeconds);
             startTimer()
         }
-        setIsMining((isMining) => !isMining);
         if (isMining) {
             setButtonText('Begin Mining');
+            sendMessage('Stop Mining Request')
             //call to start mining
             startMining()
         }
         else {
             setButtonText('Stop Mining');
+            sendMessage('Begin Mining Request')
             //call to stop mining
             setTimerValue(0)
             stopMining()
         }
+        setIsMining((isMining) => !isMining);
     }
 
     const handleMouseOver = () => {

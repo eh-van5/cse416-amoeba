@@ -1,8 +1,8 @@
-import { networkFileStructure } from "../../pages/networkFiles";
+import { FileInfo } from "../../pages/networkFiles";
 
-interface buyFormProps {
-    item: networkFileStructure;
-}
+interface BuyFormProps {
+    hostToFile: Record<string, FileInfo>;
+  }
 
 function cancel(e: React.MouseEvent){
     const purchaseForm = document.getElementById("purchase-form") as HTMLDialogElement;
@@ -33,20 +33,21 @@ function buy(e : React.FormEvent<HTMLFormElement>){
     
 }
 
-export default function BuyForm({item}: buyFormProps) {
-    const owners = item.prices.keys()
+export default function BuyForm({hostToFile}: BuyFormProps) {
+    const owners = Object.keys(hostToFile)
     const options = Array.from(owners).map((owner: string) => {
+        const price = hostToFile[owner]?.Price
         return (
             <div id="provider-options">
                 <input 
-                id={owner + item.prices.get(owner)}
+                id={owner + price}
                 className = "buyFormRadio" 
                 required 
                 name = "provider" 
-                value = {item.prices.get(owner)}
+                value = {price}
                 type = "radio">
                 </input>
-                <label className = "buyFormPrices">${item.prices.get(owner)} </label>
+                <label className = "buyFormPrices">${price} </label>
                 <label className = "buyFormOwners">{owner}</label>
             </div>
         )

@@ -32,8 +32,10 @@ func main() {
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	done := make(chan bool, 1)
 
+	// Checks if current session has logged in before
+	loggedIn := false
+
 	go func() {
-		// <-sigs
 		<-sigs
 		fmt.Printf("signal received. Done\n")
 		done <- true
@@ -53,11 +55,12 @@ func main() {
 	// Functions in the login page
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
-	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux)
+	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		Login(w, r, mux, loggedIn)
+		loggedIn = true
 	})
-	// 1F6zt9RztTi5ytUGmZeeoVY3tqD2cBNKtv
-	PORT := 8000
+
+	PORT := 8088
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", PORT),
@@ -83,7 +86,7 @@ func main() {
 	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }
 
-func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
+func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn bool) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	miningaddr := r.PathValue("miningaddr")
@@ -91,11 +94,13 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		return
 	}
 
-	io.WriteString(w, "Logged into server!")
-
 	started := make(chan bool, 1)
 
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	go func() {
+		defer cancel()
+		// defer close(started)
 
 		ntfnHandlers := rpcclient.NotificationHandlers{
 			OnFilteredBlockConnected: func(height int32, header *wire.BlockHeader, txns []*btcutil.Tx) {
@@ -107,8 +112,6 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 					header.BlockHash(), height, header.Timestamp)
 			},
 		}
-		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-		defer cancel()
 
 		pm := &server.ProcessManager{
 			BtcdDone:   make(chan bool),
@@ -116,14 +119,36 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		}
 
 		// Starts btcd process
-		pm.StartBtcd(ctx, miningaddr)
-		// Wait for btcd to start
-		time.Sleep(3 * time.Second)
+		go func() {
+			err := pm.StartBtcd(ctx, "")
+			if err != nil {
+				fmt.Printf("Returned from btcd, error: %v\n", err)
+				http.Error(w, "error starting btcd", http.StatusInternalServerError)
+				started <- false
+				cancel()
+			}
+		}()
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second): // Wait for btcd to start
+		}
 
 		// Starts btcwallet
-		pm.StartWallet(ctx, username)
-		// Wait for btcwallet to start
-		time.Sleep(3 * time.Second)
+		go func() {
+			err := pm.StartWallet(ctx, username)
+			if err != nil {
+				fmt.Printf("Returned from btcwallet, error: %v\n", err)
+				http.Error(w, "error starting btcwallet", http.StatusInternalServerError)
+				started <- false
+				cancel()
+			}
+		}()
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(3 * time.Second): // Wait for btcwallet to start
+		}
 
 		// RPC configurations
 		connCfg := &rpcclient.ConnConfig{
@@ -135,11 +160,24 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 		}
 
 		client, err := rpcclient.New(connCfg, &ntfnHandlers)
-		defer client.Shutdown()
-
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("Colony> Unable to connect to rpcclient: %v\n", err)
+			http.Error(w, "error connecting to rpc client", http.StatusInternalServerError)
+			started <- false
+			cancel()
 		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// Only defer shutdown if client exists
+		defer func() {
+			if client != nil {
+				client.Shutdown()
+			}
+		}()
 
 		c := api.Client{
 			ProcessManager: pm,
@@ -148,62 +186,61 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 			Password:       password,
 		}
 
-		fmt.Printf("Username: %s\nPassword:%s\n", c.Username, c.Password)
+		fmt.Printf("Username: %s\nPassword: %s\n", c.Username, c.Password)
 
 		// handle
 
-		mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
-		io.WriteString(w, fmt.Sprintf("Mining Address: %s ", miningaddr))
-		mux.HandleFunc("/stopServer", c.StopServer)
-		//http.HandleFunc("/mineOneBlock/{username}/{password}", api.MineOneBlock)
-		//http.HandleFunc("/stopMining/{username}/{password}", api.StopMining)
-		mux.HandleFunc("/startMining/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("---- MineOneBlock 1\n")
-			path := r.URL.Path
-			path = strings.TrimPrefix(path, "/startMining/")
-			parts := strings.Split(path, "/")
-			numcpus := parts[3]
-			numcpu, err := strconv.Atoi(numcpus)
-			if err != nil {
-				fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
-			}
-
-			c.MineOneBlock(w, r, miningaddr, numcpu)
-		})
-		mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("stopMining 1\n")
-			c.StopMining(w, r)
-		})
-		mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("Get CPU Threads\n")
-			c.GetCPUThreads(w, r)
-		})
-		mux.HandleFunc("/getAllPeers/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("Get All Peers\n")
-			c.GetAllPeers(w, r)
-		})
-		mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("-GetWalletVal 1")
-			/*
+		if !loggedIn {
+			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
+			mux.HandleFunc("/stopServer", c.StopServer)
+			mux.HandleFunc("/startMining/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("---- MineOneBlock 1\n")
 				path := r.URL.Path
-				path = strings.TrimPrefix(path, "/getWalletValue/")
-				parts := strings.Split(path, "/")*/
-			//walletAddr := parts[2]
-			walletAddr := c.Username
-			c.GetWalletValue(w, r, walletAddr)
-		})
-		mux.HandleFunc("/sendToWallet/{username}/{password}/{walletAddr}/{amount}", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("-send to Wallet 1")
-			path := r.URL.Path
-			path = strings.TrimPrefix(path, "/sendToWallet/")
-			parts := strings.Split(path, "/")
+				path = strings.TrimPrefix(path, "/startMining/")
+				parts := strings.Split(path, "/")
+				numcpus := parts[3]
+				numcpu, err := strconv.Atoi(numcpus)
+				if err != nil {
+					fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
+				}
 
-			walletAddr := parts[2]
-			amount := parts[3]
-			c.SendToWallet(w, r, walletAddr, amount)
-		})
+				c.MineOneBlock(w, r, miningaddr, numcpu)
+			})
+			mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("stopMining 1\n")
+				c.StopMining(w, r)
+			})
+			mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("Get CPU Threads\n")
+				c.GetCPUThreads(w, r)
+			})
+			mux.HandleFunc("/getAllPeers/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("Get All Peers\n")
+				c.GetAllPeers(w, r)
+			})
+			mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("-GetWalletVal 1")
+				/*
+					path := r.URL.Path
+					path = strings.TrimPrefix(path, "/getWalletValue/")
+					parts := strings.Split(path, "/")*/
+				//walletAddr := parts[2]
+				walletAddr := c.Username
+				c.GetWalletValue(w, r, walletAddr)
+			})
+			mux.HandleFunc("/sendToWallet/{username}/{password}/{walletAddr}/{amount}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("-send to Wallet 1")
+				path := r.URL.Path
+				path = strings.TrimPrefix(path, "/sendToWallet/")
+				parts := strings.Split(path, "/")
 
-		fmt.Printf("HTTP handling functions\n")
+				walletAddr := parts[2]
+				amount := parts[3]
+				c.SendToWallet(w, r, walletAddr, amount)
+			})
+
+			fmt.Printf("Colony> HTTP handling functions\n")
+		}
 
 		// Signals login complete
 		started <- true
@@ -217,5 +254,8 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux) {
 	}()
 
 	// Waits for server to complete login before returning
-	<-started
+	graceful := <-started
+	if graceful {
+		io.WriteString(w, "Logged into server!")
+	}
 }

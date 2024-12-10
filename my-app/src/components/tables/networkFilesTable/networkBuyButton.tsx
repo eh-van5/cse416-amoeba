@@ -1,4 +1,4 @@
-import { useTheme } from "../../../ThemeContext";
+import { useAppContext } from "../../../AppContext";
 import { networkFileStructure } from "../../pages/networkFiles";
 import BuyForm from "./buyForm";
 
@@ -15,11 +15,10 @@ function Buy(){
 }
 
 export default function NetworkBuyButton({item}: buyButtonProps) { 
-    const {isDarkMode} = useTheme();
+    const {isDarkMode} = useAppContext();
     // just hoping duplicate handling is done on the backend
     return (
         <>
-        <BuyForm item = {item} />
         <button onClick={Buy} className={`buy-button ${isDarkMode ? '-dark' : ''}`}>
             Buy
         </button>
