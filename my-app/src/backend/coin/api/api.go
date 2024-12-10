@@ -242,8 +242,10 @@ func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAd
 	if stopMining {
 		c.LockWallet()
 	}
+	infoNum := float64(info) / 100000000.0
 	fmt.Printf("Value of Wallet %s is : %s\n", walletAddr, info)
-	io.WriteString(w, "Wallet Value Fetched\n")
+	//io.WriteString(w, "Wallet Value Fetched\n")
+	io.WriteString(w, fmt.Sprintf("%.8f\n", infoNum))
 	return info
 }
 

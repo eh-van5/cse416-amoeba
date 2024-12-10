@@ -1,13 +1,14 @@
 import SimpleBox from "../general/simpleBox"
 import LineGraph from "../charts/lineGraph"
 import { generateRandomData } from "../charts/lineGraph"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import DropdownMenu from "../general/dropdownMenu";
 import useChartMenu from "../charts/useChartMenu";
 import { useTheme } from "../../ThemeContext";
+import { useAppContext } from '../../AppContext';
 import axios from "axios";
 
-const PORT = 8800
+const PORT = 8088
 // Note: Consider adding a visible timer somehow in the future
 // WIP code for timer drop down menu is commented out
 
@@ -107,7 +108,7 @@ export default function MiningPage() {
         console.log("NumCores to mine: ", numCoresPass)
         //calculate cores it should pass
         try {
-            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/numCoresPass`)
+            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/${numCoresPass}`)
             console.log(res.data)
         }
         catch (error) {
@@ -137,16 +138,16 @@ export default function MiningPage() {
         }
         if (isMining) {
             setButtonText('Begin Mining');
-            sendMessage('Stop Mining Request')
+            //sendMessage('Stop Mining Request')
             //call to start mining
-            startMining()
+            stopMining()
+            setTimerValue(0)
         }
         else {
             setButtonText('Stop Mining');
-            sendMessage('Begin Mining Request')
+            //sendMessage('Begin Mining Request')
             //call to stop mining
-            setTimerValue(0)
-            stopMining()
+            startMining()
         }
         setIsMining((isMining) => !isMining);
     }
@@ -165,6 +166,10 @@ export default function MiningPage() {
             setButtonText("Begin Mining");
         }
     }
+    useEffect(() => {
+        updateWalletValues();
+        updatePeerValues();
+    }, []);
 
 
     return (
