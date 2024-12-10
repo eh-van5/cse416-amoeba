@@ -91,9 +91,6 @@ func main() {
 	// fshare stream handlers
 	// protocol "/want/filemeta"
 	fshare.HaveFileMetadata(node, filesDB)
-	// protocol "/want/file"
-	// fshare.HaveFile(node)
-	fshare.SetupHttpServer(node)
 
 	// Start the HTTP server
 	go func() {
@@ -101,6 +98,9 @@ func main() {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
+
+	// protocol "/want/file"
+	go fshare.SetupHttpServer(node)
 	go proxy.MonitorProxyStatus(node, dht)
 
 	go handleInput(node, ctx, dht)
@@ -225,7 +225,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			// key := args[1]
 
 		case "START_SERVER":
-			fshare.SetupHttpServer(node)
+			go fshare.SetupHttpServer(node)
 
 		case "WANT_FILE":
 			if len(args) < 3 {
@@ -235,7 +235,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 
 			target := args[1]
 			hash := args[2]
-			fshare.WantFileLocal(node, target, hash, "ameobafiletest")
+			fshare.HttpClientLocal(ctx, node, target, hash, "ameobafiletest")
 
 		case "REMOVE_FILEINFO":
 			hash := args[1]

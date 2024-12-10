@@ -318,27 +318,3 @@ func HttpClientLocal(
 
 	return nil
 }
-
-func WantFileLocal(node host.Host, targetpeerid string, hash string, filename string) error {
-	var ctx = context.Background()
-	// targetPeerID := strings.TrimSpace(targetpeerid)
-	peerMultiaddr, err := multiaddr.NewMultiaddr(test_addr)
-	if err != nil {
-		log.Fatalf("Failed to get peer multiaddr: %s", err)
-	}
-	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
-	if err != nil {
-		log.Fatalf("Failed to parse peer address: %s", err)
-	}
-	if err := node.Connect(ctx, *peerinfo); err != nil {
-		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
-		return err
-	}
-
-	err = HttpClient(ctx, node, targetpeerid, hash, filename)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

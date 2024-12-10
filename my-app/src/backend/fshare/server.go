@@ -63,38 +63,16 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 	})
 }
 
-func SetupHttpServer(server_node host.Host) {
+func SetupHttpServer(server_node host.Host) error {
 	listener, _ := gostream.Listen(server_node, "/want/file")
 	defer listener.Close()
 	fmt.Println(filepath.Abs("../userFiles"))
-	http.Handle("/want/file/", http.StripPrefix("/want/file", http.FileServer(http.Dir("../userFiles"))))
-	http.Serve(listener, nil)
-}
-
-func HaveFile(node host.Host) {
-	node.SetStreamHandler("/want/file", func(s network.Stream) {
-		defer s.Close()
-		// Create a buffered reader to read data from the stream
-		buf := bufio.NewReader(s)
-		// Read data from the stream
-		_, err := buf.ReadBytes('\n') // Reads until a newline character
-		if err != nil {
-			if err == io.EOF {
-				log.Printf("Stream closed by peer: %s", s.Conn().RemotePeer())
-			} else {
-				log.Printf("Error reading from stream: %v", err)
-			}
-			return
-		}
-		// Print the received data
-		SetupHttpServer(node)
-
-		_, err = s.Write([]byte("success\n"))
-		if err != nil {
-			log.Printf("Error writing to stream: %v", err)
-			return
-		}
-	})
+	err := http.Serve(listener, http.FileServer(http.Dir("../userFiles")))
+	if err != nil {
+		fmt.Println("FILE SERVER FAILED")
+		return err
+	}
+	return nil
 }
 
 // TODO bitcoin transactions
