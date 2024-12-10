@@ -1,6 +1,7 @@
 package fshare
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"strings"
 
 	gostream "github.com/libp2p/go-libp2p-gostream"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -80,31 +80,16 @@ func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, err
 
 func HttpClient(
 	ctx context.Context,
-	dht *dht.IpfsDHT,
 	client_node host.Host,
 	targetpeerid string,
 	hash string,
-) {
-	var fileInfo FileMetadata
-	// check if there are prev providers for this file
-	existingValue, err := dht.GetValue(ctx, "/orcanet/"+hash)
-	// found file
-	if err != nil {
-		fmt.Println("failed to get file: ", err)
-		return
-	}
-
-	err = json.Unmarshal(existingValue, &fileInfo)
-	if err != nil {
-		fmt.Println("failed to decode existing providers: ", err)
-		return
-	}
-
+	filename string,
+) error {
 	stream, err := openStreamToPeer(client_node, targetpeerid)
 
 	if err != nil {
 		fmt.Println("Failed to open stream to peer: ", err)
-		return
+		return err
 	}
 
 	client := &http.Client{
@@ -119,22 +104,22 @@ func HttpClient(
 
 	if err != nil {
 		fmt.Println("Error fetching file: ", err)
-		return
+		return err
 	}
 
 	defer res.Body.Close()
 
 	if res.StatusCode >= 400 {
 		fmt.Println("HTTP Error Code: ", res.StatusCode)
-		return
+		return err
 	}
 
 	downloadDir := getDownloadsDirectory()
 	// Create a file to save the downloaded data
-	outFile, err := os.Create(downloadDir + "/" + fileInfo.Name)
+	outFile, err := os.Create(downloadDir + "/" + filename)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
-		return
+		return err
 	}
 	defer outFile.Close()
 
@@ -142,12 +127,114 @@ func HttpClient(
 	_, err = io.Copy(outFile, res.Body)
 	if err != nil {
 		fmt.Println("Error saving file:", err)
-		return
+		return err
 	}
 
-	fmt.Println("File downloaded successfully!")
+	return nil
 }
 
 // TODO: double check the file content against the hash to ensure nothing has been changed
 
 // TODO bitcoin transactions
+
+// STREAM COMMS WITH OTHER NODES
+func WantFileMetadata(node host.Host, targetpeerid string, hash string) (FileInfo, error) {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetpeerid)
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+		return FileInfo{}, err
+	}
+	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+		return FileInfo{}, err
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+		return FileInfo{}, err
+	}
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want/filemeta"), peerinfo.ID, "/want/filemeta")
+	if err != nil {
+
+		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
+		return FileInfo{}, err
+	}
+	defer s.Close()
+
+	fmt.Println("sending hash now")
+
+	_, err = s.Write([]byte(hash + "\n"))
+	if err != nil {
+		log.Fatalf("Failed to write to stream: %s", err)
+		return FileInfo{}, err
+	}
+
+	buf := bufio.NewReader(s)
+	// Read data from the stream
+	fileMetadataBytes, err := buf.ReadBytes('\n') // Reads until a newline character
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return FileInfo{}, err
+	}
+
+	var fileMetadata FileInfo
+	err = json.Unmarshal(fileMetadataBytes, &fileMetadata)
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return FileInfo{}, err
+	}
+
+	return fileMetadata, nil
+}
+
+func WantFile(node host.Host, targetpeerid string, hash string, filename string) error {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetpeerid)
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+	}
+	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+		return err
+	}
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want/file"), peerinfo.ID, "/want/file")
+	if err != nil {
+		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
+		return err
+	}
+	defer s.Close()
+	_, err = s.Write([]byte("I want a file\n"))
+	if err != nil {
+		log.Fatalf("Failed to write to stream: %s", err)
+	}
+
+	buf := bufio.NewReader(s)
+	// Read data from the stream
+	successBytes, err := buf.ReadBytes('\n') // Reads until a newline character
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return err
+	}
+
+	if string(successBytes) == "success" {
+		err = HttpClient(ctx, node, targetpeerid, hash, filename)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("peer node server down")
+	}
+
+	return nil
+}
