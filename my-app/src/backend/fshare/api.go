@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -17,6 +18,7 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, node host.Host, filedb 
 	return func(w http.ResponseWriter, r *http.Request) {
 		contentHash := r.URL.Query().Get("contentHash")
 		fmt.Println(contentHash)
+		contentHash = strings.TrimSpace(contentHash)
 		if contentHash == "" {
 			http.Error(w, "Missing contentHash", http.StatusBadRequest)
 			return
@@ -33,8 +35,8 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, node host.Host, filedb 
 		for _, peer := range providers {
 			fmt.Println("sending data to " + peer.ID.String())
 			if peer.ID.String() == node.ID().String() {
+				fmt.Println("QUERYING YOURSELF")
 				fileinfo, err := filedb.GetFileInfo(contentHash)
-				fmt.Println(*fileinfo)
 				if err == nil {
 					hostToFileinfo[node.ID().String()] = *fileinfo
 				}

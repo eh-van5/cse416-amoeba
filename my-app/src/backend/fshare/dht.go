@@ -97,6 +97,43 @@ func GetProvidersHelper(ctx context.Context, dht *dht.IpfsDHT, contentHash strin
 	return providers, nil
 }
 
+func RefreshProviderRecordsHelper(ctx context.Context, dht *dht.IpfsDHT, filesDB *KV) error {
+	hashes, err := filesDB.GetAllContentHashes()
+	// fmt.Println(hashes)
+	if err != nil {
+		return err
+	}
+	for _, hash := range hashes {
+		fileInfo, err := filesDB.GetFileInfo(hash)
+		if err != nil {
+			return fmt.Errorf("failed to encode file info: %v", err)
+		}
+
+		fileInfoBytes, err := json.Marshal(fileInfo)
+		if err != nil {
+			return fmt.Errorf("failed to encode file info: %v", err)
+		}
+		
+		dhtKey := "/orcanet/" + hash
+
+		err = dht.PutValue(ctx, dhtKey, fileInfoBytes)
+		if err != nil {
+			return fmt.Errorf("failed to store provider info in DHT: %v", err)
+		}
+
+		c, err := cid.Decode(hash)
+		if err != nil {
+			return err
+		}
+
+		err = dht.Provide(ctx, c, true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.AddrInfo, error) {
 	id, err := peer.Decode(peerId)
 

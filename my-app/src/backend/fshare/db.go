@@ -112,3 +112,25 @@ func (k *KV) GetAllFiles() ([]FileInfo, error) {
 
 	return providedFiles, nil
 }
+
+func (k *KV) GetAllContentHashes() ([]string, error) {
+	var hashes []string
+	err := k.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			// fmt.Println(string(item.Key()))
+			hashes = append(hashes, string(item.Key()))
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return hashes, nil
+}
