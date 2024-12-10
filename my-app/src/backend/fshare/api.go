@@ -118,7 +118,7 @@ func GetUserFiles(filesdb *KV) http.HandlerFunc {
 			http.Error(w, "Providing files", http.StatusInternalServerError)
 			return
 		}
-		fmt.Println(files)
+		// fmt.Println(files)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(files)
 	}

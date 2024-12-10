@@ -51,6 +51,8 @@ func (k *KV) GetFileInfo(key string) (*FileInfo, error) {
 	err := k.db.View(
 		func(txn *badger.Txn) error {
 			item, err := txn.Get([]byte(key))
+
+			fmt.Println("getting " + key)
 			if err != nil {
 				return fmt.Errorf("failed to get FileInfo: %w", err)
 			}
@@ -84,6 +86,7 @@ func (k *KV) GetAllFiles() ([]FileInfo, error) {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
+			fmt.Println(string(item.Key()))
 			var providedFile FileInfo
 			err := item.Value(func(v []byte) error {
 				err := json.Unmarshal(v, &providedFile)

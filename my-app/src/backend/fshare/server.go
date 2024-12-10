@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	gostream "github.com/libp2p/go-libp2p-gostream"
 
@@ -26,18 +27,19 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 
 		if err != nil {
 			if err == io.EOF {
-				log.Printf("Stream closed by peer: %s", s.Conn().RemotePeer())
+				fmt.Printf("Stream closed by peer: %s", s.Conn().RemotePeer())
 			} else {
-				log.Printf("Error reading from stream: %v", err)
+				fmt.Printf("Error reading from stream: %v", err)
 			}
 			return
 		}
 
 		contentHash := string(contentHashBytes)
-		fmt.Println(contentHash)
+		contentHash = strings.TrimSpace(contentHash)
 
 		fileInfo, err := filesDb.GetFileInfo(contentHash)
 		if err != nil {
+			fmt.Println(err)
 			log.Printf("failed to get FileInfo: %v", s.Conn().RemotePeer())
 			return
 		}
@@ -49,6 +51,11 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 		}
 
 		_, err = s.Write(fileInfoBytes)
+		if err != nil {
+			log.Printf("Error writing to stream: %v", err)
+			return
+		}
+		_, err = s.Write([]byte("\n"))
 		if err != nil {
 			log.Printf("Error writing to stream: %v", err)
 			return

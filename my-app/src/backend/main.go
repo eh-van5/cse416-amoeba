@@ -85,7 +85,8 @@ func main() {
 	mux.HandleFunc("/getFile", fshare.GetProviders(ctx, dht, node, filesDB))
 	mux.HandleFunc("/uploadFile", fshare.ProvideFile(ctx, dht, filesDB))
 	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
-
+	fshare.HaveFileMetadata(node, filesDB)
+	fshare.HaveFile(node)
 	// Start the HTTP server
 	go func() {
 		if err := http.ListenAndServe(":8088", proxy.EnableCORS(mux)); err != nil {

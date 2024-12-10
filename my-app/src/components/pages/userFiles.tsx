@@ -37,7 +37,7 @@ export default function UserFilesPage(){
             }
         } 
         getAllFiles();
-    }, [sharedFiles]);
+    }, [sharedFiles, uploadedFiles]);
     const headings = [ "Status", "Name", "Price", "Last Modified", "Size"];
     const options = headings.map(heading => {
         return (
@@ -80,7 +80,7 @@ export default function UserFilesPage(){
             <hr></hr>
             <div id = "top-file-widgets">
                 <UploadFileWidget files = {uploadedFiles} setItems = {setUploadedFiles} />
-                <PriceFilesWidget uploadedFiles = {uploadedFiles} setSharedFiles = {setSharedFiles} setUploadedFiles = {setUploadedFiles} />
+                <PriceFilesWidget uploadedFiles = {uploadedFiles} setUploadedFiles = {setUploadedFiles} />
             </div>
             <hr></hr>
             <div className="page-file-header"> 

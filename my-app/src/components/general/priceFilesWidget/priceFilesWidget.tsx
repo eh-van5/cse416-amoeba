@@ -6,7 +6,6 @@ import FilesTable from "../../tables/filesTable";
 
 interface priceFilesProps {
     uploadedFiles: Map<string, FileData>;
-    setSharedFiles: React.Dispatch<React.SetStateAction<UserFileData[]>>;
     setUploadedFiles: React.Dispatch<React.SetStateAction<Map<string, FileData>>>;
 }
 
@@ -56,7 +55,7 @@ async function uploadFileHelper(file: File, price: string){
         console.error('Error uploading files');
     }
 }
-export default function PriceFilesWidget({uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
+export default function PriceFilesWidget({uploadedFiles, setUploadedFiles}: priceFilesProps) {
     const headings = ["File Name", "Size", "Set Price"]
     const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.values())});
     async function uploadFiles(e : React.FormEvent<HTMLFormElement>){
@@ -77,7 +76,6 @@ export default function PriceFilesWidget({uploadedFiles, setSharedFiles, setUplo
             }
         }
         // setSharedFiles([...sharedFiles, ...Array.from(uploadedFiles.values())]);
-        setSharedFiles([]);
         setUploadedFiles(new Map());
     }
     return(
