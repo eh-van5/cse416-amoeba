@@ -31,10 +31,10 @@ func GetTest(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "This is my message!\n")
 }
 
-func (c *Client) UnlockWallet() (error){
+func (c *Client) UnlockWallet() error {
 	err := c.Rpc.WalletPassphrase(c.Password, 0)
 
-	if err != nil{
+	if err != nil {
 		fmt.Printf("Error unlocking wallet!\n")
 		return err
 	}
@@ -121,6 +121,7 @@ func (c *Client) MineOneBlockOld(w http.ResponseWriter, r *http.Request, mininga
 	fmt.Printf("Mining starting")
 	c.UnlockWallet()
 	stopMining = false
+
 	address, err := btcutil.DecodeAddress(miningaddr, &chaincfg.MainNetParams)
 
 	fmt.Printf("Decoded Address: %s", address)
@@ -144,7 +145,6 @@ func (c *Client) MineOneBlockOld(w http.ResponseWriter, r *http.Request, mininga
 		if err != nil {
 			fmt.Printf("Error generating to address (StartMining): %v\n", err)
 			io.WriteString(w, "Error mining block. Retrying...\n")
-			//continue
 		}
 
 		if len(blockHashes) > 0 {
@@ -164,13 +164,20 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr
 	c.UnlockWallet()
 	stopMining = false
 	address, err := btcutil.DecodeAddress(miningaddr, &chaincfg.MainNetParams)
-	c.Rpc.SetGenerate(false, 0)
+	if err != nil {
+		fmt.Printf("Error Decoding Address (StartMining): %v\n", err)
+		c.LockWallet()
+		io.WriteString(w, "Mining stopped\n")
+		return
+	}
+	err = c.Rpc.SetGenerate(false, 0)
 	if err != nil {
 		fmt.Printf("Error Mining (StartMining): %v\n", err)
 		c.LockWallet()
 		io.WriteString(w, "Mining stopped\n")
 		return
 	}
+
 	fmt.Printf("Stopping previous instances of Mining...")
 	time.Sleep(time.Second * 10)
 	fmt.Printf("Starting Mining with selected cpu cores...")

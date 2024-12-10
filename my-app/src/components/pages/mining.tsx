@@ -108,7 +108,7 @@ export default function MiningPage() {
         console.log("NumCores to mine: ", numCoresPass)
         //calculate cores it should pass
         try {
-            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/${numCoresPass}`)
+            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/miningaddr/${numCoresPass}`)
             console.log(res.data)
         }
         catch (error) {

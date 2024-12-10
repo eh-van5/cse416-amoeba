@@ -15,13 +15,10 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/btcutil"
-	//"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
 	"github.com/eh-van5/cse416-amoeba/server"
-
-	//"backend/coin/api"
 	"github.com/rs/cors"
 )
 
@@ -89,7 +86,7 @@ func main() {
 func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn bool) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
-	miningaddr := r.PathValue("miningaddr")
+	miningaddr := r.PathValue("miningaddr") //this did not exist before
 	if password == "" {
 		return
 	}
@@ -203,7 +200,6 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		}
 
 		// handle
-
 		if !loggedIn {
 			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 			mux.HandleFunc("/stopServer", c.StopServer)
@@ -217,8 +213,8 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 				if err != nil {
 					fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
 				}
-
 				c.MineOneBlock(w, r, miningaddr, numcpu)
+				//c.MineOneBlock(w, r, c.Username, numcpu)
 			})
 			mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("stopMining 1\n")
@@ -259,7 +255,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		// Signals login complete
 		started <- true
 
-		// Waits for signal to t nerminate program
+		// Waits for signal to terminate program
 		// <-ctx.Done()
 
 		// Waits for all other processes to terminate before shutting down main process
