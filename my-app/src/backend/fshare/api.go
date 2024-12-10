@@ -17,7 +17,7 @@ import (
 func GetProviders(ctx context.Context, dht *dht.IpfsDHT, node host.Host, filedb *KV) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		contentHash := r.URL.Query().Get("contentHash")
-		fmt.Println(contentHash)
+		// fmt.Println(contentHash)
 		contentHash = strings.TrimSpace(contentHash)
 		if contentHash == "" {
 			http.Error(w, "Missing contentHash", http.StatusBadRequest)

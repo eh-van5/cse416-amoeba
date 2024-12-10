@@ -86,7 +86,7 @@ func (k *KV) GetAllFiles() ([]FileInfo, error) {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			fmt.Println(string(item.Key()))
+			// fmt.Println(string(item.Key()))
 			var providedFile FileInfo
 			err := item.Value(func(v []byte) error {
 				err := json.Unmarshal(v, &providedFile)

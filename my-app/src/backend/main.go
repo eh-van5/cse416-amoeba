@@ -93,7 +93,7 @@ func main() {
 	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
 
 	// fshare stream handlers
-	// protocol "/want/filemeta"
+	// protocol "/want-filemeta"
 	fshare.HaveFileMetadata(node, filesDB)
 
 	// Start the HTTP server
@@ -103,7 +103,7 @@ func main() {
 		}
 	}()
 
-	// protocol "/want/file"
+	// protocol "/want-file"
 	go fshare.SetupFileServer(node)
 
 	go proxy.MonitorProxyStatus(node, dht)

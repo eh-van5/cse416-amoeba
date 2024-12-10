@@ -33,10 +33,10 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
 
             // default value: [price.toString(), owner, hash, filename]
             const formData = new FormData();
-            
-            formData.append('targetpeerid', option.defaultValue[1]);
-            formData.append('hash', option.defaultValue[2])
-            formData.append('filename', option.defaultValue[3])
+            const values = option.defaultValue.split(',')
+            formData.append('targetpeerid', values[1]);
+            formData.append('hash', values[2])
+            formData.append('filename', values[3])
         
             const PORT = 8088;
             const response = await fetch(`http://localhost:${PORT}/buyFile`, {

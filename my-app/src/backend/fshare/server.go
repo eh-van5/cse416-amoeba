@@ -18,7 +18,7 @@ import (
 
 // STREAM COMMS WITH OTHER NODES
 func HaveFileMetadata(node host.Host, filesDb *KV) {
-	node.SetStreamHandler("/want/filemeta", func(s network.Stream) {
+	node.SetStreamHandler("/want-filemeta", func(s network.Stream) {
 		defer s.Close()
 		// Create a buffered reader to read data from the stream
 		buf := bufio.NewReader(s)
@@ -64,7 +64,7 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 }
 
 func SetupFileServer(server_node host.Host) error {
-	listener, _ := gostream.Listen(server_node, "/want/file")
+	listener, _ := gostream.Listen(server_node, "/want-file")
 	defer listener.Close()
 	fmt.Println(filepath.Abs("../userFiles"))
 	err := http.Serve(listener, http.FileServer(http.Dir("../userFiles")))

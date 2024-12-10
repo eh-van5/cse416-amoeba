@@ -52,6 +52,23 @@ func getDownloadsDirectory() string {
 	return downloadDir
 }
 
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil || !os.IsNotExist(err)
+}
+
+func getNextFileVersion(filename string, fp string) string {
+	version := 1
+	for {
+		versionedName := fmt.Sprintf("%s (%d)", filename, version)
+		versionedPath := filepath.Join(fp, versionedName)
+		if !fileExists(versionedPath) {
+			return versionedName
+		}
+		version++
+	}
+}
+
 func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, error) {
 	var ctx = context.Background()
 	targetPeerID := strings.TrimSpace(targetpeerid)
@@ -70,7 +87,7 @@ func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, err
 		return &net.IPConn{}, err
 	}
 
-	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want/file"), client_node, peerinfo.ID, "/want/file")
+	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want-file"), client_node, peerinfo.ID, "/want-file")
 	if err != nil {
 		log.Fatalf("Failed to open stream to peer: %v", err)
 		return &net.IPConn{}, err
@@ -101,7 +118,7 @@ func StartHttpClient(
 		},
 	}
 
-	res, err := client.Get("http://want/file/" + hash)
+	res, err := client.Get("http://want-file/" + hash)
 
 	if err != nil {
 		fmt.Println("Error fetching file: ", err)
@@ -116,7 +133,11 @@ func StartHttpClient(
 	}
 
 	downloadDir := getDownloadsDirectory()
+	if fileExists(filepath.Join(downloadDir, filename)) {
+		filename = getNextFileVersion(filename, downloadDir)
+	}
 	// Create a file to save the downloaded data
+
 	outFile, err := os.Create(downloadDir + "/" + filename)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
@@ -158,7 +179,7 @@ func WantFileMetadata(node host.Host, targetpeerid string, hash string) (FileInf
 		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
 		return FileInfo{}, err
 	}
-	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want/filemeta"), peerinfo.ID, "/want/filemeta")
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want-filemeta"), peerinfo.ID, "/want-filemeta")
 	if err != nil {
 
 		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
