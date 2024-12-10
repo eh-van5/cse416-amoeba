@@ -234,7 +234,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 
 			target := args[1]
 			hash := args[2]
-			fshare.WantFile(node, target, hash, "ameobafiletest")
+			fshare.WantFileLocal(node, target, hash, "ameobafiletest")
 
 		case "REMOVE_FILEINFO":
 			hash := args[1]
