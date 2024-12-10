@@ -1,7 +1,8 @@
-import { FileInfo } from "../../pages/networkFiles";
+import { FileInfo } from "../../types";
 
 interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
+    hash: string;
   }
 
 function cancel(e: React.MouseEvent){
@@ -9,16 +10,19 @@ function cancel(e: React.MouseEvent){
     purchaseForm.close();
 }
 
-function buy(e : React.FormEvent<HTMLFormElement>){
+async function buy(e : React.FormEvent<HTMLFormElement>){
     e.preventDefault();
     // should pull from backend
     const walletNum = 20;
+
+
     // submit should send a put request into backend and backend should return error
     // error checking should not be done in the front end here
     const options = document.getElementsByName("provider") as NodeListOf<HTMLInputElement>;
     const purchaseForm = document.getElementById("purchase-form") as HTMLDialogElement;
 
-    options.forEach(option => {
+    for (let i = 0; i < options.length; i++) {
+        const option = options[i]
         if (option.checked){
             const value = parseFloat(option.defaultValue);
             if (value <= walletNum) {
@@ -26,17 +30,40 @@ function buy(e : React.FormEvent<HTMLFormElement>){
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
             }
+
+            // default value: [price.toString(), owner, hash, filename]
+            const formData = new FormData();
+            
+            formData.append('targetpeerid', option.defaultValue[1]);
+            formData.append('hash', option.defaultValue[2])
+            formData.append('filename', option.defaultValue[3])
+        
+            const PORT = 8088;
+            const response = await fetch(`http://localhost:${PORT}/buyFile`, {
+                method:'POST',
+                body: formData,
+            })
+        
+            if (response.ok) {
+                // Handle success
+                console.log("uploaded files");
+            }  else {
+                // Handle error
+                console.log(JSON.stringify(response));
+                console.error('Error uploading files');
+            }
+            
+            return;
         }
-    })
-
-
+    }
     
 }
 
-export default function BuyForm({hostToFile}: BuyFormProps) {
+export default function BuyForm({hostToFile, hash}: BuyFormProps) {
     const owners = Object.keys(hostToFile)
     const options = Array.from(owners).map((owner: string) => {
         const price = hostToFile[owner]?.Price
+        const filename = hostToFile[owner]?.Name
         return (
             <div id="provider-options">
                 <input 
@@ -44,11 +71,12 @@ export default function BuyForm({hostToFile}: BuyFormProps) {
                 className = "buyFormRadio" 
                 required 
                 name = "provider" 
-                value = {price}
+                value = {[price.toString(), owner, hash, filename]}
                 type = "radio">
                 </input>
                 <label className = "buyFormPrices">${price} </label>
                 <label className = "buyFormOwners">{owner}</label>
+                <label className = "buyFormFilenames">{filename}</label>
             </div>
         )
     })

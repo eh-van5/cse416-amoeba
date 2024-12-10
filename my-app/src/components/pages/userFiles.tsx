@@ -3,14 +3,7 @@ import { useAppContext } from "../../AppContext";
 import PriceFilesWidget from "../general/priceFilesWidget/priceFilesWidget";
 import UploadFileWidget from "../general/uploadFileWidget";
 import UserFilesTable from "../tables/userFilesTable/userFilesTable";
-
-export interface UserFileData{
-	Price: number
-	Name: string
-	Size: number
-	FileType: string
-    LastModified: number
-}
+import { FileInfo } from "../types";
 
 export interface FileData{
     price: number,
@@ -18,7 +11,7 @@ export interface FileData{
 }
 
 export default function UserFilesPage(){
-    const [sharedFiles, setSharedFiles] = useState<UserFileData[]>([]);
+    const [sharedFiles, setSharedFiles] = useState<FileInfo[]>([]);
     const [uploadedFiles, setUploadedFiles] = useState<Map<string, FileData>>(new Map());
     const {isDarkMode} = useAppContext();
     console.log(uploadedFiles);

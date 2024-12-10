@@ -1,6 +1,6 @@
 import { ReactElement } from "react";
 import { useAppContext } from "../../../AppContext";
-import { FileData, UserFileData } from "../../pages/userFiles";
+import { FileData } from "../../pages/userFiles";
 import FilesTable from "../../tables/filesTable";
 
 

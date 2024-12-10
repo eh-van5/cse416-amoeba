@@ -1,8 +1,4 @@
-import { ReactElement, useState } from "react";
 import { useAppContext } from "../../AppContext";
-import NetworkWidget from "../general/networkWidget/networkWidget";
-import UploadFileWidget from "../general/uploadFileWidget";
-import FileTable from "../tables/userFilesTable/userFilesTable";
 import NetworkFilesTable from "../tables/networkFilesTable/networkFiles";
 import SearchBar from "../general/searchBar";
 
@@ -13,18 +9,6 @@ export interface networkFileStructure {
         "size": number
     }
     prices: Map<string, number>
-}
-
-
-interface FileMetadata {
-    "Name" : string,
-    "Size" : number, 
-    "FileType": "string"
-}
-
-export interface FileInfo {
-    "Price": number, 
-    "FileMeta": FileMetadata
 }
 
 export default function NetworkFilesPage(){

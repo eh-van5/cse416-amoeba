@@ -57,7 +57,7 @@ function SearchBar() {
           required
         />
       </form>
-      <BuyForm hostToFile={responseData} />
+      <BuyForm hostToFile={responseData} hash = {searchQuery.trim()}/>
     </div>
   );
 }

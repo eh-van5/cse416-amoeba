@@ -1,15 +1,14 @@
 import { useAppContext } from "../../../AppContext";
 import FilesTable from "../filesTable";
-import { UserFileData } from "../../pages/userFiles";
 import StatusButton from "./userFilesTableButton";
 import { formatBytes, translateDate } from "../../general/formatHelpers";
+import { FileInfo } from "../../types";
 
 interface FileTableProps {
-    items: UserFileData[]
-    setItems: React.Dispatch<React.SetStateAction<UserFileData[]>>;
+    items: FileInfo[]
+    setItems: React.Dispatch<React.SetStateAction<FileInfo[]>>;
     headings: string[]
 }
-
 
 export default function UserFilesTable ({items, setItems, headings} : FileTableProps) {
     // console.log(items)

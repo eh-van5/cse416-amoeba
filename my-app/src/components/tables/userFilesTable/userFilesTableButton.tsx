@@ -1,11 +1,11 @@
 import { PauseIcon, PlayIcon } from "../../../images/icons/icons";
 import { useAppContext } from "../../../AppContext";
-import { UserFileData } from "../../pages/userFiles";
+import { FileInfo } from "../../types";
 
 interface statusButtonProps {
-    item: UserFileData;
-    items: UserFileData[];
-    setItems: React.Dispatch<React.SetStateAction<UserFileData[]>>;
+    item: FileInfo;
+    items: FileInfo[];
+    setItems: React.Dispatch<React.SetStateAction<FileInfo[]>>;
 }
 
 export default function StatusButton({item, items, setItems}: statusButtonProps) { 
