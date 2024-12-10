@@ -28,9 +28,3 @@ Currently, the server will process these requests:
 /  test function that responds with "This is a message!"
 /generateAddress  creates a new address for mining
 ```
-
-# To test DHT
-```
-cd src/backend/dht
-./main.exe <Any Value>
-```
