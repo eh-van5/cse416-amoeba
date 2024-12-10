@@ -22,7 +22,8 @@ import (
 var (
 	node_id             = "113366806" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	bootstrap_node_addr = "/ip4/192.168.1.27/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
+	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61020/p2p/12D3KooWM8uovScE5NPihSCKhXe8sbgdJAi88i2aXT2MmwjGWoSX"
+	local_bootstrap     = "/ip4/192.168.1.27/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
 	globalCtx           context.Context
 )
 
@@ -57,9 +58,9 @@ func main() {
 	fmt.Println("Node multiaddresses:", node.Addrs())
 	fmt.Println("Node Peer ID:", node.ID())
 
-	// ConnectToPeer(node, relay_node_addr) // connect to relay node
-	// MakeReservation(node)                // make reservation on realy node
-	// go RefreshReservation(node, 10*time.Minute)
+	ConnectToPeer(node, relay_node_addr) // connect to relay node
+	MakeReservation(node)                // make reservation on realy node
+	go RefreshReservation(node, 10*time.Minute)
 	ConnectToPeer(node, bootstrap_node_addr) // connect to bootstrap node
 	go HandlePeerExchange(node)
 
@@ -71,6 +72,8 @@ func main() {
 	if err != nil {
 		fmt.Println("server doesn't open")
 	}
+
+	// refresh provider records
 	go RefreshProviderRecords(ctx, dht, filesDB, 1*time.Hour)
 
 	// Configure HTTP routing
@@ -87,6 +90,7 @@ func main() {
 	mux.HandleFunc("/getFile", fshare.GetProviders(ctx, dht, node, filesDB))
 	mux.HandleFunc("/uploadFile", fshare.ProvideFile(ctx, dht, filesDB))
 	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
+	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
 
 	// fshare stream handlers
 	// protocol "/want/filemeta"
@@ -100,7 +104,8 @@ func main() {
 	}()
 
 	// protocol "/want/file"
-	go fshare.SetupHttpServer(node)
+	go fshare.SetupFileServer(node)
+
 	go proxy.MonitorProxyStatus(node, dht)
 
 	go handleInput(node, ctx, dht)
@@ -225,7 +230,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			// key := args[1]
 
 		case "START_SERVER":
-			go fshare.SetupHttpServer(node)
+			go fshare.SetupFileServer(node)
 
 		case "WANT_FILE":
 			if len(args) < 3 {

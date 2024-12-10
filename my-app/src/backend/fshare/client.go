@@ -70,7 +70,7 @@ func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, err
 		return &net.IPConn{}, err
 	}
 
-	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/get-file"), client_node, peerinfo.ID, "/get-file")
+	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want/file"), client_node, peerinfo.ID, "/want/file")
 	if err != nil {
 		log.Fatalf("Failed to open stream to peer: %v", err)
 		return &net.IPConn{}, err
@@ -79,7 +79,7 @@ func openStreamToPeer(client_node host.Host, targetpeerid string) (net.Conn, err
 	return stream, nil
 }
 
-func HttpClient(
+func StartHttpClient(
 	ctx context.Context,
 	client_node host.Host,
 	targetpeerid string,
@@ -101,7 +101,7 @@ func HttpClient(
 		},
 	}
 
-	res, err := client.Get("http://get-file/" + hash)
+	res, err := client.Get("http://want/file/" + hash)
 
 	if err != nil {
 		fmt.Println("Error fetching file: ", err)
@@ -192,129 +192,81 @@ func WantFileMetadata(node host.Host, targetpeerid string, hash string) (FileInf
 	return fileMetadata, nil
 }
 
-func WantFile(node host.Host, targetpeerid string, hash string, filename string) error {
-	var ctx = context.Background()
-	targetPeerID := strings.TrimSpace(targetpeerid)
-	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
-	if err != nil {
-		log.Printf("Failed to create relay multiaddr: %v", err)
-	}
-	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+// func openStreamToPeerLocal(client_node host.Host) (net.Conn, error) {
+// 	var ctx = context.Background()
+// 	peerMultiaddr, err := multiaddr.NewMultiaddr(test_addr)
+// 	if err != nil {
+// 		log.Fatalf("Failed to get peer multiaddr: %s", err)
+// 	}
+// 	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+// 	if err != nil {
+// 		log.Fatalf("Failed to parse peer address: %s", err)
+// 	}
+// 	if err := client_node.Connect(ctx, *peerinfo); err != nil {
+// 		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+// 		return &net.IPConn{}, err
+// 	}
 
-	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
-	if err != nil {
-		log.Fatalf("Failed to parse peer address: %s", err)
-	}
-	if err := node.Connect(ctx, *peerinfo); err != nil {
-		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
-		return err
-	}
-	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want/file"), peerinfo.ID, "/want/file")
-	if err != nil {
-		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
-		return err
-	}
-	defer s.Close()
-	_, err = s.Write([]byte("I want a file\n"))
-	if err != nil {
-		log.Fatalf("Failed to write to stream: %s", err)
-	}
+// 	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want/file"), client_node, peerinfo.ID, "/want/file")
+// 	if err != nil {
+// 		log.Fatalf("Failed to open stream to peer: %v", err)
+// 		return &net.IPConn{}, err
+// 	}
 
-	buf := bufio.NewReader(s)
-	// Read data from the stream
-	successBytes, err := buf.ReadBytes('\n') // Reads until a newline character
-	if err != nil {
-		log.Fatalf("Failed to receive a reponse: %s", err)
-		return err
-	}
+// 	return stream, nil
+// }
 
-	if string(successBytes) == "success" {
-		err = HttpClient(ctx, node, targetpeerid, hash, filename)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("peer node server down")
-	}
+// func HttpClientLocal(
+// 	ctx context.Context,
+// 	client_node host.Host,
+// 	targetpeerid string,
+// 	hash string,
+// 	filename string,
+// ) error {
+// 	stream, err := openStreamToPeerLocal(client_node)
 
-	return nil
-}
+// 	if err != nil {
+// 		fmt.Println("Failed to open stream to peer: ", err)
+// 		return err
+// 	}
 
-func openStreamToPeerLocal(client_node host.Host) (net.Conn, error) {
-	var ctx = context.Background()
-	peerMultiaddr, err := multiaddr.NewMultiaddr(test_addr)
-	if err != nil {
-		log.Fatalf("Failed to get peer multiaddr: %s", err)
-	}
-	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
-	if err != nil {
-		log.Fatalf("Failed to parse peer address: %s", err)
-	}
-	if err := client_node.Connect(ctx, *peerinfo); err != nil {
-		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
-		return &net.IPConn{}, err
-	}
+// 	client := &http.Client{
+// 		Transport: &http.Transport{
+// 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+// 				return stream, nil
+// 			},
+// 		},
+// 	}
 
-	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want/file"), client_node, peerinfo.ID, "/want/file")
-	if err != nil {
-		log.Fatalf("Failed to open stream to peer: %v", err)
-		return &net.IPConn{}, err
-	}
+// 	res, err := client.Get("http://want/file/" + hash)
 
-	return stream, nil
-}
+// 	if err != nil {
+// 		fmt.Println("Error fetching file: ", err)
+// 		return err
+// 	}
 
-func HttpClientLocal(
-	ctx context.Context,
-	client_node host.Host,
-	targetpeerid string,
-	hash string,
-	filename string,
-) error {
-	stream, err := openStreamToPeerLocal(client_node)
+// 	defer res.Body.Close()
 
-	if err != nil {
-		fmt.Println("Failed to open stream to peer: ", err)
-		return err
-	}
+// 	if res.StatusCode >= 400 {
+// 		fmt.Println("HTTP Error Code: ", res.StatusCode)
+// 		return err
+// 	}
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return stream, nil
-			},
-		},
-	}
+// 	downloadDir := getDownloadsDirectory()
+// 	// Create a file to save the downloaded data
+// 	outFile, err := os.Create(downloadDir + "/" + filename)
+// 	if err != nil {
+// 		fmt.Println("Error creating file:", err)
+// 		return err
+// 	}
+// 	defer outFile.Close()
 
-	res, err := client.Get("http://want/file/" + hash)
+// 	// Write the file contents to disk
+// 	_, err = io.Copy(outFile, res.Body)
+// 	if err != nil {
+// 		fmt.Println("Error saving file:", err)
+// 		return err
+// 	}
 
-	if err != nil {
-		fmt.Println("Error fetching file: ", err)
-		return err
-	}
-
-	defer res.Body.Close()
-
-	if res.StatusCode >= 400 {
-		fmt.Println("HTTP Error Code: ", res.StatusCode)
-		return err
-	}
-
-	downloadDir := getDownloadsDirectory()
-	// Create a file to save the downloaded data
-	outFile, err := os.Create(downloadDir + "/" + filename)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return err
-	}
-	defer outFile.Close()
-
-	// Write the file contents to disk
-	_, err = io.Copy(outFile, res.Body)
-	if err != nil {
-		fmt.Println("Error saving file:", err)
-		return err
-	}
-
-	return nil
-}
+// 	return nil
+// }

@@ -63,7 +63,7 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 	})
 }
 
-func SetupHttpServer(server_node host.Host) error {
+func SetupFileServer(server_node host.Host) error {
 	listener, _ := gostream.Listen(server_node, "/want/file")
 	defer listener.Close()
 	fmt.Println(filepath.Abs("../userFiles"))

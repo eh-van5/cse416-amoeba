@@ -125,3 +125,13 @@ func GetUserFiles(filesdb *KV) http.HandlerFunc {
 		json.NewEncoder(w).Encode(files)
 	}
 }
+
+func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		targetpeerid := r.FormValue("targetpeerid")
+		hash := r.FormValue("hash")
+		filename := r.FormValue("filename")
+		StartHttpClient(ctx, node, targetpeerid, hash, filename)
+		w.WriteHeader(http.StatusOK)
+	}
+}
