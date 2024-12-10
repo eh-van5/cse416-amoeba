@@ -226,19 +226,15 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 		case "START_SERVER":
 			fshare.HttpServer(node)
 
-		// case "GET_FILE":
-		// 	if len(args) < 3 {
-		// 		fmt.Println("Expected key")
-		// 		continue
-		// 	}
-		// 	peerid := args[1]
-		// 	hash := args[2]
-		// res, err := GetPeerAddr(ctx, dht, peerid)
-		// if err != nil {
-		// 	fmt.Println("peerid failed")
-		// }
+		case "WANT_FILE":
+			if len(args) < 3 {
+				fmt.Println("Expected key and value")
+				continue
+			}
 
-		// fshare.HttpClient(ctx, dht, node, peerid, hash)
+			target := args[1]
+			hash := args[2]
+			fshare.WantFile(node, target, hash, "ameobafiletest")
 
 		case "REMOVE_FILEINFO":
 			hash := args[1]
