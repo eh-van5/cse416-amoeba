@@ -92,7 +92,8 @@ func main() {
 	// protocol "/want/filemeta"
 	fshare.HaveFileMetadata(node, filesDB)
 	// protocol "/want/file"
-	fshare.HaveFile(node)
+	// fshare.HaveFile(node)
+	fshare.SetupHttpServer(node)
 
 	// Start the HTTP server
 	go func() {
@@ -224,7 +225,7 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			// key := args[1]
 
 		case "START_SERVER":
-			fshare.HttpServer(node)
+			fshare.SetupHttpServer(node)
 
 		case "WANT_FILE":
 			if len(args) < 3 {

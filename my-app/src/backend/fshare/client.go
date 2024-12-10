@@ -255,7 +255,7 @@ func openStreamToPeerLocal(client_node host.Host) (net.Conn, error) {
 		return &net.IPConn{}, err
 	}
 
-	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/get-file"), client_node, peerinfo.ID, "/get-file")
+	stream, err := gostream.Dial(network.WithAllowLimitedConn(ctx, "/want/file"), client_node, peerinfo.ID, "/want/file")
 	if err != nil {
 		log.Fatalf("Failed to open stream to peer: %v", err)
 		return &net.IPConn{}, err
@@ -286,7 +286,7 @@ func HttpClientLocal(
 		},
 	}
 
-	res, err := client.Get("http://get-file/" + hash)
+	res, err := client.Get("http://want/file/" + hash)
 
 	if err != nil {
 		fmt.Println("Error fetching file: ", err)
@@ -334,32 +334,10 @@ func WantFileLocal(node host.Host, targetpeerid string, hash string, filename st
 		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
 		return err
 	}
-	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want/file"), peerinfo.ID, "/want/file")
-	if err != nil {
-		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
-		return err
-	}
-	defer s.Close()
-	_, err = s.Write([]byte("I want a file\n"))
-	if err != nil {
-		log.Fatalf("Failed to write to stream: %s", err)
-	}
 
-	buf := bufio.NewReader(s)
-	// Read data from the stream
-	successBytes, err := buf.ReadBytes('\n') // Reads until a newline character
+	err = HttpClient(ctx, node, targetpeerid, hash, filename)
 	if err != nil {
-		log.Fatalf("Failed to receive a reponse: %s", err)
 		return err
-	}
-
-	if string(successBytes) == "success" {
-		err = HttpClient(ctx, node, targetpeerid, hash, filename)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("peer node server down")
 	}
 
 	return nil

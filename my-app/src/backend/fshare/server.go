@@ -63,12 +63,11 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 	})
 }
 
-func HttpServer(server_node host.Host) {
-	listener, _ := gostream.Listen(server_node, "/get-file")
+func SetupHttpServer(server_node host.Host) {
+	listener, _ := gostream.Listen(server_node, "/want/file")
 	defer listener.Close()
 	fmt.Println(filepath.Abs("../userFiles"))
-	http.Handle("/", http.FileServer(http.Dir("../userFiles")))
-
+	http.Handle("/want/file/", http.StripPrefix("/want/file", http.FileServer(http.Dir("../userFiles"))))
 	http.Serve(listener, nil)
 }
 
@@ -88,7 +87,7 @@ func HaveFile(node host.Host) {
 			return
 		}
 		// Print the received data
-		HttpServer(node)
+		SetupHttpServer(node)
 
 		_, err = s.Write([]byte("success\n"))
 		if err != nil {
