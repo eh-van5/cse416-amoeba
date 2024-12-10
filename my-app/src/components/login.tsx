@@ -17,25 +17,27 @@ interface Props{
 
 interface User{
     username: string;
+    password: string;
     newPassword: string;
     confirmPassword: string;
 }
 
 export default function Login(props: Props){
     // http server PORT
-    const PORT = 8000;
+    const PORT = 8088;
 
     const[currentPage, setCurrentPage] = useState<LoginPage>(LoginPage.Login);
 
     const[user, setUser] = useState<User>({
         username: "",
+        password: "",
         newPassword: "",
         confirmPassword: "",
     })
 
     const[error, setError] = useState<string>("")
 
-    // console.log(user)
+    console.log(user)
     // console.log(error)
 
     const[walletCreated, setWalletCreated] = useState<boolean>(false);
@@ -44,17 +46,50 @@ export default function Login(props: Props){
     const[walletAddress, setWalletAddress] = useState<string>("Create a Wallet");
 
     // Backend Functions *********************************************
-
-
-    const login = () => props.setLoggedIn(true);
     const goToCreateWallet = () => {
+        setError("")
         setCurrentPage(LoginPage.CreateWallet);
         setWalletCreated(false);
         setWalletAddress("Create a Wallet")
-        setCopied([false, false, false]);
+        setUser({
+            username: "",
+            password: "",
+            newPassword: "",
+            confirmPassword: "",
+        })
+    }
+
+    const goToLogin = () => {
+        setError("")
+        setCurrentPage(LoginPage.Login);
+        setUser({
+            username: "",
+            password: "",
+            newPassword: "",
+            confirmPassword: "",
+        })
     }
     const onUserChange = (e: ChangeEvent<HTMLInputElement>) => {
         setUser({...user, [e.target.name]: e.target.value})
+    }
+    const login = async () => {
+        console.log("attempting login...")
+        setError("")
+        if (user.username == "" || user.password == ""){
+            setError("There are missing fields. Please try again");
+            return;
+        }
+
+        await axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}`)
+        .then((res) => console.log(res.data))
+        .catch((error) => {
+            if (error) {
+                console.log(error.response.status)
+                return;
+            }
+        });
+
+        props.setLoggedIn(true);
     }
     const createWallet = async () => {
         console.log("creating wallet...")
@@ -144,9 +179,9 @@ export default function Login(props: Props){
         return(
             <div className="login-box">
                 <h1 className="login-text">Login</h1>
-                {/* <span style={{fontSize: "small", color: "red"}}>Incorrect address or password. Please try again.</span> */}
-                {inputField("Login", "Enter Wallet Address", "login")}
-                {inputField("Password", "Enter Password", "password")}
+                <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
+                {inputField("Login", "Enter Username", "username")}
+                {inputField("Password", "Enter Password", "password", true)}
                 <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
 
                 <p className="login"><i>Don't have an account?</i></p>
@@ -167,7 +202,7 @@ export default function Login(props: Props){
                         {inputField("Confirm Password", "Re-enter Password", "confirmPassword", true)}
                         <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
                         <p className="login"><i>Already have an account?</i></p>
-                        <a className="login login-link" onClick={() => setCurrentPage(LoginPage.Login)}><i><u>Login</u></i></a>
+                        <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
                     </div>
                     <div className="vertical-line"></div>
                     <div style={{width:"500px", display: "flex", flexDirection: "column", alignItems: "center"}}>
