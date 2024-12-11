@@ -51,9 +51,8 @@ export default function NetworkFilesPage(){
             <br></br>
             <hr></hr>
             <div className="page-file-header"> 
-                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Explore <NumberDropdown k = {k} setK = {setK} /> Peers</p>
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Explore Network, Query <NumberDropdown k = {k} setK = {setK} /> Peers</p>
             </div>
-    
             <NetworkFilesTable headings={headings} setHostToFile={setHostToFile} k = {k}/>
             <BuyForm hostToFile={hostToFile}/>
         </div>

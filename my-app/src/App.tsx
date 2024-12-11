@@ -30,6 +30,7 @@ export enum Page {
 export type Dispatcher<S> = Dispatch<SetStateAction<S>>;
 
 function App() {
+  // REMEMBER TO CAHNE THIS 
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Proxy);
   const { isDarkMode, sendMessage } = useAppContext();
