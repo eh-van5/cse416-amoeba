@@ -45,8 +45,8 @@ func getDownloadsDirectory() string {
 	}
 
 	if downloadDir == "" {
-		os.Mkdir("AmeobaDownloads", 0777)
 		downloadDir = filepath.Join(homeDir, "AmeobaDownloads")
+		os.Mkdir(downloadDir, 0777)
 	}
 
 	return downloadDir
