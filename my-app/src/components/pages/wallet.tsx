@@ -46,7 +46,7 @@ export default function WalletPage(){
             }
             numberErrors += 1;
         }
-        if(ambAmount<0){
+        if(ambAmount<=0){
             if(generalError){
                 generalError.innerHTML = 'Error: Coin sent cannot be 0 or less';
             }
@@ -60,7 +60,10 @@ export default function WalletPage(){
             numberErrors += 1;
 
         }
-        let res = await axios.get(`http://localhost:${PORT}/SendToWallet/username/password/username/${walletNum}/${ambAmount}`)
+        let res = await axios.get(`http://localhost:${PORT}/sendToWallet/username/password/${walletNum}/${ambAmount}`)
+        if(res.data != 0){
+            numberErrors += 1;
+        }
 
         if(numberErrors===0){
             if(generalError){
@@ -71,6 +74,13 @@ export default function WalletPage(){
             setCoinAmount(coinAmount => coinAmount - ambAmount);
             //might change this
             setCurrencyAmount (currencyAmount => currencyAmount-(ambAmount/currencyAmount));
+            setTimeout(()=>{startTimer()}, 5)
+            updateWalletValues();
+        }
+        else{
+            if(generalError){
+                generalError.innerHTML = 'Unknown error occured. Please try again.';
+            }
         }
     }
 
@@ -131,4 +141,9 @@ export default function WalletPage(){
     </div>
     );
 }      
+
+
+function startTimer() {
+    throw new Error('Function not implemented.');
+}
 
