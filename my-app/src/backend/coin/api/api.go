@@ -232,6 +232,8 @@ func (c *Client) GetConnectionCount(w http.ResponseWriter, r *http.Request) int6
 		fmt.Printf("Error Getting Connection Count: %v\n", err)
 		return -1
 	}
+	fmt.Printf("Connection Count: %d\n", count)
+	io.WriteString(w, fmt.Sprintf("%d\n", count))
 	return count
 }
 

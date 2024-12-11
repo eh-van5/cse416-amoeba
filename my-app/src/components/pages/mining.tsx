@@ -36,11 +36,12 @@ export default function MiningPage() {
     const updatePeerValues = async() =>{
         let res = await axios.get(`http://localhost:${PORT}/getConnectionCount/username/password`)
         console.log("Updated Peer Amt Values")
-        if(res.data.length > peakAmount){
-            setpeakAmount(res.data.length)
+        console.log(res)
+        if(res.data > peakAmount){
+            setpeakAmount(res.data)
         }
         //walletNum = res.data;
-        setPeerAmount(res.data.length)
+        setPeerAmount(res.data)
     }
 
     const handleSlider = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +164,8 @@ export default function MiningPage() {
 
     const handleMouseOut = () => {
         if(isMining) {
-            setButtonText(`${0} Units Mined`);
+            //setButtonText(`${0} Units Mined`);
+            setButtonText(`Please stay on this page`);
         }
         else {
             setButtonText("Begin Mining");
