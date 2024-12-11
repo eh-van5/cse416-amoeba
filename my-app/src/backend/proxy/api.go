@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -177,9 +178,11 @@ func ProxyStatusHandler() http.HandlerFunc {
 		proxyStatusCache.RLock()
 		defer proxyStatusCache.RUnlock()
 
-		status := map[string]bool{
+		status := map[string]interface{}{
 			"isProxyEnabled": proxyStatusCache.isProxyEnabled,
 			"isUsingProxy":   proxyStatusCache.isUsingProxy,
+			"dataSent":       atomic.LoadUint64(&proxyStatusCache.dataSent),
+			"dataRecv":       atomic.LoadUint64(&proxyStatusCache.dataRecv),
 		}
 
 		w.WriteHeader(http.StatusOK)

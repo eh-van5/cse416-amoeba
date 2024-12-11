@@ -37,8 +37,8 @@ func startClientNode(node host.Host) {
 
 		countingConn := &CountingConn{
 			conn:             conn,
-			sentBytesPtr:     &totalBytesSent,
-			receivedBytesPtr: &totalBytesReceived,
+			sentBytesPtr:     &proxyStatusCache.dataSent,
+			receivedBytesPtr: &proxyStatusCache.dataRecv,
 		}
 
 		ctx.UserData = countingConn
@@ -58,8 +58,8 @@ func startClientNode(node host.Host) {
 
 		countingConn := &CountingConn{
 			conn:             conn,
-			sentBytesPtr:     &totalBytesSent,
-			receivedBytesPtr: &totalBytesReceived,
+			sentBytesPtr:     &proxyStatusCache.dataSent,
+			receivedBytesPtr: &proxyStatusCache.dataRecv,
 		}
 
 		// Write the HTTP request to the P2P connection
@@ -132,13 +132,12 @@ func UseProxyHandler(node host.Host) http.HandlerFunc {
 			return
 		}
 
-		atomic.StoreInt64(&totalBytesSent, 0)
-		atomic.StoreInt64(&totalBytesReceived, 0)
-
 		go startClientNode(node)
 
 		proxyStatusCache.isUsingProxy = true
 		proxyStatusCache.activeProxyPeer = targetPeer
+		proxyStatusCache.dataSent = 0.0
+		proxyStatusCache.dataRecv = 0.0
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Using Proxy Node"})
@@ -177,8 +176,8 @@ func StopUsingProxyHandler() http.HandlerFunc {
 		proxyStatusCache.isUsingProxy = false
 		proxyStatusCache.activeProxyPeer = peer.ID("")
 
-		sent := atomic.LoadInt64(&totalBytesSent)
-		received := atomic.LoadInt64(&totalBytesReceived)
+		sent := atomic.LoadUint64(&proxyStatusCache.dataSent)
+		received := atomic.LoadUint64(&proxyStatusCache.dataRecv)
 		log.Printf("Client stopped using proxy. Total data sent: %d bytes, received: %d bytes", sent, received)
 
 		w.WriteHeader(http.StatusOK)

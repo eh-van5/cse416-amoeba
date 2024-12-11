@@ -31,6 +31,8 @@ var proxyStatusCache struct {
 	listener        net.Listener
 	activeConns     sync.Map
 	activeProxyPeer peer.ID
+	dataSent        uint64
+	dataRecv        uint64
 }
 
 func provideKey(ctx context.Context, dht *dht.IpfsDHT, key string) error {

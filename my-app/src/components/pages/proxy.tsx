@@ -47,6 +47,7 @@ export default function ProxyPage(){
         peerID: ''
     });
     const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
+    const [dataUsed, setDataUsed] = useState('0');
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
@@ -61,6 +62,10 @@ export default function ProxyPage(){
             setIsUsingProxy(status.isUsingProxy)
             if(!status.isProxyEnabled)
                 setSuccessMessage('');
+            if(status.isUsingProxy) {
+                const total = Number(status.dataSent) + Number(status.dataRecv);
+                setDataUsed((total / (1024 * 1024)).toFixed(3));
+            }
         };
         fecthData();
         const interval = setInterval(() => {
@@ -69,10 +74,8 @@ export default function ProxyPage(){
 
         const savedProxyNode = localStorage.getItem("selectedProxyNode");
         if(savedProxyNode) {
-            console.log("restoring item.");
             setSelectedProxyNode(JSON.parse(savedProxyNode));
         }else {
-            console.log("No item.");
             localStorage.removeItem("selectedProxyNode");
             setSelectedProxyNode({
                 ipAddress: '',
@@ -81,7 +84,7 @@ export default function ProxyPage(){
                 peerID: ''
             });
         }
-        
+
         return () => clearInterval(interval);
     }, []);
 
@@ -98,7 +101,6 @@ export default function ProxyPage(){
     }, []);
 
     const DataTransferred = 0;
-    const DataUsed = 0;
 
     const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
@@ -226,7 +228,6 @@ export default function ProxyPage(){
                 setIsUsingProxy(true);
                 setUseError('');
                 localStorage.setItem("selectedProxyNode", JSON.stringify(selectedProxyNode));
-                console.log(localStorage.getItem("selectedProxyNode"));
             }else {
                 setUseError('Failed to connect to proxy node.');
                 console.error(result);
@@ -268,6 +269,7 @@ export default function ProxyPage(){
             pricePerMB: node.pricePerMB,
             peerID: node.peerID
         });
+        setDataUsed('0');
     };
 
     /*  Enable proxy node
@@ -308,7 +310,7 @@ export default function ProxyPage(){
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Used:</label>
-                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataUsed} MB</span>
+                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{dataUsed} MB</span>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
                         <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 
