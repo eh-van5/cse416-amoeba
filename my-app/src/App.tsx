@@ -12,6 +12,7 @@ import { useAppContext } from './AppContext';
 import UserFilesPage from './components/pages/userFiles';
 import NetworkFilesPage from './components/pages/networkFiles';
 import ProfilePage from './components/pages/profile';
+import axios from 'axios';
 
 export enum Page {
   Proxy,
@@ -34,6 +35,10 @@ function App() {
   const { isDarkMode, sendMessage } = useAppContext();
 
   const [notifications, setNotifications] = useState<boolean>(true);
+
+  const fetchData = async () => {
+    // await axios.get("")
+  }
   useEffect(() => {
     setCurrentPage(Page.Proxy);
   }, [loggedIn]);
@@ -59,7 +64,12 @@ function App() {
                 notifications={notifications}
                 setNotifications={setNotifications}
               />,
-              [Page.Profile]: <ProfilePage />
+              [Page.Profile]: <ProfilePage 
+                username='pass2'
+                password='pass1'
+                walletAddress='128pYFMvGGnAkyDtDzETpByerAsCxSHBPR'  
+                privateKey='test'
+              />
             })[currentPage]
           }
         </div>}
