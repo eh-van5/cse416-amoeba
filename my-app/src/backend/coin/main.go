@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -72,6 +74,47 @@ func main() {
 			return
 		}
 		state.GetAccountData(w, r)
+	})
+
+	mux.HandleFunc("/startMining/{username}/{password}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("---- MineOneBlock 1\n")
+		path := r.URL.Path
+		path = strings.TrimPrefix(path, "/startMining/")
+		parts := strings.Split(path, "/")
+		numcpus := parts[2]
+		numcpu, err := strconv.Atoi(numcpus)
+		if err != nil {
+			fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
+		}
+		state.MineOneBlock(w, r, state.Address, numcpu)
+	})
+	mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("stopMining 1\n")
+		state.StopMining(w, r)
+	})
+	mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Get CPU Threads\n")
+		state.GetCPUThreads(w, r)
+	})
+
+	mux.HandleFunc("/getConnectionCount/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Get Connection Count\n")
+		state.GetConnectionCount(w, r)
+	})
+	mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("-GetWalletVal")
+		walletAddr := state.Username
+		state.GetWalletValue(w, r, walletAddr)
+	})
+	mux.HandleFunc("/sendToWallet/{username}/{password}/{walletAddr}/{amount}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("-send to Wallet")
+		path := r.URL.Path
+		path = strings.TrimPrefix(path, "/sendToWallet/")
+		parts := strings.Split(path, "/")
+
+		walletAddr := parts[2]
+		amount := parts[3]
+		state.SendToWallet(w, r, walletAddr, amount)
 	})
 
 	PORT := 8000

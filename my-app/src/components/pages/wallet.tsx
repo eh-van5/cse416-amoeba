@@ -6,7 +6,7 @@ import { useAppContext } from '../../AppContext';
 import axios from 'axios';
 
 
-const PORT = 8088;
+const PORT = 8000;
 //const username = user.username
 
 export default function WalletPage(){
