@@ -107,6 +107,7 @@ export default function MiningPage() {
         catch (error) {
             console.error("Error getting number of cores:", error)
         }
+        console.log("numCores", numCores)
         //will not allow 0 core mining!
         const numCoresPass = Math.max(1,Math.round(sliderValue * 0.01 * numCores))
         console.log("NumCores to mine: ", numCoresPass)

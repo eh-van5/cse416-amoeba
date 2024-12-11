@@ -344,5 +344,6 @@ func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr
 func (c *Client) GetCPUThreads(w http.ResponseWriter, r *http.Request) int {
 	numCpu := runtime.NumCPU()
 	fmt.Printf("Number of Threads: %d\n", numCpu)
+	io.WriteString(w, fmt.Sprintf("%d\n", numCpu))
 	return numCpu
 }
