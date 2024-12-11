@@ -166,7 +166,6 @@ func MonitorProxyStatus(node host.Host, dht *dht.IpfsDHT) {
 				if err := dht.PutValue(ctx, key, nil); err != nil {
 					log.Printf("Failed to store updated proxy info for key %s: %v", key, err)
 				}
-				proxyStatusCache.isProxyEnabled = false
 				log.Printf("Proxy %s is deleted due to inactivity", proxyInfo.IPAddress)
 			}
 		}

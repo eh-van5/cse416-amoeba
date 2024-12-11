@@ -66,7 +66,15 @@ export default function ProxyPage(){
             }
             if(status.isUsingProxy) {
                 const total = Number(status.dataSent) + Number(status.dataRecv);
-                setDataUsed((total / (1024 * 1024)).toFixed(3));
+                setDataUsed((total / (1024)).toFixed(2));
+            }else if(!status.isUsingProxy) {
+                localStorage.removeItem("selectedProxyNode");
+                setSelectedProxyNode({
+                    ipAddress: '',
+                    location: '',
+                    pricePerMB: 0,
+                    peerID: ''
+                });
             }
         };
         fecthData();
@@ -78,7 +86,6 @@ export default function ProxyPage(){
         if(savedProxyNode) {
             setSelectedProxyNode(JSON.parse(savedProxyNode));
         }else {
-            localStorage.removeItem("selectedProxyNode");
             setSelectedProxyNode({
                 ipAddress: '',
                 location: '',
@@ -312,7 +319,7 @@ export default function ProxyPage(){
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Used:</label>
-                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{dataUsed} MB</span>
+                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{dataUsed} KB</span>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
                         <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 
