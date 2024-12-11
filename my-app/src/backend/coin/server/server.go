@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-	// "errors"
+	"os"
 
 	"github.com/creack/pty"
 )
@@ -16,26 +16,12 @@ import (
 type ProcessManager struct {
 	btcdCmd    *exec.Cmd
 	walletCmd  *exec.Cmd
-	BtcdDone   chan bool
-	WalletDone chan bool
-}
-
-// Stops any existing btcd and btcwallet processes
-func (pm *ProcessManager) StopServer() {
-	fmt.Printf("Stopping server...\n")
-
-	fmt.Printf("Stopping btcd...\n")
-	pm.BtcdDone <- true
-	pm.btcdCmd.Process.Kill()
-
-	fmt.Printf("Stopping btcwallet...\n")
-	pm.WalletDone <- true
-	pm.walletCmd.Process.Kill()
+	Ctx  context.Context
 }
 
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (error){
+func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -76,15 +62,9 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (
 
 	// Waits for stop signals to terminate process
 	go func() {
-		<-ctx.Done()
+		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		select{
-		case pm.BtcdDone <- true:
-			fmt.Printf("btcddone true\n")
-		default:
-			fmt.Printf("btcddone channel blocked\n")
-		}
-		pm.btcdCmd.Process.Kill()
+		pm.btcdCmd.Process.Signal(os.Interrupt)
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 
@@ -96,7 +76,7 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) (error){
+func (pm *ProcessManager) StartWallet(walletpass string) (error){
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -134,15 +114,9 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) (e
 
 	// Waits for stop signals to terminate process
 	go func() {
-		<-ctx.Done()
+		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		select{
-		case pm.WalletDone <- true:
-			fmt.Printf("btcwalletdone true\n")
-		default:
-			fmt.Printf("btcwalletdone channel blocked\n")
-		}
-		pm.walletCmd.Process.Kill()
+		pm.walletCmd.Process.Signal(os.Interrupt)
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 
