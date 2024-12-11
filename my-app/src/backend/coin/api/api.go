@@ -264,7 +264,7 @@ func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAd
 		io.WriteString(w, "Error Getting Wallet Info\n")
 		return -1
 	}
-	if !stopMining {
+	if stopMining {
 		c.LockWallet()
 	}
 	infoNum := float64(info) / 100000000.0
