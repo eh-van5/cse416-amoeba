@@ -2,6 +2,7 @@ package api
 
 import (
 	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -22,6 +23,7 @@ type Client struct {
 	Rpc            *rpcclient.Client
 	Username       string
 	Password       string
+	Address        string
 }
 
 // Test http connection
@@ -46,15 +48,6 @@ func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
 }
 
-func (c *Client) StopServer(w http.ResponseWriter, r *http.Request) {
-	// CURRENT PROBLEM: When signalling or calling this function, the process in ps -e is not killed
-	fmt.Printf("got /stopServer request\n")
-
-	c.ProcessManager.StopServer()
-
-	io.WriteString(w, "Stopped server attemped")
-}
-
 // Creates a new wallet
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /createWallet request\n")
@@ -69,12 +62,6 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, privateKey)
 }
-
-// func (c *Client) CreateAccount(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Printf("got /createAccount request\n")
-
-// 	c.LockWallet()
-// }
 
 // Gets new wallet address for mining
 func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
@@ -92,15 +79,29 @@ func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(info)
+	// Saves address to client
+	c.Address = info.String()
 	io.WriteString(w, info.String())
 
-	// time.AfterFunc(time.Second*5, func() {
-	// 	log.Println("Locking Wallet...")
-	// 	client.WalletLock()
-	// 	log.Println("Wallet lock complete.")
-	// })
-
 	c.LockWallet()
+}
+
+func (c *Client) GetAccountData(w http.ResponseWriter, r *http.Request) {
+	// Create a map or struct for the response data
+	data := map[string]string{
+		"username": c.Username,
+		"password": c.Password,
+		"address":  c.Address,
+	}
+
+	// Set the response content type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Encode the data into JSON and write it to the response
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, error) {

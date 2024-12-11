@@ -7,6 +7,7 @@ import { Page } from "../App";
 import { useAppContext } from "../AppContext";
 
 interface NavbarProps{
+    username: string;
     setPage: Dispatcher<Page>;
     logout: () => void;
 }
@@ -40,7 +41,7 @@ export default function Navbar(props: NavbarProps){
                     <img className="navbar-profile-img" src={user} alt="" />
                     <div style={{display: "flex", flexDirection: "column"}}>
                         <span style={{fontSize: "15px", color: isDarkMode ? 'white' : 'black'}}>Colonist</span>
-                        <span style={{fontSize: "12px", color: isDarkMode ? 'white' : 'black'}}>bcr*************m3z</span>
+                        <span style={{fontSize: "12px", color: isDarkMode ? 'white' : 'black'}}>{props.username}</span>
                     </div>
                     <div className="navbar-profile-exit" onClick={props.logout}>
                         <ExitIcon/>
