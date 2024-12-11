@@ -60,8 +60,10 @@ export default function ProxyPage(){
             setProxyNodes(proxies);
             setIsProxyEnabled(status.isProxyEnabled);
             setIsUsingProxy(status.isUsingProxy)
-            if(!status.isProxyEnabled)
+            if(!status.isProxyEnabled) {
+                stopHeartbeat();
                 setSuccessMessage('');
+            }
             if(status.isUsingProxy) {
                 const total = Number(status.dataSent) + Number(status.dataRecv);
                 setDataUsed((total / (1024 * 1024)).toFixed(3));
