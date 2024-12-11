@@ -80,7 +80,7 @@ export default function MiningPage() {
             timer = setInterval(()=>{
                 const remainingTime = targetEnd-Date.now()
                 if(remainingTime <=0){
-                    //clearInterval(timer)
+                    clearInterval(timer as unknown as number)
                     stopMining()
                     setIsMining(false);
                     setHours('0');
@@ -138,7 +138,9 @@ export default function MiningPage() {
             // setMinutes('0');
             // setHours('0');
             setTimerValue(totalSeconds);
-            startTimer()
+            //delay for 5 seconds to prevent problems
+            setTimeout(()=>{startTimer()}, 5)
+            
         }
         if (isMining) {
             setButtonText('Begin Mining');

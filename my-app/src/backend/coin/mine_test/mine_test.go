@@ -89,15 +89,26 @@ func TestMineOneBlockAndStopMining(t *testing.T) {
 		t.Fatalf("Error logging in: %v", err)
 	}
 	defer resp.Body.Close()
+	//CHECK for Wallet value
+
+	checkBlockURL := fmt.Sprintf("http://localhost:8000/getWalletValue/%s/%s", username, password)
+
+	resp, err = http.Get(checkBlockURL)
+	if err != nil {
+		t.Fatalf("Error Getting Wallet Value: %v", err)
+	}
+	fmt.Printf("Value of Wallet (Before Mining): %s\n", resp.Body)
+	defer resp.Body.Close()
 
 	// Step 4: Mine a block
 	// Test the /mineOneBlock endpoint
-	//mineBlockURL := "http://127.0.0.1/8000/mineOneBlock" //wsl
-	mineBlockURL := fmt.Sprintf("http://localhost:8000/mineOneBlock/%s/%s", username, password)
+	//mineBlockURL := "http://127.0.0.1/8000/startMining" //wsl
+	mineBlockURL := fmt.Sprintf("http://localhost:8000/startMining/%s/%s", username, password)
 	resp, err = http.Get(mineBlockURL)
 	if err != nil {
 		t.Fatalf("Error creating request for mine block: %v", err)
 	}
+
 	//respRecorder := httptest.NewRecorder()
 	//http.DefaultServeMux.ServeHTTP(respRecorder, req)
 	body, _ = ioutil.ReadAll(resp.Body)
@@ -152,5 +163,13 @@ func TestMineOneBlockAndStopMining(t *testing.T) {
 		t.Fatalf("Error mining block: %v", err)
 	}
 	defer resp.Body.Close()
-	// Step 6: Confirm that the mining was stopped (further checks can be added here)
+	// Step 6: Check Value of Wallet after mining
+	//checkBlockURL := fmt.Sprintf("http://localhost:8000/getWalletValue/%s/%s", username, password)
+
+	resp, err = http.Get(checkBlockURL)
+	if err != nil {
+		t.Fatalf("Error Getting Wallet Value(After): %v", err)
+	}
+	fmt.Printf("Value of Wallet (After Mining): %s\n", resp.Body)
+	defer resp.Body.Close()
 }

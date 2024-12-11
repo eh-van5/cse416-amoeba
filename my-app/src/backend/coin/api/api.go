@@ -180,10 +180,10 @@ func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr
 	}
 
 	fmt.Printf("Stopping previous instances of Mining...")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 1)
 	fmt.Printf("Starting Mining with selected cpu cores...")
 	err = c.Rpc.SetGenerate(true, numcpu)
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 1)
 
 	fmt.Printf("Decoded Address: %s", address)
 	if err != nil {
