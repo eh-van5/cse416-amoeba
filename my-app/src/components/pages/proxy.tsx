@@ -48,6 +48,7 @@ export default function ProxyPage(){
     });
     const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
     const [dataUsed, setDataUsed] = useState('0');
+    const [totalCost, setTotalCost] = useState(0);
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
@@ -110,7 +111,6 @@ export default function ProxyPage(){
         };
     }, []);
 
-    const DataTransferred = 0;
 
     const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
@@ -133,6 +133,7 @@ export default function ProxyPage(){
                 const result = await response.json();
     
                 if(response.ok) {
+                    setTotalCost(0);
                     setSuccessMessage(result.status);
                     setIsProxyEnabled(true);
                     startHeartbeat();
@@ -261,6 +262,12 @@ export default function ProxyPage(){
                 method: 'POST',
             });
             if(response.ok) {
+                const result = await response.json();
+                const {dataSent, dataRecv} = result;
+                const totalBytes = dataSent + dataRecv;
+                const totalKB = totalBytes / 1024;
+                setTotalCost(totalKB * selectedProxyNode.pricePerMB);
+                console.log(`Total cost: ${totalCost.toFixed(4)}`);
                 setIsUsingProxy(false);
             }else {
                 //console.error('Failed to stop using proxy.');
@@ -294,13 +301,11 @@ export default function ProxyPage(){
             {isViewHistory === false && isViewAvailable === false && ( <div className="page-row">
                 <SimpleBox title='Enable My IP as a Proxy'>
                     <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px", marginBottom: '10px' }} className="no-wrap">
-                        <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per MB: </label>
+                        <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Price per KB: </label>
                         <input type="text" value={pricePerMB} onChange={handlePriceChange} disabled={isProxyEnabled} />
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '10px', marginRight: '20px', fontSize: '14px'}}>AMB</label>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-                        <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Transferred:</label>
-                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataTransferred} MB</span>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '28px' }}>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
                         <span style={{ fontSize: '12px', color: enableError ? 'red' : 'green' }}>{enableError || successMessage}</span> 
