@@ -1270,7 +1270,7 @@ hr {
   #purchase-form-options-container {
     display: grid;
     grid-row: auto;
-    grid-template-columns: .2fr 1fr 1fr;
+    grid-template-columns: .2fr 1fr 1fr 1fr;
     margin: 1em;
     gap: 10px;
   }
@@ -1286,6 +1286,9 @@ hr {
       align-self: center;
     }
     .buyFormOwners {
+      align-self: center;
+    }
+    .buyFormFilenames{
       align-self: center;
     }
   }
