@@ -49,6 +49,7 @@ export default function Login(props: Props){
     // Backend Functions *********************************************
     const goToCreateWallet = () => {
         setError("")
+        setLoading(false)
         setCurrentPage(LoginPage.CreateWallet);
         setWalletCreated(false);
         setWalletAddress("Create a Wallet")
@@ -63,6 +64,7 @@ export default function Login(props: Props){
 
     const goToLogin = () => {
         setError("")
+        setLoading(false)
         setCurrentPage(LoginPage.Login);
         setUser({
             username: "",
@@ -190,7 +192,7 @@ export default function Login(props: Props){
             <div className="login-box" style={{width: "1200px"}}>
                 <h1 className="login-text" style={{paddingBottom: "2%"}}>Create Wallet</h1>
                 <div style={{display: "flex", flexDirection: "row", gap: "40px"}}>
-                    <div style={{width:"400px", display:"flex", flexDirection:"column", alignItems:"center"}}>
+                    <div style={{width:"500px", display:"flex", flexDirection:"column", alignItems:"center"}}>
                         <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
                         {inputField("New Username", "Enter Username", "username")}
                         {inputField("New Password", "Enter Password", "newPassword", true)}
@@ -201,13 +203,13 @@ export default function Login(props: Props){
                         <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
                     </div>
                     <div className="vertical-line"></div>
-                    <div style={{width:"500px"}}>
-                        <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
-                        <div style={{visibility: walletCreated ? "visible" : "hidden", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                            {outputField("Wallet", walletAddress, 0, 450, 250)}
-                            <button id='create-wallet-export-button' className="create-wallet-button" type="button" onClick={downloadTxtFile} style={{visibility: walletCreated ? "visible" : "hidden"}}>Export Wallet</button>
-                            <button id='create-wallet-login-button' className="create-wallet-button" type="button" onClick={() => setCurrentPage(LoginPage.Login)} style={{visibility: walletCreated ? "visible" : "hidden"}}>Login</button>
-                        </div>
+                    <div style={{width:"500px", display: walletCreated ? "none" : "flex", justifyContent: "center", paddingTop: "150px"}}>
+                        <TailSpin visible={loading} width={100} color="#4470ff" radius={1}/>
+                    </div>
+                    <div style={{width: "500px", display: walletCreated ? "flex" : "none", flexDirection: "column", alignItems: "center"}}>
+                        {outputField("Wallet", walletAddress, 0, 450, 250)}
+                        <button id='create-wallet-export-button' className="create-wallet-button" type="button" onClick={downloadTxtFile} style={{visibility: walletCreated ? "visible" : "hidden"}}>Export Wallet</button>
+                        <button id='create-wallet-login-button' className="create-wallet-button" type="button" onClick={() => setCurrentPage(LoginPage.Login)} style={{visibility: walletCreated ? "visible" : "hidden"}}>Login</button>
                     </div>
                 </div>
             </div>
