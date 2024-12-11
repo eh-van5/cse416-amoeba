@@ -1,36 +1,43 @@
 import { PauseIcon, PlayIcon } from "../../../images/icons/icons";
 import { useAppContext } from "../../../AppContext";
-import { UserFileData } from "../../pages/userFiles";
+import { FileInfo } from "../../types";
 
 interface statusButtonProps {
-    item: UserFileData;
-    items: UserFileData[];
-    setItems: React.Dispatch<React.SetStateAction<UserFileData[]>>;
+    item: FileInfo;
+    items: FileInfo[];
+    setItems: React.Dispatch<React.SetStateAction<FileInfo[]>>;
 }
-
-function FlipSharing({item, items, setItems}: statusButtonProps){
-    let itemIndex = 0;
-    items.forEach((i, index) => {
-        if (i.file.name === item.file.name) {
-            itemIndex = index;
-        }
-    })
-    item.shared = !item.shared;
-    items[itemIndex] = item;
-    setItems([...items])
-}
-
 
 export default function StatusButton({item, items, setItems}: statusButtonProps) { 
     const {isDarkMode} = useAppContext();
     // just hoping duplicate handling is done on the backend
+    async function stopSharing(e : React.MouseEvent<HTMLButtonElement>) {
+        const formData = new FormData();
+        formData.append('hash', item.Hash);
+        const PORT = 8088;
+        const response = await fetch(`http://localhost:${PORT}/stopProvide`, {
+            method:'DELETE',
+            body: formData,
+        })
+
+        if (response.ok) {
+            // Handle success
+            console.log("uploaded files");
+        }  else {
+            // Handle error
+            console.error("Error:", response);
+            alert('Error deleting files');
+        }
+        
+        return;
+    }
+
     return (
         <button 
-            onClick={(e) => {FlipSharing({item, items, setItems})}} 
+            onClick={stopSharing} 
             className={`share-button ${isDarkMode ? '-dark' : ''}`}>
-            {item.shared ? <PauseIcon /> : <PlayIcon />}
+            Stop Share
             <br></br>
-            {item.shared ? "Sharing" : "Not Sharing"}
         </button>
     )
 }

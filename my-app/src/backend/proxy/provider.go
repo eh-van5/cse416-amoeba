@@ -34,15 +34,6 @@ func startProxyNode(node host.Host) (net.Listener, error) {
 	proxy.OnRequest().HandleConnectFunc(func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
 		log.Printf("Proxy node handling CONNECT request for host: %s", host)
 
-		conn, err := net.Dial("tcp", host)
-		if err != nil {
-			log.Printf("Failed to connect to target server %s: %v", host, err)
-			return goproxy.RejectConnect, ""
-		}
-
-		proxyStatusCache.activeConns.Store(conn, true)
-
-		ctx.UserData = conn
 		return goproxy.OkConnect, host
 	})
 
@@ -50,13 +41,7 @@ func startProxyNode(node host.Host) (net.Listener, error) {
 	proxy.OnRequest().DoFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
 		log.Printf("Proxying HTTP request: %s %s", req.Method, req.URL)
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Printf("Error forwarding request: %v", err)
-			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to forward request")
-		}
-
-		return nil, resp
+		return req, nil
 	})
 
 	go func() {

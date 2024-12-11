@@ -47,25 +47,54 @@ export default function ProxyPage(){
         peerID: ''
     });
     const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
+    const [dataUsed, setDataUsed] = useState('0');
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
     const banwidthData = generateRandomBanwidthData();
 
     const POLLING_INTERVAL = 5000;
-    const HEARTBEAT_INTERVAL = 10000;
     useEffect(() => {
         const fecthData = async () => {
             const [proxies, status] = await Promise.all([fetchProxies(), fetchProxyStatus()]);
             setProxyNodes(proxies);
-            setIsProxyEnabled(status);
-            if(!status)
+            setIsProxyEnabled(status.isProxyEnabled);
+            setIsUsingProxy(status.isUsingProxy)
+            if(!status.isProxyEnabled) {
+                stopHeartbeat();
                 setSuccessMessage('');
+            }
+            if(status.isUsingProxy) {
+                const total = Number(status.dataSent) + Number(status.dataRecv);
+                setDataUsed((total / (1024)).toFixed(2));
+
+                setSelectedProxyNode(currentNode => {
+                    const isProxyNodeValid = proxies.some(node => node.peerID === currentNode.peerID);
+                    if (!isProxyNodeValid) {
+                        console.warn("Selected proxy node no longer valid. Stopping proxy...");
+                        handleStopUsingProxy();
+                    }
+                    return currentNode;
+                });
+            }
         };
         fecthData();
         const interval = setInterval(() => {
             fecthData();
         }, POLLING_INTERVAL);
+
+        const savedProxyNode = localStorage.getItem("selectedProxyNode");
+        if(savedProxyNode) {
+            setSelectedProxyNode(JSON.parse(savedProxyNode));
+        }else {
+            setSelectedProxyNode({
+                ipAddress: '',
+                location: '',
+                pricePerMB: 0,
+                peerID: ''
+            });
+        }
+
         return () => clearInterval(interval);
     }, []);
 
@@ -82,7 +111,6 @@ export default function ProxyPage(){
     }, []);
 
     const DataTransferred = 0;
-    const DataUsed = 0;
 
     const handleEnableProxy = async () => {
         const price = parseFloat(pricePerMB);
@@ -160,7 +188,7 @@ export default function ProxyPage(){
         try {
             const response = await fetch("http://localhost:8088/proxy-status");
             const status = await response.json();
-            return status.isProxyEnabled;
+            return status;
         }catch(error) {
             console.error("Failed to fetch proxy status:", error);
             return false
@@ -209,6 +237,7 @@ export default function ProxyPage(){
             if(response.ok) {
                 setIsUsingProxy(true);
                 setUseError('');
+                localStorage.setItem("selectedProxyNode", JSON.stringify(selectedProxyNode));
             }else {
                 setUseError('Failed to connect to proxy node.');
                 console.error(result);
@@ -220,6 +249,7 @@ export default function ProxyPage(){
     };
 
     const handleStopUsingProxy = async () => {
+        localStorage.removeItem("selectedProxyNode");
         setSelectedProxyNode({
             ipAddress: '',
             location: '',
@@ -233,7 +263,7 @@ export default function ProxyPage(){
             if(response.ok) {
                 setIsUsingProxy(false);
             }else {
-                console.error('Failed to stop using proxy.');
+                //console.error('Failed to stop using proxy.');
             }
         }catch(error) {
             console.error('Network error while stopping proxy.');
@@ -249,6 +279,7 @@ export default function ProxyPage(){
             pricePerMB: node.pricePerMB,
             peerID: node.peerID
         });
+        setDataUsed('0');
     };
 
     /*  Enable proxy node
@@ -289,7 +320,7 @@ export default function ProxyPage(){
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <label style={{ color:isDarkMode ? 'white' : 'black', marginLeft: '20px', marginRight: '5px', fontSize: '14px' }}>Data Used:</label>
-                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{DataUsed} MB</span>
+                        <span style={{color:isDarkMode ? 'white' : 'black'}}>{dataUsed} KB</span>
                     </div>
                     <div style={{ minHeight: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '5px' }}>
                         <span style={{ fontSize: '12px', color: 'red' }}>{useError}</span> 

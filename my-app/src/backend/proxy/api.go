@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -165,7 +166,6 @@ func MonitorProxyStatus(node host.Host, dht *dht.IpfsDHT) {
 				if err := dht.PutValue(ctx, key, nil); err != nil {
 					log.Printf("Failed to store updated proxy info for key %s: %v", key, err)
 				}
-				proxyStatusCache.isProxyEnabled = false
 				log.Printf("Proxy %s is deleted due to inactivity", proxyInfo.IPAddress)
 			}
 		}
@@ -177,8 +177,11 @@ func ProxyStatusHandler() http.HandlerFunc {
 		proxyStatusCache.RLock()
 		defer proxyStatusCache.RUnlock()
 
-		status := map[string]bool{
+		status := map[string]interface{}{
 			"isProxyEnabled": proxyStatusCache.isProxyEnabled,
+			"isUsingProxy":   proxyStatusCache.isUsingProxy,
+			"dataSent":       atomic.LoadUint64(&proxyStatusCache.dataSent),
+			"dataRecv":       atomic.LoadUint64(&proxyStatusCache.dataRecv),
 		}
 
 		w.WriteHeader(http.StatusOK)
