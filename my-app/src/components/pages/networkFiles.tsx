@@ -1,62 +1,60 @@
-import { ReactElement, useState } from "react";
 import { useAppContext } from "../../AppContext";
-import NetworkWidget from "../general/networkWidget/networkWidget";
-import UploadFileWidget from "../general/uploadFileWidget";
-import FileTable from "../tables/userFilesTable/userFilesTable";
 import NetworkFilesTable from "../tables/networkFilesTable/networkFiles";
+import SearchBar from "../general/searchBar";
+import BuyForm from "../tables/networkFilesTable/buyForm";
+import { FileInfo } from "../types";
+import React, { useState } from "react";
 
-export interface networkFileStructure {
-    file: {
-        "name": string,
-        "lastModified": number,
-        "size": number
-    }
-    prices: Map<string, number>
+interface NumberDropdownProps {
+    k: number, 
+    setK: React.Dispatch<React.SetStateAction<number>>;
 }
+const NumberDropdown = ({k, setK}: NumberDropdownProps) => {
+  const intervals = [1, 5, 10, 20, 30, 40, 50, 75, 100];
 
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setK(Number(event.target.value));
+  };
 
-interface FileMetadata {
-    "Name" : string,
-    "Size" : number, 
-    "FileType": "string"
-}
+  return (
+    <select
+    id="number-dropdown"
+    value={k}
+    onChange={handleChange}
+    >
+    {intervals.map((number) => (
+        <option key={number} value={number}>
+        {number}
+        </option>
+    ))}
+    </select>
+  );
+};
 
-export interface FileInfo {
-    "Price": number, 
-    "FileMeta": FileMetadata
-}
 
 export default function NetworkFilesPage(){
     const headings = ["", "Name", "Last Modified", "Size"];
     // pull items from backend
-    const tempItems: networkFileStructure[] = [
-        { 
-            file: {
-                name: "file name",
-                lastModified: 123456789,
-                size: 0
-            },
-            prices: new Map<string, number>().set('owner1', 10000000000).set('owner2', 20)
-        }
-    ]
+    const [hostToFile, setHostToFile] = useState<Record<string, FileInfo> | {}>({})
+    const [k, setK] = useState<number>(5);
     const {isDarkMode} = useAppContext();
 
     return(
         <div className="page-content">
             <div className="page-file-header"> 
-                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network</p>
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Purchase Files using Content Hash</p>
             </div>            
             <hr></hr>
-            <br></br>
             <div id = "top-widgets">
-                <NetworkWidget />
+                <SearchBar setHostToFile={setHostToFile}/>
             </div>
             <br></br>
             <hr></hr>
             <div className="page-file-header"> 
-                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Network Files</p>
+                <p style={{ color:isDarkMode ? 'white' : 'black'}}>Explore Network, Query <NumberDropdown k = {k} setK = {setK} /> Peers</p>
             </div>
-            <NetworkFilesTable items={tempItems} headings={headings}/>
+            <NetworkFilesTable headings={headings} setHostToFile={setHostToFile} k = {k}/>
+            <BuyForm hostToFile={hostToFile}/>
         </div>
     )
 }

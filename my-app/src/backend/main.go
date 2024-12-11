@@ -20,9 +20,10 @@ import (
 )
 
 var (
-	node_id             = "sbu_id" // give your SBU ID
+	node_id             = "113366806" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
-	bootstrap_node_addr = "/ip4/127.0.0.1/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
+	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61020/p2p/12D3KooWM8uovScE5NPihSCKhXe8sbgdJAi88i2aXT2MmwjGWoSX"
+	local_bootstrap     = "/ip4/192.168.1.27/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
 	globalCtx           context.Context
 )
 
@@ -36,14 +37,14 @@ func main() {
 	if len(os.Args) > 1 {
 		node_id = os.Args[1]
 	}
-	http.HandleFunc("/ws", handleConnection)
+	// http.HandleFunc("/ws", handleConnection)
 
-	go func() {
-		log.Println("Starting webscoket server on 8080")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-			log.Fatal("Failed to start websocket server")
-		}
-	}()
+	// go func() {
+	// 	log.Println("Starting webscoket server on 8080")
+	// 	if err := http.ListenAndServe(":8080", nil); err != nil {
+	// 		log.Fatal("Failed to start websocket server")
+	// 	}
+	// }()
 
 	node, dht, err := CreateNode()
 	if err != nil {
@@ -62,8 +63,27 @@ func main() {
 	go RefreshReservation(node, 10*time.Minute)
 	ConnectToPeer(node, bootstrap_node_addr) // connect to bootstrap node
 	go HandlePeerExchange(node)
+
 	// Get the current node ID
 	peerID := node.ID().String()
+
+	// start database
+	filesDB, err := fshare.OpenBadgerDB("../store")
+	if err != nil {
+		fmt.Println("server doesn't open")
+	}
+	// start file storage
+	if !fshare.FileExists("../userFiles") {
+		err := os.MkdirAll("../userFiles", os.ModePerm)
+		if err != nil {
+			fmt.Println("Error creating directory:", err)
+		}
+	}
+
+	// refresh provider records
+	fshare.MakeDiscoverable(ctx, dht)
+	MakeProviderRecords(ctx, dht, filesDB)
+	go RefreshProviderRecords(ctx, dht, filesDB, 1*time.Hour)
 
 	// Configure HTTP routing
 	mux := http.NewServeMux()
@@ -75,12 +95,30 @@ func main() {
 	mux.HandleFunc("/heartbeat", proxy.HeartbeatHandler(dht, peerID))
 	mux.HandleFunc("/proxy-status", proxy.ProxyStatusHandler())
 
+	// fshare endpoints
+	mux.HandleFunc("/getFile", fshare.GetProviders(ctx, dht, node, filesDB))
+	mux.HandleFunc("/uploadFile", fshare.ProvideFile(ctx, dht, filesDB))
+	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
+	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
+	mux.HandleFunc("/stopProvide", fshare.StopProvide(ctx, dht, filesDB))
+	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node))
+
+	// fshare stream handlers
+	// protocol "/want-filemeta"
+	fshare.HaveFileMetadata(node, filesDB)
+	// protocol /want-all-filemeta
+	fshare.HaveAllFileMetadata(node, filesDB)
+
 	// Start the HTTP server
 	go func() {
 		if err := http.ListenAndServe(":8088", proxy.EnableCORS(mux)); err != nil {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
+
+	// protocol "/want-file"
+	go fshare.SetupFileServer(node)
+
 	go proxy.MonitorProxyStatus(node, dht)
 
 	go handleInput(node, ctx, dht)
@@ -205,21 +243,17 @@ func handleInput(node host.Host, ctx context.Context, dht *dht.IpfsDHT) {
 			// key := args[1]
 
 		case "START_SERVER":
-			fshare.HttpServer(node)
+			go fshare.SetupFileServer(node)
 
-		case "GET_FILE":
+		case "WANT_FILE":
 			if len(args) < 3 {
-				fmt.Println("Expected key")
+				fmt.Println("Expected key and value")
 				continue
 			}
-			peerid := args[1]
-			hash := args[2]
-			// res, err := GetPeerAddr(ctx, dht, peerid)
-			// if err != nil {
-			// 	fmt.Println("peerid failed")
-			// }
 
-			fshare.HttpClient(ctx, dht, node, peerid, hash)
+			// target := args[1]
+			// hash := args[2]
+			// fshare.HttpClientLocal(ctx, node, target, hash, "ameobafiletest")
 
 		case "REMOVE_FILEINFO":
 			hash := args[1]

@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 
 	cid "github.com/ipfs/go-cid"
@@ -14,23 +13,12 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-type FileInfo struct {
-	Price    int
-	FileMeta FileMetadata
-}
-
-type FileMetadata struct {
-	Name     string
-	Size     int
-	FileType string
-}
-
-func uploadFile(fileContent []byte, hash string) {
+func uploadFile(fileContent []byte, hash string) error {
 	// Create a temporary file within our temp-images directory that follows
 	// a particular naming pattern
 	copy, err := os.Create("../userFiles/" + hash)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer copy.Close()
 	// write this byte array to our temporary file
@@ -43,6 +31,7 @@ func uploadFile(fileContent []byte, hash string) {
 	// 	fmt.Println("Error making file read-only:", errs)
 	// 	return
 	// }
+	return nil
 }
 
 func generateContentHash(fileContent []byte) (cid.Cid, error) {
@@ -55,128 +44,101 @@ func generateContentHash(fileContent []byte) (cid.Cid, error) {
 	return cid.NewCidV1(cid.Raw, mh), nil
 }
 
-func storeFileInfo(ctx context.Context, dht *dht.IpfsDHT, contentHash string, price int, data FileMetadata) error {
-	dhtKey := "/orcanet/" + dht.PeerID().String()
-	existingValue, err := dht.GetValue(ctx, dhtKey)
-	var priceInfo map[string]FileInfo
-	if err == nil {
-		// decode existing provider list if found
-		err = json.Unmarshal(existingValue, &priceInfo)
-		if err != nil {
-			return fmt.Errorf("failed to decode existing providers: %v", err)
-		}
-	} else {
-		priceInfo = make(map[string]FileInfo)
-	}
+func ProvideFileHelper(
+	ctx context.Context,
+	dht *dht.IpfsDHT,
+	fileDb *KV,
+	fileInfo FileInfo,
+	fileContent []byte) error {
 
-	priceInfo[contentHash] = FileInfo{Price: price, FileMeta: data}
-	priceInfoBytes, err := json.Marshal(priceInfo)
-	if err != nil {
-		return fmt.Errorf("failed to encode file info: %v", err)
-	}
-
-	err = dht.PutValue(ctx, dhtKey, priceInfoBytes)
-	if err != nil {
-		return fmt.Errorf("failed to store provider info in DHT: %v", err)
-	}
-
-	nodeHash, err := generateContentHash([]byte(dhtKey))
-	if err != nil {
-		return fmt.Errorf("failed to generate content hash: %v", err)
-	}
-
-	dht.Provide(ctx, nodeHash, true)
-	return nil
-}
-
-func ProvideFileHelper(ctx context.Context, dht *dht.IpfsDHT, filename string, filesize int, price int, fileContent []byte) error {
-	fmt.Println("providing a file")
 	c, err := generateContentHash(fileContent)
 	if err != nil {
 		return fmt.Errorf("failed to generate cid: %v", err)
 	}
 
 	dhtKey := "/orcanet/" + c.String()
-	fileType := http.DetectContentType(fileContent)
+	fileInfo.Hash = c.String()
 
-	fileMeta := FileMetadata{
-		Name:     filename,
-		Size:     filesize,
-		FileType: fileType,
-	}
+	fileDb.SetFileInfo(c.String(), fileInfo)
 
-	if err != nil {
-		return fmt.Errorf("failed to get file info from dht: %v", err)
-	}
-
-	// add the new provider info
-	// newProvider := FileProvider{
-	// 	PeerId:       dht.PeerID(),
-	// 	Price:        price,
-	// 	FileName:     fileMetadata.Name(),
-	// 	LastModified: fileMetadata.ModTime().Format(time.ANSIC),
-	// }
-	// fileInfo.Providers[newProvider.PeerId.String()] = newProvider
-
-	fileMetaBytes, err := json.Marshal(fileMeta)
+	fileInfoBytes, err := json.Marshal(fileInfo)
 	if err != nil {
 		return fmt.Errorf("failed to encode file info: %v", err)
 	}
 
-	// store the updated provider list in the DHT
-	err = dht.PutValue(ctx, dhtKey, fileMetaBytes)
+	err = dht.PutValue(ctx, dhtKey, fileInfoBytes)
 	if err != nil {
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	storeFileInfo(ctx, dht, c.String(), price, fileMeta)
 	// provide file
 	err = dht.Provide(ctx, c, true)
 	if err != nil {
 		return fmt.Errorf("failed to start providing key: %v", err)
 	}
 
-	fmt.Println("hash: ", c.String())
 	uploadFile(fileContent, c.String())
 
 	return nil
 }
 
-func GetProvidersHelper(ctx context.Context, dht *dht.IpfsDHT, contentHash string) (map[string]FileInfo, error) {
-
+func GetProvidersHelper(ctx context.Context, dht *dht.IpfsDHT, contentHash string) ([]peer.AddrInfo, error) {
 	// findProviders
-	// query each provider for the file price, if there isn't don't add it in
-	// provide providers and, put the file price in the node's key
-	priceMap := make(map[string]FileInfo)
 
 	cid, err := cid.Decode(contentHash)
 	if err != nil {
-		return priceMap, fmt.Errorf("error decoding CID %v", err)
+		return nil, fmt.Errorf("error decoding CID %v", err)
 	}
 
 	providers, err := dht.FindProviders(ctx, cid)
 	if err != nil {
-		return priceMap, fmt.Errorf("error getting providers %v", err)
+		return nil, fmt.Errorf("error getting providers %v", err)
 	}
 
-	for _, peer := range providers {
-		pricesBytes, err := dht.GetValue(ctx, "/orcanet/"+peer.ID.String())
+	return providers, nil
+}
+
+func RefreshProviderRecordsHelper(ctx context.Context, dht *dht.IpfsDHT, filesDB *KV) error {
+	hashes, err := filesDB.GetAllContentHashes()
+	// fmt.Println(hashes)
+	if err != nil {
+		return err
+	}
+	for _, hash := range hashes {
+		fileInfo, err := filesDB.GetFileInfo(hash)
 		if err != nil {
-			return priceMap, fmt.Errorf("error getting peer price %v", err)
-		}
-		fmt.Println(pricesBytes)
-		var prices map[string]FileInfo
-		err = json.Unmarshal(pricesBytes, &prices)
-		if err != nil {
-			return priceMap, fmt.Errorf("error unmarshaling prices %v", err)
+			return fmt.Errorf("failed to encode file info: %v", err)
 		}
 
-		if price, exists := prices[contentHash]; exists {
-			priceMap[peer.ID.String()] = price
+		fileInfoBytes, err := json.Marshal(fileInfo)
+		if err != nil {
+			return fmt.Errorf("failed to encode file info: %v", err)
+		}
+
+		dhtKey := "/orcanet/" + hash
+
+		err = dht.PutValue(ctx, dhtKey, fileInfoBytes)
+		if err != nil {
+			return fmt.Errorf("failed to store provider info in DHT: %v", err)
+		}
+
+		c, err := cid.Decode(hash)
+		if err != nil {
+			return err
+		}
+
+		err = dht.Provide(ctx, c, true)
+		if err != nil {
+			return err
 		}
 	}
 
-	return priceMap, nil
+	err = MakeDiscoverable(ctx, dht)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.AddrInfo, error) {
@@ -197,42 +159,25 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 	return res, err
 }
 
-func PauseProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
-	dhtKey := "/orcanet/" + dht.PeerID().String()
-	fmt.Println("Peer key ", dhtKey)
+func MakeDiscoverable(ctx context.Context, dht *dht.IpfsDHT) error {
+	dhtKey := "/orcanet/peer-discovery"
 
-	existingValue, err := dht.GetValue(ctx, dhtKey)
-	var priceInfo map[string]FileInfo
-	if err == nil {
-		// decode existing provider list if found
-		err = json.Unmarshal(existingValue, &priceInfo)
-		if err != nil {
-			return fmt.Errorf("failed to decode existing providers: %v", err)
-		}
-		delete(priceInfo, contentHash)
-	} else {
-		priceInfo = make(map[string]FileInfo)
-	}
-
-	priceInfoBytes, err := json.Marshal(priceInfo)
-	if err != nil {
-		return fmt.Errorf("failed to encode file info: %v", err)
-	}
-
-	err = dht.PutValue(ctx, dhtKey, priceInfoBytes)
+	err := dht.PutValue(ctx, dhtKey, []byte(""))
 	if err != nil {
 		return fmt.Errorf("failed to store provider info in DHT: %v", err)
 	}
 
-	return nil
-}
-
-func StopProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
-	PauseProvide(ctx, dht, contentHash)
-	err := os.Remove("../userFiles/" + contentHash)
+	c, err := generateContentHash([]byte(dhtKey))
 	if err != nil {
-		return fmt.Errorf("failed to remove file from DHT: %v", err)
+		return fmt.Errorf("failed to generate content hash: %v", err)
 	}
+
+	// provide file
+	err = dht.Provide(ctx, c, true)
+	if err != nil {
+		return fmt.Errorf("failed to start providing key: %v", err)
+	}
+
 	return nil
 }
 

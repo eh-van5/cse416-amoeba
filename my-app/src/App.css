@@ -1166,6 +1166,21 @@ hr {
   }
 }
 
+#search-bar{
+  display: flex;
+}
+
+.search-bar-items{
+  margin: 10px;
+  font-size: 16px;
+  font-family: inter;
+}
+
+#number-dropdown{
+  display:inline;
+  font-size: 18px;
+}
+
 #network-widget{
   flex: 3;
   margin: 10px;
@@ -1258,7 +1273,7 @@ hr {
   #purchase-form-options-container {
     display: grid;
     grid-row: auto;
-    grid-template-columns: .2fr 1fr 1fr;
+    grid-template-columns: .2fr 1fr 1fr 1fr;
     margin: 1em;
     gap: 10px;
   }
@@ -1274,6 +1289,9 @@ hr {
       align-self: center;
     }
     .buyFormOwners {
+      align-self: center;
+    }
+    .buyFormFilenames{
       align-self: center;
     }
   }

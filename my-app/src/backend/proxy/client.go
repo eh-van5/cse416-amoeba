@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/elazarl/goproxy"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -33,10 +34,16 @@ func startClientNode(node host.Host) {
 			log.Printf("Failed to connect to proxy node: %v", err)
 			return goproxy.RejectConnect, ""
 		}
-		defer conn.Close()
 
-		// Returns transparent forwarding instructions
-		ctx.UserData = conn
+		countingConn := &CountingConn{
+			conn:             conn,
+			sentBytesPtr:     &proxyStatusCache.dataSent,
+			receivedBytesPtr: &proxyStatusCache.dataRecv,
+		}
+
+		ctx.UserData = countingConn
+
+		defer countingConn.Close()
 		return goproxy.OkConnect, host
 	}))
 
@@ -48,22 +55,30 @@ func startClientNode(node host.Host) {
 			log.Printf("Failed to connect to proxy node: %v", err)
 			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to connect to proxy node")
 		}
-		defer conn.Close()
+
+		countingConn := &CountingConn{
+			conn:             conn,
+			sentBytesPtr:     &proxyStatusCache.dataSent,
+			receivedBytesPtr: &proxyStatusCache.dataRecv,
+		}
 
 		// Write the HTTP request to the P2P connection
-		err = req.Write(conn)
+		err = req.Write(countingConn)
 		if err != nil {
 			log.Printf("Error writing request to stream: %v", err)
-			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to connect to proxy node")
+			countingConn.Close()
+			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to send request to proxy node")
 		}
 
 		// Read the HTTP response from the P2P connection
-		resp, err := http.ReadResponse(bufio.NewReader(conn), req)
+		resp, err := http.ReadResponse(bufio.NewReader(countingConn), req)
 		if err != nil {
 			log.Printf("Error reading response from stream: %v", err)
+			countingConn.Close()
 			return nil, goproxy.NewResponse(req, goproxy.ContentTypeText, http.StatusBadGateway, "Failed to receive response from proxy node")
 		}
 
+		defer countingConn.Close()
 		return nil, resp
 	})
 
@@ -121,6 +136,8 @@ func UseProxyHandler(node host.Host) http.HandlerFunc {
 
 		proxyStatusCache.isUsingProxy = true
 		proxyStatusCache.activeProxyPeer = targetPeer
+		proxyStatusCache.dataSent = 0.0
+		proxyStatusCache.dataRecv = 0.0
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Using Proxy Node"})
@@ -159,7 +176,10 @@ func StopUsingProxyHandler() http.HandlerFunc {
 		proxyStatusCache.isUsingProxy = false
 		proxyStatusCache.activeProxyPeer = peer.ID("")
 
-		log.Println("Client stopped using proxy")
+		sent := atomic.LoadUint64(&proxyStatusCache.dataSent)
+		received := atomic.LoadUint64(&proxyStatusCache.dataRecv)
+		log.Printf("Client stopped using proxy. Total data sent: %d bytes, received: %d bytes", sent, received)
+
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "Stopped Using Proxy"})
 	}
