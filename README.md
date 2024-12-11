@@ -13,18 +13,27 @@ npm start
 ```
 
 # Start btcd and wallet
+
+Clone the btcd and btcwallet repos
+```
+cd my-app/src/coin
+git clone https://github.com/prithesh07/btcd.git
+git clone https://github.com/tahsina13/btcwallet.git
+```
+
+Build executables in each of the two repositories
+```
+cd my-app/src/coin/btcd
+go build
+```
+```
+cd my-app/src/coin/btcwallet
+go build
+```
+
+## Run backend server
 ```
 cd my-app/src/backend/coin
 go build
 go run .
-```
-
-## Calling Commands
-Once btcd and btcwallet have started, you can access its functionality by making HTTP requests to:
-**http://localhost:8000/**
-
-Currently, the server will process these requests:
-```
-/  test function that responds with "This is a message!"
-/generateAddress  creates a new address for mining
 ```
