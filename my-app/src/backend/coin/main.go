@@ -202,17 +202,17 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		if !*loggedIn {
 			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
 			mux.HandleFunc("/stopServer", c.StopServer)
-			mux.HandleFunc("/startMining/{username}/{password}/{miningaddr}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc("/startMining/{username}/{password}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("---- MineOneBlock 1\n")
 				path := r.URL.Path
 				path = strings.TrimPrefix(path, "/startMining/")
 				parts := strings.Split(path, "/")
-				numcpus := parts[3]
+				numcpus := parts[2]
 				numcpu, err := strconv.Atoi(numcpus)
 				if err != nil {
 					fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
 				}
-				c.MineOneBlock(w, r, miningaddr, numcpu)
+				c.MineOneBlock(w, r, address, numcpu)
 				//c.MineOneBlock(w, r, c.Username, numcpu)
 			})
 			mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
@@ -226,6 +226,10 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 			mux.HandleFunc("/getAllPeers/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("Get All Peers\n")
 				c.GetAllPeers(w, r)
+			})
+			mux.HandleFunc("/getConnectionCount/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+				fmt.Printf("Get Connection Count\n")
+				c.GetConnectionCount(w, r)
 			})
 			mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("-GetWalletVal 1")

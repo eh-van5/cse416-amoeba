@@ -26,6 +26,7 @@ export default function MiningPage() {
     const [isMining, setIsMining] = useState<boolean>(false); // Switch for button state
     const [coinAmount, setCoinAmount] = useState(0.00);
     const [peerAmount, setPeerAmount] = useState(0);
+    const [peakAmount, setpeakAmount] = useState(0);
     const updateWalletValues = async() =>{
         let res = await axios.get(`http://localhost:${PORT}/getWalletValue/username/password`)
         console.log("Updated Wallet Values")
@@ -33,9 +34,11 @@ export default function MiningPage() {
         setCoinAmount(res.data)
     }
     const updatePeerValues = async() =>{
-        let res = await axios.get(`http://localhost:${PORT}/getAllPeers/username/password`)
+        let res = await axios.get(`http://localhost:${PORT}/getConnectionCount/username/password`)
         console.log("Updated Peer Amt Values")
-
+        if(res.data.length > peakAmount){
+            setpeakAmount(res.data.length)
+        }
         //walletNum = res.data;
         setPeerAmount(res.data.length)
     }
@@ -108,7 +111,7 @@ export default function MiningPage() {
         console.log("NumCores to mine: ", numCoresPass)
         //calculate cores it should pass
         try {
-            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/miningaddr/${numCoresPass}`)
+            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/${numCoresPass}`)
             console.log(res.data)
         }
         catch (error) {
@@ -186,7 +189,7 @@ export default function MiningPage() {
             <SimpleBox title="Mining Network" style={{ display: 'block', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: "space-between", maxWidth: '60%' }}>
                     <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>{peerAmount.toFixed(0)} Active Colonists</h3>
-                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>(Insert Number) Peak Colonists</h3>
+                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>{peakAmount.toFixed(0)} Peak Colonists</h3>
                 </div>
                 {/*RESOLVED: Drop down menu does not appear next to the button like on other pages */}
                 <LineGraph

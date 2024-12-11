@@ -225,6 +225,15 @@ func (c *Client) GetAllPeers(w http.ResponseWriter, r *http.Request) []btcjson.G
 	io.WriteString(w, "Peers fetched")
 	return peers
 }
+func (c *Client) GetConnectionCount(w http.ResponseWriter, r *http.Request) int64 {
+	fmt.Println("Getting connection count")
+	count, err := c.Rpc.GetConnectionCount()
+	if err != nil {
+		fmt.Printf("Error Getting Connection Count: %v\n", err)
+		return -1
+	}
+	return count
+}
 
 // function to connect to a particular peer but idk why you need that
 func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request, peer *btcjson.GetPeerInfoResult) {
