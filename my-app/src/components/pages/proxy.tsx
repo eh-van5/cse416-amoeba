@@ -67,13 +67,14 @@ export default function ProxyPage(){
             if(status.isUsingProxy) {
                 const total = Number(status.dataSent) + Number(status.dataRecv);
                 setDataUsed((total / (1024)).toFixed(2));
-            }else if(!status.isUsingProxy) {
-                localStorage.removeItem("selectedProxyNode");
-                setSelectedProxyNode({
-                    ipAddress: '',
-                    location: '',
-                    pricePerMB: 0,
-                    peerID: ''
+
+                setSelectedProxyNode(currentNode => {
+                    const isProxyNodeValid = proxies.some(node => node.peerID === currentNode.peerID);
+                    if (!isProxyNodeValid) {
+                        console.warn("Selected proxy node no longer valid. Stopping proxy...");
+                        handleStopUsingProxy();
+                    }
+                    return currentNode;
                 });
             }
         };
@@ -262,7 +263,7 @@ export default function ProxyPage(){
             if(response.ok) {
                 setIsUsingProxy(false);
             }else {
-                console.error('Failed to stop using proxy.');
+                //console.error('Failed to stop using proxy.');
             }
         }catch(error) {
             console.error('Network error while stopping proxy.');
