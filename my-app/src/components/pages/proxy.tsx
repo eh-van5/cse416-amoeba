@@ -275,7 +275,8 @@ export default function ProxyPage(){
                 const {dataSent, dataRecv} = result;
                 const totalBytes = dataSent + dataRecv;
                 const totalKB = totalBytes / 1024;
-                setTotalCost(totalKB * selectedProxyNode.pricePerMB);
+                const calculatedCost = totalKB * selectedProxyNode.pricePerMB;
+                setTotalCost(calculatedCost);
                 console.log(`Total cost: ${totalCost.toFixed(4)}`);
                 setIsUsingProxy(false);
             }else {
