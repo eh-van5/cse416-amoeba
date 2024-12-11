@@ -12,7 +12,6 @@ import (
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 // HTTP COMMS WITH FRONTEND
@@ -162,7 +161,7 @@ func StopProvide(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 	}
 }
 
-func ExploreKNeighbors(ctx context.Context, dht *dht.IpfsDHT, node host.Host, bootnodeid peer.ID) http.HandlerFunc {
+func ExploreKNeighbors(ctx context.Context, dht *dht.IpfsDHT, node host.Host) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		k, err := strconv.Atoi(r.URL.Query().Get("K"))
 		if err != nil {
@@ -170,25 +169,33 @@ func ExploreKNeighbors(ctx context.Context, dht *dht.IpfsDHT, node host.Host, bo
 			return
 		}
 
-		peerIds, err := dht.GetClosestPeers(ctx, node.ID().String())
+		dhtKey := "/orcanet/peer-discovery"
+		discoverC, err := generateContentHash([]byte(dhtKey))
+		if err != nil {
+			http.Error(w, "Can't get closest peers", http.StatusInternalServerError)
+			return
+		}
+
+		peers, err := GetProvidersHelper(ctx, dht, discoverC.String())
 		if err != nil {
 			http.Error(w, "Can't get closest peers", http.StatusNotFound)
 			return
 		}
-		for _, peerId := range peerIds {
-			fmt.Printf("Closest peer: %s\n", peerId.String())
+
+		for _, peer := range peers {
+			fmt.Printf("Closest peer: %s\n", peer.ID.String())
 		}
 
 		var hashToMetadata = make(map[string]FileInfo)
-		for index, peerId := range peerIds {
+		for index, peer := range peers {
 			// fmt.Println("sending data to " + peerId.String())
 			if index == k+1 {
 				break
 			}
-			if peerId.String() == node.ID().String() {
+			if peer.ID.String() == node.ID().String() {
 				continue
 			}
-			peerFilesInfo, err := WantAllFileMetadata(node, peerId.String())
+			peerFilesInfo, err := WantAllFileMetadata(node, peer.ID.String())
 			if err != nil {
 				continue
 			}

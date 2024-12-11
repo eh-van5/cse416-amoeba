@@ -132,6 +132,12 @@ func RefreshProviderRecordsHelper(ctx context.Context, dht *dht.IpfsDHT, filesDB
 			return err
 		}
 	}
+
+	err = MakeDiscoverable(ctx, dht)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -151,6 +157,28 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 		return peer.AddrInfo{}, err
 	}
 	return res, err
+}
+
+func MakeDiscoverable(ctx context.Context, dht *dht.IpfsDHT) error {
+	dhtKey := "/orcanet/peer-discovery"
+
+	err := dht.PutValue(ctx, dhtKey, []byte(""))
+	if err != nil {
+		return fmt.Errorf("failed to store provider info in DHT: %v", err)
+	}
+
+	c, err := generateContentHash([]byte(dhtKey))
+	if err != nil {
+		return fmt.Errorf("failed to generate content hash: %v", err)
+	}
+
+	// provide file
+	err = dht.Provide(ctx, c, true)
+	if err != nil {
+		return fmt.Errorf("failed to start providing key: %v", err)
+	}
+
+	return nil
 }
 
 // TODO get all available files -- idea: make a key whose value is purely for contributing file metadata

@@ -14,11 +14,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/multiformats/go-multiaddr"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 var (
@@ -76,6 +74,7 @@ func main() {
 	}
 
 	// refresh provider records
+	fshare.MakeDiscoverable(ctx, dht)
 	go RefreshProviderRecords(ctx, dht, filesDB, 1*time.Hour)
 
 	// Configure HTTP routing
@@ -94,20 +93,7 @@ func main() {
 	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
 	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
 	mux.HandleFunc("/stopProvide", fshare.StopProvide(ctx, dht, filesDB))
-
-	addr, err := multiaddr.NewMultiaddr(bootstrap_node_addr)
-	if err != nil {
-		log.Printf("Failed to parse peer address: %s", err)
-		return
-	}
-
-	bootNodeId, err := peer.IDFromP2PAddr(addr)
-	if err != nil {
-		log.Printf("Failed to get AddrInfo from address: %s", err)
-		return
-	}
-
-	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node, bootNodeId))
+	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node))
 
 	// fshare stream handlers
 	// protocol "/want-filemeta"
@@ -124,7 +110,6 @@ func main() {
 
 	// protocol "/want-file"
 	go fshare.SetupFileServer(node)
-	go fshare.PubSub(ctx, node)
 
 	go proxy.MonitorProxyStatus(node, dht)
 
