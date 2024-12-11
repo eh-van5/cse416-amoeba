@@ -91,6 +91,8 @@ func main() {
 	mux.HandleFunc("/uploadFile", fshare.ProvideFile(ctx, dht, filesDB))
 	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
 	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
+	mux.HandleFunc("/stopProvide", fshare.StopProvide(ctx, dht, filesDB))
+	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node))
 
 	// fshare stream handlers
 	// protocol "/want-filemeta"

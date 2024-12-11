@@ -14,7 +14,6 @@ export default function UserFilesPage(){
     const [sharedFiles, setSharedFiles] = useState<FileInfo[]>([]);
     const [uploadedFiles, setUploadedFiles] = useState<Map<string, FileData>>(new Map());
     const {isDarkMode} = useAppContext();
-    console.log(uploadedFiles);
     useEffect(() => {
         const getAllFiles = async () => {
             const PORT = 8088
@@ -22,8 +21,8 @@ export default function UserFilesPage(){
                 method: 'GET',
             });
             if (response.ok) { 
-                const files = await response.json();
-                console.log(files);
+                let files = await response.json();
+                files = files? files : [];
                 setSharedFiles(files);
             } else {
                 alert("Error fetching user files.");

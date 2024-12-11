@@ -63,6 +63,36 @@ func HaveFileMetadata(node host.Host, filesDb *KV) {
 	})
 }
 
+func HaveAllFileMetadata(node host.Host, filesDB *KV) {
+	node.SetStreamHandler("/want-all-filemeta", func(s network.Stream) {
+		defer s.Close()
+		// Create a buffered reader to read data from the stream
+		filesInfo, err := filesDB.GetAllFiles()
+		if err != nil {
+			fmt.Println(err)
+			log.Printf("failed to get all file info: %v", s.Conn().RemotePeer())
+			return
+		}
+
+		filesInfoBytes, err := json.Marshal(filesInfo)
+		if err != nil {
+			log.Printf("failed to marshal FileInfo: %v", s.Conn().RemotePeer())
+			return
+		}
+
+		_, err = s.Write(filesInfoBytes)
+		if err != nil {
+			log.Printf("Error writing to stream: %v", err)
+			return
+		}
+		_, err = s.Write([]byte("\n"))
+		if err != nil {
+			log.Printf("Error writing to stream: %v", err)
+			return
+		}
+	})
+}
+
 func SetupFileServer(server_node host.Host) error {
 	listener, _ := gostream.Listen(server_node, "/want-file")
 	defer listener.Close()

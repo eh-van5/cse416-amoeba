@@ -1090,6 +1090,9 @@ body{
   font-family: inter;
 }
 
+#number-dropdown{
+  display:inline;
+}
 
 #network-widget{
   flex: 3;

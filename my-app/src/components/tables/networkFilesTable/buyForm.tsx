@@ -2,8 +2,7 @@ import { FileInfo } from "../../types";
 
 interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
-    hash: string;
-  }
+}
 
 function cancel(e: React.MouseEvent){
     const purchaseForm = document.getElementById("purchase-form") as HTMLDialogElement;
@@ -59,11 +58,12 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
     
 }
 
-export default function BuyForm({hostToFile, hash}: BuyFormProps) {
+export default function BuyForm({hostToFile}: BuyFormProps) {
     const owners = Object.keys(hostToFile)
     const options = Array.from(owners).map((owner: string) => {
         const price = hostToFile[owner]?.Price
         const filename = hostToFile[owner]?.Name
+        const hash = hostToFile[owner]?.Hash
         return (
             <div id="provider-options">
                 <input 

@@ -57,6 +57,7 @@ func ProvideFileHelper(
 	}
 
 	dhtKey := "/orcanet/" + c.String()
+	fileInfo.Hash = c.String()
 
 	fileDb.SetFileInfo(c.String(), fileInfo)
 
@@ -113,7 +114,7 @@ func RefreshProviderRecordsHelper(ctx context.Context, dht *dht.IpfsDHT, filesDB
 		if err != nil {
 			return fmt.Errorf("failed to encode file info: %v", err)
 		}
-		
+
 		dhtKey := "/orcanet/" + hash
 
 		err = dht.PutValue(ctx, dhtKey, fileInfoBytes)
@@ -150,45 +151,6 @@ func GetPeerAddr(ctx context.Context, dht *dht.IpfsDHT, peerId string) (peer.Add
 		return peer.AddrInfo{}, err
 	}
 	return res, err
-}
-
-func PauseProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
-	dhtKey := "/orcanet/" + dht.PeerID().String()
-	fmt.Println("Peer key ", dhtKey)
-
-	existingValue, err := dht.GetValue(ctx, dhtKey)
-	var priceInfo map[string]FileInfo
-	if err == nil {
-		// decode existing provider list if found
-		err = json.Unmarshal(existingValue, &priceInfo)
-		if err != nil {
-			return fmt.Errorf("failed to decode existing providers: %v", err)
-		}
-		delete(priceInfo, contentHash)
-	} else {
-		priceInfo = make(map[string]FileInfo)
-	}
-
-	priceInfoBytes, err := json.Marshal(priceInfo)
-	if err != nil {
-		return fmt.Errorf("failed to encode file info: %v", err)
-	}
-
-	err = dht.PutValue(ctx, dhtKey, priceInfoBytes)
-	if err != nil {
-		return fmt.Errorf("failed to store provider info in DHT: %v", err)
-	}
-
-	return nil
-}
-
-func StopProvide(ctx context.Context, dht *dht.IpfsDHT, contentHash string) error {
-	PauseProvide(ctx, dht, contentHash)
-	err := os.Remove("../userFiles/" + contentHash)
-	if err != nil {
-		return fmt.Errorf("failed to remove file from DHT: %v", err)
-	}
-	return nil
 }
 
 // TODO get all available files -- idea: make a key whose value is purely for contributing file metadata

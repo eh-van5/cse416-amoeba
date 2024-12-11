@@ -213,6 +213,57 @@ func WantFileMetadata(node host.Host, targetpeerid string, hash string) (FileInf
 	return fileMetadata, nil
 }
 
+func WantAllFileMetadata(node host.Host, targetpeerid string) ([]FileInfo, error) {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetpeerid)
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+		return []FileInfo{}, err
+	}
+	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+		return []FileInfo{}, err
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+		return []FileInfo{}, err
+	}
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want-all-filemeta"), peerinfo.ID, "/want-all-filemeta")
+	if err != nil {
+
+		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
+		return []FileInfo{}, err
+	}
+	defer s.Close()
+
+	_, err = s.Write([]byte("\n"))
+	if err != nil {
+		log.Fatalf("Failed to write to stream: %s", err)
+		return []FileInfo{}, err
+	}
+
+	buf := bufio.NewReader(s)
+	// Read data from the stream
+	filesMetadataBytes, err := buf.ReadBytes('\n') // Reads until a newline character
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return []FileInfo{}, err
+	}
+
+	var filesMetadata []FileInfo
+	err = json.Unmarshal(filesMetadataBytes, &filesMetadata)
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return []FileInfo{}, err
+	}
+
+	return filesMetadata, nil
+}
+
 // func openStreamToPeerLocal(client_node host.Host) (net.Conn, error) {
 // 	var ctx = context.Background()
 // 	peerMultiaddr, err := multiaddr.NewMultiaddr(test_addr)

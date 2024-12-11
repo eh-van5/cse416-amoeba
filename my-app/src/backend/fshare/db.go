@@ -14,6 +14,7 @@ type FileInfo struct {
 	Size         int
 	FileType     string
 	LastModified int
+	Hash         string
 }
 
 type KV struct {

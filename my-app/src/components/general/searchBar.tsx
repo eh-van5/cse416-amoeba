@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import BuyForm from '../tables/networkFilesTable/buyForm';
-
-function SearchBar() {
+import { FileInfo } from '../types';
+interface SearchBarProps{
+  setHostToFile: React.Dispatch<React.SetStateAction<{} | Record<string, FileInfo>>>
+}
+function SearchBar({setHostToFile} : SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [responseData, setResponseData] = useState<any>({}); 
   const PORT = 8088; 
 
   // Handle input change
@@ -26,9 +27,9 @@ function SearchBar() {
       });
 
       if (response.ok) {
-        const data = await response.json(); 
-
-        setResponseData(data);
+        let data = await response.json(); 
+        if (data == null) data = {}
+        setHostToFile(data);
     
         console.log(Array.from(Object.keys(data))); 
         const purchaseForm : HTMLDialogElement = document.getElementById("purchase-form") as HTMLDialogElement;
@@ -57,7 +58,6 @@ function SearchBar() {
           required
         />
       </form>
-      <BuyForm hostToFile={responseData} hash = {searchQuery.trim()}/>
     </div>
   );
 }
