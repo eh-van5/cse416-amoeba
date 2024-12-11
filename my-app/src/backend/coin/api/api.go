@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"encoding/json"
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/server"
@@ -15,6 +16,7 @@ type Client struct {
 	Rpc            *rpcclient.Client
 	Username       string
 	Password       string
+	Address 	   string
 }
 
 // Test http connection
@@ -85,6 +87,8 @@ func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(info)
+	// Saves address to client
+	c.Address = info.String()
 	io.WriteString(w, info.String())
 
 	// time.AfterFunc(time.Second*5, func() {
@@ -94,6 +98,24 @@ func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 	// })
 
 	c.LockWallet()
+}
+
+func (c *Client) GetAccountData(w http.ResponseWriter, r *http.Request){
+	// Create a map or struct for the response data
+	data := map[string]string{
+		"username": c.Username,
+		"password": c.Password,
+		"address":  c.Address,
+	}
+
+	// Set the response content type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Encode the data into JSON and write it to the response
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, error) {

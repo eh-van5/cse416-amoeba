@@ -78,12 +78,13 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (
 	go func() {
 		<-ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		select{
-		case pm.BtcdDone <- true:
-			fmt.Printf("btcddone true\n")
-		default:
-			fmt.Printf("btcddone channel blocked\n")
-		}
+		// select{
+		// case pm.BtcdDone <- true:
+		// 	fmt.Printf("btcddone true\n")
+		// default:
+		// 	fmt.Printf("btcddone channel blocked\n")
+		// }
+		pm.BtcdDone <- true
 		pm.btcdCmd.Process.Kill()
 		fmt.Printf("%s> Process killed\n", name)
 	}()
@@ -136,12 +137,13 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) (e
 	go func() {
 		<-ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		select{
-		case pm.WalletDone <- true:
-			fmt.Printf("btcwalletdone true\n")
-		default:
-			fmt.Printf("btcwalletdone channel blocked\n")
-		}
+		// select{
+		// case pm.WalletDone <- true:
+		// 	fmt.Printf("btcwalletdone true\n")
+		// default:
+		// 	fmt.Printf("btcwalletdone channel blocked\n")
+		// }
+		pm.WalletDone <- true
 		pm.walletCmd.Process.Kill()
 		fmt.Printf("%s> Process killed\n", name)
 	}()

@@ -3,6 +3,7 @@ import { Dispatcher } from "../App";
 import logo from "../images/colony-logo-transparent.png";
 import { CopyIcon } from "../images/icons/icons";
 import axios, { AxiosError } from "axios";
+import { TailSpin } from "react-loader-spinner";
 // Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
 
 enum LoginPage{
@@ -25,9 +26,10 @@ interface User{
 
 export default function Login(props: Props){
     // http server PORT
-    const PORT = 8088;
+    const PORT = 8000;
 
     const[currentPage, setCurrentPage] = useState<LoginPage>(LoginPage.Login);
+    const[loading, setLoading] = useState<boolean>(false);
 
     const[user, setUser] = useState<User>({
         username: "",
@@ -75,22 +77,26 @@ export default function Login(props: Props){
     }
     const login = () => {
         console.log("attempting login...")
+        
         setError("")
         if (user.username == "" || user.password == "" || user.address == ""){
             setError("There are missing fields. Please try again");
             return;
         }
-
+        setLoading(true)
         axios.get(`http://localhost:${PORT}/login/${user.username}/${user.password}/${user.address}`)
         .then((response) => {
             console.log(response.data);
             props.setLoggedIn(true);
+            setLoading(false)
         })
         .catch((error) => {
             console.log(error)
             setError(error.response.data)
+            setLoading(false)
             return;
         })
+        
     }
     const createWallet = async () => {
         console.log("creating wallet...")
@@ -106,6 +112,7 @@ export default function Login(props: Props){
         }
 
         setWalletAddress("Loading...");
+        setLoading(true)
         let privateKey = "";
         let miningAddress = "";
         
@@ -127,21 +134,7 @@ export default function Login(props: Props){
             `[Seed Phrase]\n${privateKey}\n`+
             `\n[Wallet Address]\n${miningAddress}\n`
         );
-        // setTimeout(() => {
-        //     setWalletCreated(true);
-        //     setWalletAddress(
-        //         "[Seed Phrase]\nbcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z\n"+
-        //         "\n[Wallet Address]\nbcrt1qq79q7welcr2xtpsu0nu3cvpt4pn7jpr8nczm3z\n"
-        //     );
-        // }, 1000);
-    }
-    const copyToClipboard = (i:number) => {
-        const newValues = copied.map((v, index) => {
-            if(i === index) return true;
-            else return v;
-        });
-        setCopied(newValues);
-        navigator.clipboard.writeText(walletAddress);
+        setLoading(false)
     }
 
     const downloadTxtFile = () => {
@@ -185,7 +178,7 @@ export default function Login(props: Props){
                 {inputField("Wallet Address", "Enter Wallet Address", "address")}
                 {inputField("Password", "Enter Password", "password", true)}
                 <button id='login-button' className="button" type="button" onClick={login}>Continue</button>
-
+                <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
                 <p className="login"><i>Don't have an account?</i></p>
                 <a className="login login-link" onClick={goToCreateWallet}><i><u>Create a Wallet</u></i></a>
             </div>
@@ -203,14 +196,18 @@ export default function Login(props: Props){
                         {inputField("New Password", "Enter Password", "newPassword", true)}
                         {inputField("Confirm Password", "Re-enter Password", "confirmPassword", true)}
                         <button id='login-button' className="button" type="button" onClick={createWallet}>Create Wallet</button>
+                        
                         <p className="login"><i>Already have an account?</i></p>
                         <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
                     </div>
                     <div className="vertical-line"></div>
-                    <div style={{width:"500px", display: "flex", flexDirection: "column", alignItems: "center"}}>
-                        {outputField("Wallet", walletAddress, 0, 450, 250)}
-                        <button id='create-wallet-export-button' className="create-wallet-button" type="button" onClick={downloadTxtFile} style={{visibility: walletCreated ? "visible" : "hidden"}}>Export Wallet</button>
-                        <button id='create-wallet-login-button' className="create-wallet-button" type="button" onClick={() => setCurrentPage(LoginPage.Login)} style={{visibility: walletCreated ? "visible" : "hidden"}}>Login</button>
+                    <div style={{width:"500px"}}>
+                        <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
+                        <div style={{visibility: walletCreated ? "visible" : "hidden", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                            {outputField("Wallet", walletAddress, 0, 450, 250)}
+                            <button id='create-wallet-export-button' className="create-wallet-button" type="button" onClick={downloadTxtFile} style={{visibility: walletCreated ? "visible" : "hidden"}}>Export Wallet</button>
+                            <button id='create-wallet-login-button' className="create-wallet-button" type="button" onClick={() => setCurrentPage(LoginPage.Login)} style={{visibility: walletCreated ? "visible" : "hidden"}}>Login</button>
+                        </div>
                     </div>
                 </div>
             </div>

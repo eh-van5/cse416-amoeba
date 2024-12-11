@@ -57,7 +57,7 @@ func main() {
 		Login(w, r, mux, &loggedIn)
 	})
 
-	PORT := 8088
+	PORT := 8000
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", PORT),
@@ -132,10 +132,12 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		go func(){
 			err := pm.StartWallet(ctx, username)
 			if err != nil{
+				cancel()
+				started <- false
 				fmt.Printf("Returned from btcwallet, error: %v\n", err)
 				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
-				started <- false
-				cancel()
+				// started <- false
+				// cancel()
 			}
 		}()
 		select {
@@ -178,11 +180,13 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 			Rpc:            client,
 			Username:       username,
 			Password:       password,
+			Address:		address,
 		}
 
-		fmt.Printf("Username: %s\nPassword: %s\n", c.Username, c.Password)
+		fmt.Printf("Username: %s\nPassword: %s\nAddress: %s\n", c.Username, c.Password, c.Address)
 
 		// Unlock Wallet using password
+		time.Sleep(500 * time.Millisecond)
 		err = c.UnlockWallet()
 		if err != nil {
 			fmt.Printf("Colony> Unable to unlock wallet, Incorrect password: %v\n", err)
@@ -199,7 +203,13 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		// handle
 		if !*loggedIn{
 			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
-			mux.HandleFunc("/stopServer", c.StopServer)
+			mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request){
+				fmt.Printf("Colony> Stopping server. Logging out\n")
+				cancel()
+				started <- false
+				io.WriteString(w, "Stopped server. Logged out\n")
+			})
+			mux.HandleFunc("/getData", c.GetAccountData)
 
 			fmt.Printf("Colony> HTTP handling functions\n")
 		}
@@ -209,10 +219,17 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 
 		// Waits for signal to terminate program
 		// <-ctx.Done()
+		// go func() {
+		// 	<-pm.WalletDone
+		// 	fmt.Println("Received walletdone signals")
+		// }()
 
 		// Waits for all other processes to terminate before shutting down main process
+		fmt.Printf("waiting for btcddone\n")
 		<-pm.BtcdDone
+		fmt.Printf("waiting for walletdone\n")
 		<-pm.WalletDone
+		fmt.Printf("done with session\n")
 	}()
 
 	// Waits for server to complete login before returning
