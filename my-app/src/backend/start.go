@@ -282,6 +282,14 @@ func RefreshReservation(node host.Host, interval time.Duration) {
 	}
 }
 
+func MakeProviderRecords(ctx context.Context, dht *dht.IpfsDHT, filesDB *fshare.KV) error {
+	err := fshare.RefreshProviderRecordsHelper(ctx, dht, filesDB)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nil
+}
+
 func RefreshProviderRecords(ctx context.Context, dht *dht.IpfsDHT, filesDB *fshare.KV, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()

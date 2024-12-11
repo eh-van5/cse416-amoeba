@@ -82,6 +82,7 @@ func main() {
 
 	// refresh provider records
 	fshare.MakeDiscoverable(ctx, dht)
+	MakeProviderRecords(ctx, dht, filesDB)
 	go RefreshProviderRecords(ctx, dht, filesDB, 1*time.Hour)
 
 	// Configure HTTP routing
