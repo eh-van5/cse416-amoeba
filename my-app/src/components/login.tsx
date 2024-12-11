@@ -4,12 +4,13 @@ import logo from "../images/colony-logo-transparent.png";
 import { CopyIcon } from "../images/icons/icons";
 import axios, { AxiosError } from "axios";
 import { TailSpin } from "react-loader-spinner";
+import { UploadFileIcon } from "../images/icons/icons";
 // Note: Theme is defaulted to light and cannot be controlled from lpgin page. Consider defaulting the theme based on the browser theme
 
 enum LoginPage{
     Login,
     CreateWallet,
-    ViewWallet
+    ImportWallet,
 }
 
 interface Props{
@@ -46,6 +47,8 @@ export default function Login(props: Props){
 
     const[walletAddress, setWalletAddress] = useState<string>("Create a Wallet");
 
+    const[walletFile, setWalletFile] = useState<File | undefined>(undefined);
+
     // Backend Functions *********************************************
     const goToCreateWallet = () => {
         setError("")
@@ -53,6 +56,19 @@ export default function Login(props: Props){
         setCurrentPage(LoginPage.CreateWallet);
         setWalletCreated(false);
         setWalletAddress("Create a Wallet")
+        setUser({
+            username: "",
+            password: "",
+            address: "",
+            newPassword: "",
+            confirmPassword: "",
+        })
+    }
+
+    const goToImportWallet = () => {
+        setError("")
+        setLoading(false)
+        setCurrentPage(LoginPage.ImportWallet);
         setUser({
             username: "",
             password: "",
@@ -139,6 +155,10 @@ export default function Login(props: Props){
         setLoading(false)
     }
 
+    const importWallet = () => {
+    
+    }
+
     const downloadTxtFile = () => {
         const element = document.createElement("a");
         const file = new Blob([walletAddress], {type: 'text/plain'});
@@ -183,6 +203,8 @@ export default function Login(props: Props){
                 <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
                 <p className="login"><i>Don't have an account?</i></p>
                 <a className="login login-link" onClick={goToCreateWallet}><i><u>Create a Wallet</u></i></a>
+                <p className="login"><i>Have a wallet?</i></p>
+                <a className="login login-link" onClick={goToImportWallet}><i><u>Import a Wallet</u></i></a>
             </div>
         )
     }
@@ -216,6 +238,78 @@ export default function Login(props: Props){
         )
     }
 
+    function dropHandler(event: React.DragEvent){
+        event.preventDefault();
+        console.log("Something has been dropped");
+
+        Array.from(event.dataTransfer.items).forEach((item, i) => {
+            if (item.kind === "file"){
+                const file = item.getAsFile();
+                if (file === null){
+                    throw Error("Parsing something that isn't a file");
+                }
+                if (file.name !== "wallet.db"){
+                    setError("Invalid wallet file. Please import a 'wallet.db' file")
+                    return
+                }
+                setError("")
+                setWalletFile(file)
+            }
+        })
+    }
+    function dragOverHandler(event: React.DragEvent){
+        event.preventDefault();
+    }
+    // here is where u register files into dht
+    function fileSelectorHandler(event: React.ChangeEvent){
+        const target = event.target as HTMLInputElement;
+        const filesList = target.files;
+        if (filesList === null){
+            throw Error;
+        }
+        const file = filesList[0]
+        if (file.name !== "wallet.db"){
+            setError("Invalid wallet file. Please import a 'wallet.db' file")
+            return
+        }
+        setError("")
+        setWalletFile(filesList[0])
+    }
+
+    function importWalletPage(){
+        return(
+            <div className="login-box">
+                <h1 className="login-text" style={{paddingBottom: "2%"}}>Import Wallet</h1>
+                <p>Import wallet.db - this will delete any existing wallet.*</p>
+                <div id = "file-widget">
+                    <div             
+                    onDrop={dropHandler} 
+                    onDragOver={dragOverHandler}
+                    id = "drop-zone"> 
+                        <form>
+                            <label id = "upload-methods" htmlFor="file-upload">
+                                <div style={{display: walletFile ? "none" : "block"}}>
+                                    <br /> {UploadFileIcon()}
+                                    <p>Drag and Drop</p>
+                                    <p>or</p>
+                                </div>
+                                <p style={{display: walletFile ? "block" : "none"}}>{walletFile ? walletFile.name : ""}</p>
+                                <label htmlFor="file-upload" id="upload-label"><u>Browse</u></label>
+                                <input type="file" id="file-upload" onChange={fileSelectorHandler} />
+                            </label>
+                        </form>
+                    </div>
+                </div>
+                <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
+                {inputField("Username", "Enter Username", "username")}
+                {inputField("Password", "Enter Password", "password", true)}
+                <button id='login-button' className="button" type="button">Import</button>
+                <p className="login"><i>Already have an account?</i></p>
+                <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
+            </div>
+        )
+    }
+
     return (
         <div className="login-page">
             <div className="login-banner">
@@ -226,7 +320,7 @@ export default function Login(props: Props){
                 ({
                     [LoginPage.Login]: loginPage() ,
                     [LoginPage.CreateWallet]: createWalletPage() ,
-                    [LoginPage.ViewWallet]: <></> ,
+                    [LoginPage.ImportWallet]: importWalletPage() ,
                 })[currentPage]
             }
         </div>
