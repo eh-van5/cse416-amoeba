@@ -68,16 +68,25 @@ export default function ProxyPage(){
             if(status.isUsingProxy) {
                 const total = Number(status.dataSent) + Number(status.dataRecv);
                 setDataUsed((total / (1024)).toFixed(2));
-
-                setSelectedProxyNode(currentNode => {
-                    const isProxyNodeValid = proxies.some(node => node.peerID === currentNode.peerID);
-                    if (!isProxyNodeValid) {
+            }
+            setSelectedProxyNode(currentNode => {
+                const isProxyNodeValid = proxies.some(node => node.peerID === currentNode.peerID);
+                if (!isProxyNodeValid) {
+                    if(status.isUsingProxy) {
                         console.warn("Selected proxy node no longer valid. Stopping proxy...");
                         handleStopUsingProxy();
+                    }else {
+                        localStorage.removeItem("selectedProxyNode");
+                        setSelectedProxyNode({
+                            ipAddress: '',
+                            location: '',
+                            pricePerMB: 0,
+                            peerID: ''
+                        });
                     }
-                    return currentNode;
-                });
-            }
+                }
+                return currentNode;
+            });
         };
         fecthData();
         const interval = setInterval(() => {
