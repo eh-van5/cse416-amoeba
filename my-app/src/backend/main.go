@@ -14,9 +14,11 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/multiformats/go-multiaddr"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 var (
@@ -92,11 +94,26 @@ func main() {
 	mux.HandleFunc("/getUserFiles", fshare.GetUserFiles(filesDB))
 	mux.HandleFunc("/buyFile", fshare.BuyFile(ctx, node))
 	mux.HandleFunc("/stopProvide", fshare.StopProvide(ctx, dht, filesDB))
-	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node))
+
+	addr, err := multiaddr.NewMultiaddr(bootstrap_node_addr)
+	if err != nil {
+		log.Printf("Failed to parse peer address: %s", err)
+		return
+	}
+
+	bootNodeId, err := peer.IDFromP2PAddr(addr)
+	if err != nil {
+		log.Printf("Failed to get AddrInfo from address: %s", err)
+		return
+	}
+
+	mux.HandleFunc("/exploreKNeighbors", fshare.ExploreKNeighbors(ctx, dht, node, bootNodeId))
 
 	// fshare stream handlers
 	// protocol "/want-filemeta"
 	fshare.HaveFileMetadata(node, filesDB)
+	// protocol /want-all-filemeta
+	fshare.HaveAllFileMetadata(node, filesDB)
 
 	// Start the HTTP server
 	go func() {
@@ -107,6 +124,7 @@ func main() {
 
 	// protocol "/want-file"
 	go fshare.SetupFileServer(node)
+	go fshare.PubSub(ctx, node)
 
 	go proxy.MonitorProxyStatus(node, dht)
 

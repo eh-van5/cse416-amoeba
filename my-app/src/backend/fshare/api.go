@@ -12,6 +12,7 @@ import (
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 // HTTP COMMS WITH FRONTEND
@@ -161,18 +162,23 @@ func StopProvide(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 	}
 }
 
-func ExploreKNeighbors(ctx context.Context, dht *dht.IpfsDHT, node host.Host) http.HandlerFunc {
+func ExploreKNeighbors(ctx context.Context, dht *dht.IpfsDHT, node host.Host, bootnodeid peer.ID) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		k, err := strconv.Atoi(r.URL.Query().Get("K"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		peerIds, err := dht.GetClosestPeers(ctx, node.ID().String())
 		if err != nil {
 			http.Error(w, "Can't get closest peers", http.StatusNotFound)
 			return
 		}
+		for _, peerId := range peerIds {
+			fmt.Printf("Closest peer: %s\n", peerId.String())
+		}
+
 		var hashToMetadata = make(map[string]FileInfo)
 		for index, peerId := range peerIds {
 			// fmt.Println("sending data to " + peerId.String())
