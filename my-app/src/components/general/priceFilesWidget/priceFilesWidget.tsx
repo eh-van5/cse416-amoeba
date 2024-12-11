@@ -1,18 +1,16 @@
 import { ReactElement } from "react";
 import { useAppContext } from "../../../AppContext";
-import { UserFileData } from "../../pages/userFiles";
+import { FileData } from "../../pages/userFiles";
 import FilesTable from "../../tables/filesTable";
-import { stringify } from "querystring";
+
 
 interface priceFilesProps {
-    sharedFiles: UserFileData[];
-    uploadedFiles: Map<string, UserFileData>;
-    setSharedFiles: React.Dispatch<React.SetStateAction<UserFileData[]>>;
-    setUploadedFiles: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>;
+    uploadedFiles: Map<string, FileData>;
+    setUploadedFiles: React.Dispatch<React.SetStateAction<Map<string, FileData>>>;
 }
 
 interface formatPriceTableProps {
-    files: UserFileData[];
+    files: FileData[];
 }
 
 function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
@@ -40,8 +38,10 @@ async function uploadFileHelper(file: File, price: string){
     formData.append('filesize', file.size.toString())
     formData.append('filetype', file.type)
     formData.append('price', price)
+    formData.append('lastmodified', file.lastModified.toString());
 
-    const response = await fetch('http://localhost:8000/uploadFile', {
+    const PORT = 8088;
+    const response = await fetch(`http://localhost:${PORT}/uploadFile`, {
         method:'POST',
         body: formData,
     })
@@ -55,7 +55,7 @@ async function uploadFileHelper(file: File, price: string){
         console.error('Error uploading files');
     }
 }
-export default function PriceFilesWidget({sharedFiles, uploadedFiles, setSharedFiles, setUploadedFiles}: priceFilesProps) {
+export default function PriceFilesWidget({uploadedFiles, setUploadedFiles}: priceFilesProps) {
     const headings = ["File Name", "Size", "Set Price"]
     const items : ReactElement[] = FormatPriceTable({files: Array.from(uploadedFiles.values())});
     async function uploadFiles(e : React.FormEvent<HTMLFormElement>){

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import BuyForm from './buyForm';
-
-function SearchBar() {
+import { FileInfo } from '../types';
+interface SearchBarProps{
+  setHostToFile: React.Dispatch<React.SetStateAction<{} | Record<string, FileInfo>>>
+}
+function SearchBar({setHostToFile} : SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [responseData, setResponseData] = useState<any>({}); 
+  const PORT = 8088; 
 
   // Handle input change
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,14 +22,14 @@ function SearchBar() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/getFile?contentHash=${searchQuery}`, {
+      const response = await fetch(`http://localhost:${PORT}/getFile?contentHash=${searchQuery}`, {
         method: 'GET',
       });
 
       if (response.ok) {
-        const data = await response.json(); 
-
-        setResponseData(data);
+        let data = await response.json(); 
+        if (data == null) data = {}
+        setHostToFile(data);
     
         console.log(Array.from(Object.keys(data))); 
         const purchaseForm : HTMLDialogElement = document.getElementById("purchase-form") as HTMLDialogElement;
@@ -45,18 +47,17 @@ function SearchBar() {
   };
   return (
     <div>
-      <h2>Find Providers Using Content Hash</h2>
-      <form onSubmit={handleSubmit}>
+      <form id = "search-bar" onSubmit={handleSubmit}>
+        <button className = "search-bar-items" type="submit">Buy</button>
         <input
+          className = "search-bar-items"
           type="text"
           value={searchQuery}
           onChange={handleChange}
           placeholder="Enter file hash"
           required
         />
-        <button type="submit">Buy</button>
       </form>
-      <BuyForm hostToFile={responseData} />
     </div>
   );
 }

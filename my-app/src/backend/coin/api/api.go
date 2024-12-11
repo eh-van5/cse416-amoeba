@@ -24,8 +24,15 @@ func GetTest(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "This is my message!\n")
 }
 
-func (c *Client) UnlockWallet() {
-	c.Rpc.WalletPassphrase(c.Password, 0)
+func (c *Client) UnlockWallet() (error){
+	err := c.Rpc.WalletPassphrase(c.Password, 0)
+
+	if err != nil{
+		fmt.Printf("Error unlocking wallet!\n")
+		return err
+	}
+	fmt.Printf("Unlocked wallet!\n")
+	return nil
 }
 
 func (c *Client) LockWallet() {
@@ -65,8 +72,6 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 // Gets new wallet address for mining
 func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /generateAddress request\n")
-
-	c.UnlockWallet()
 
 	// Username name will be used as account name
 	err := c.Rpc.CreateNewAccount(c.Username)

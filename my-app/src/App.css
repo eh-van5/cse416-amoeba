@@ -812,6 +812,8 @@ body{
   width: auto;
 }
 
+/* Profile page */
+
 .profile-user-container{
   display: flex;
   align-items: center;
@@ -824,18 +826,99 @@ body{
 .profile-title{
   font-size: xx-large;
   font-weight: 400;
+  margin: 0;
 }
 
 .profile-address{
   font-size: x-large;
   font-weight: 100;
-
-  color: #818181;
+  margin: 0;
 }
 
 .profile-credential-box{
   width: 50%;
   margin: 20px 0 0 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.user-icon {
+  font-size: 50px;
+  margin-right: 15px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 20px 0;
+}
+
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bordered {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.field-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.copy-icon {
+  cursor: pointer;
+  font-size: 16px;
+  background: none;
+  border: none;
+  color: #007bff;
+  transition: color 0.3s ease;
+}
+
+.copy-icon:hover {
+  color: #0056b3;
+}
+
+.reveal-key {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reveal-key input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+}
+
+.reveal-key button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reveal-key button:hover {
+  background-color: #0056b3;
 }
 
 /* Preset React CSS for reference */
@@ -1080,6 +1163,21 @@ body{
   }
 }
 
+#search-bar{
+  display: flex;
+}
+
+.search-bar-items{
+  margin: 10px;
+  font-size: 16px;
+  font-family: inter;
+}
+
+#number-dropdown{
+  display:inline;
+  font-size: 18px;
+}
+
 #network-widget{
   flex: 3;
   margin: 10px;
@@ -1172,7 +1270,7 @@ body{
   #purchase-form-options-container {
     display: grid;
     grid-row: auto;
-    grid-template-columns: .2fr 1fr 1fr;
+    grid-template-columns: .2fr 1fr 1fr 1fr;
     margin: 1em;
     gap: 10px;
   }
@@ -1188,6 +1286,9 @@ body{
       align-self: center;
     }
     .buyFormOwners {
+      align-self: center;
+    }
+    .buyFormFilenames{
       align-self: center;
     }
   }
