@@ -255,8 +255,6 @@ func (c *Client) ConnectToPeer(w http.ResponseWriter, r *http.Request, peer *btc
 // function to query the value of a wallet
 func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAddr string) btcutil.Amount {
 	fmt.Printf("Getting value of wallet... %s\n", walletAddr)
-	c.Rpc.SetGenerate(false, 0)
-	c.LockWallet()
 	c.UnlockWallet()
 
 	info, err := c.Rpc.GetBalance(walletAddr)
