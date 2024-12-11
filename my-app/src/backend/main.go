@@ -72,6 +72,13 @@ func main() {
 	if err != nil {
 		fmt.Println("server doesn't open")
 	}
+	// start file storage
+	if !fshare.FileExists("../userFiles") {
+		err := os.MkdirAll("../userFiles", os.ModePerm)
+		if err != nil {
+			fmt.Println("Error creating directory:", err)
+		}
+	}
 
 	// refresh provider records
 	fshare.MakeDiscoverable(ctx, dht)

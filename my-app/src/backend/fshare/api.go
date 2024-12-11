@@ -36,11 +36,11 @@ func GetProviders(ctx context.Context, dht *dht.IpfsDHT, node host.Host, filedb 
 		for _, peer := range providers {
 			fmt.Println("sending data to " + peer.ID.String())
 			if peer.ID.String() == node.ID().String() {
-				fmt.Println("QUERYING YOURSELF")
-				fileinfo, err := filedb.GetFileInfo(contentHash)
-				if err == nil {
-					hostToFileinfo[node.ID().String()] = *fileinfo
-				}
+				// fmt.Println("QUERYING YOURSELF")
+				// fileinfo, err := filedb.GetFileInfo(contentHash)
+				// if err == nil {
+				// 	hostToFileinfo[node.ID().String()] = *fileinfo
+				// }
 				continue
 			}
 			peerFileInfo, err := WantFileMetadata(node, peer.ID.String(), contentHash)

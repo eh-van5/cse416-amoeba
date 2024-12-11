@@ -52,17 +52,20 @@ func getDownloadsDirectory() string {
 	return downloadDir
 }
 
-func fileExists(filename string) bool {
+func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil || !os.IsNotExist(err)
 }
 
 func getNextFileVersion(filename string, fp string) string {
 	version := 1
+	extension := filepath.Ext(filename)
+	realname := strings.TrimSuffix(filename, extension)
 	for {
-		versionedName := fmt.Sprintf("%s (%d)", filename, version)
+		versionedName := fmt.Sprintf("%s (%d)%s", realname, version, extension)
+		fmt.Println(versionedName)
 		versionedPath := filepath.Join(fp, versionedName)
-		if !fileExists(versionedPath) {
+		if !FileExists(versionedPath) {
 			return versionedName
 		}
 		version++
@@ -133,7 +136,7 @@ func StartHttpClient(
 	}
 
 	downloadDir := getDownloadsDirectory()
-	if fileExists(filepath.Join(downloadDir, filename)) {
+	if FileExists(filepath.Join(downloadDir, filename)) {
 		filename = getNextFileVersion(filename, downloadDir)
 	}
 	// Create a file to save the downloaded data
