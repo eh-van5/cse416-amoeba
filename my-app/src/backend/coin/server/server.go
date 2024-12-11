@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-	// "errors"
+	"os"
 
 	"github.com/creack/pty"
 )
@@ -16,22 +16,7 @@ import (
 type ProcessManager struct {
 	btcdCmd    *exec.Cmd
 	walletCmd  *exec.Cmd
-	BtcdDone   chan bool
-	WalletDone chan bool
 	Ctx  context.Context
-}
-
-// Stops any existing btcd and btcwallet processes
-func (pm *ProcessManager) StopServer() {
-	fmt.Printf("Stopping server...\n")
-
-	fmt.Printf("Stopping btcd...\n")
-	pm.BtcdDone <- true
-	pm.btcdCmd.Process.Kill()
-
-	fmt.Printf("Stopping btcwallet...\n")
-	pm.WalletDone <- true
-	pm.walletCmd.Process.Kill()
 }
 
 // Starts the btcd process
@@ -79,14 +64,7 @@ func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 	go func() {
 		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		// select{
-		// case pm.BtcdDone <- true:
-		// 	fmt.Printf("btcddone true\n")
-		// default:
-		// 	fmt.Printf("btcddone channel blocked\n")
-		// }
-		pm.BtcdDone <- true
-		pm.btcdCmd.Process.Kill()
+		pm.btcdCmd.Process.Signal(os.Interrupt)
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 
@@ -138,14 +116,7 @@ func (pm *ProcessManager) StartWallet(walletpass string) (error){
 	go func() {
 		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
-		// select{
-		// case pm.WalletDone <- true:
-		// 	fmt.Printf("btcwalletdone true\n")
-		// default:
-		// 	fmt.Printf("btcwalletdone channel blocked\n")
-		// }
-		pm.WalletDone <- true
-		pm.walletCmd.Process.Kill()
+		pm.walletCmd.Process.Signal(os.Interrupt)
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 

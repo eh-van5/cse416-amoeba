@@ -12,9 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	// "github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/rpcclient"
-	// "github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
 	"github.com/eh-van5/cse416-amoeba/server"
 	"github.com/rs/cors"
@@ -26,11 +24,9 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	done := make(chan bool, 1)
+	stopServerChan := make(chan bool, 1)
 
 	state := &api.Client{}
-
-	// Checks if current session has logged in before
-	loggedIn := false
 
 	go func() {
 		<-sigs
@@ -49,17 +45,18 @@ func main() {
 
 	handler := c.Handler(mux)
 
-	// Functions in the login page
+	// Handle functions
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux, state, &loggedIn)
+		Login(w, r, mux, state, stopServerChan)
 	})
 	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux, state, &loggedIn)
+		Login(w, r, mux, state, stopServerChan)
 	})
 	mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request){
 		fmt.Printf("Colony> Stopping server. Logging out\n")
+		stopServerChan <- true
 		io.WriteString(w, "Stopped server. Logged out\n")
 	})
 	mux.HandleFunc("/generateAddress", func(w http.ResponseWriter, r *http.Request){
@@ -103,7 +100,7 @@ func main() {
 	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }
 
-func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *api.Client, loggedIn *bool) {
+func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *api.Client, stopServerChan chan bool) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	address := r.PathValue("miningaddr")
@@ -116,8 +113,6 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		defer cancel()
 
 		pm := &server.ProcessManager{
-			BtcdDone:   make(chan bool),
-			WalletDone: make(chan bool),
 			Ctx: ctx,
 		}
 
@@ -145,8 +140,6 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 				started <- false
 				fmt.Printf("Returned from btcwallet, error: %v\n", err)
 				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
-				// started <- false
-				// cancel()
 			}
 		}()
 		select {
@@ -208,18 +201,14 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		// Signals login complete
 		started <- true
 
-		// Waits for all other processes to terminate before shutting down main process
-		fmt.Printf("waiting for btcddone\n")
-		<-pm.BtcdDone
-		fmt.Printf("waiting for walletdone\n")
-		<-pm.WalletDone
-		fmt.Printf("done with session\n")
+		fmt.Printf("Waiting for stopServer channel\n")
+		<-stopServerChan
+		fmt.Printf("Received from stopServer channel\n")
 	}()
 
 	// Waits for server to complete login before returning
 	graceful :=<-started
 	if graceful{
-		*loggedIn = true
 		io.WriteString(w, "Logged into server!")
 	}
 }

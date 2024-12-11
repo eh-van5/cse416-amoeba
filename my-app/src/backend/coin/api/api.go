@@ -41,15 +41,6 @@ func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
 }
 
-func (c *Client) StopServer(w http.ResponseWriter, r *http.Request) {
-	// CURRENT PROBLEM: When signalling or calling this function, the process in ps -e is not killed
-	fmt.Printf("got /stopServer request\n")
-
-	c.ProcessManager.StopServer()
-
-	io.WriteString(w, "Stopped server attemped")
-}
-
 // Creates a new wallet
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /createWallet request\n")
@@ -64,12 +55,6 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(w, privateKey)
 }
-
-// func (c *Client) CreateAccount(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Printf("got /createAccount request\n")
-
-// 	c.LockWallet()
-// }
 
 // Gets new wallet address for mining
 func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
@@ -90,12 +75,6 @@ func (c *Client) GenerateWalletAddress(w http.ResponseWriter, r *http.Request) {
 	// Saves address to client
 	c.Address = info.String()
 	io.WriteString(w, info.String())
-
-	// time.AfterFunc(time.Second*5, func() {
-	// 	log.Println("Locking Wallet...")
-	// 	client.WalletLock()
-	// 	log.Println("Wallet lock complete.")
-	// })
 
 	c.LockWallet()
 }
