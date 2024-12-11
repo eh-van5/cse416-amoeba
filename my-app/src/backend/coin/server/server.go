@@ -18,6 +18,7 @@ type ProcessManager struct {
 	walletCmd  *exec.Cmd
 	BtcdDone   chan bool
 	WalletDone chan bool
+	Ctx  context.Context
 }
 
 // Stops any existing btcd and btcwallet processes
@@ -35,7 +36,7 @@ func (pm *ProcessManager) StopServer() {
 
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (error){
+func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -76,7 +77,7 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (
 
 	// Waits for stop signals to terminate process
 	go func() {
-		<-ctx.Done()
+		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
 		// select{
 		// case pm.BtcdDone <- true:
@@ -97,7 +98,7 @@ func (pm *ProcessManager) StartBtcd(ctx context.Context, miningAddress string) (
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) (error){
+func (pm *ProcessManager) StartWallet(walletpass string) (error){
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -135,7 +136,7 @@ func (pm *ProcessManager) StartWallet(ctx context.Context, walletpass string) (e
 
 	// Waits for stop signals to terminate process
 	go func() {
-		<-ctx.Done()
+		<-pm.Ctx.Done()
 		fmt.Printf("%s> Stopping %s...\n", name, name)
 		// select{
 		// case pm.WalletDone <- true:

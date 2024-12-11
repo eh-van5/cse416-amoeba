@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
+	// "github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/btcsuite/btcd/wire"
+	// "github.com/btcsuite/btcd/wire"
 	"github.com/eh-van5/cse416-amoeba/api"
 	"github.com/eh-van5/cse416-amoeba/server"
 	"github.com/rs/cors"
@@ -26,6 +26,8 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	done := make(chan bool, 1)
+
+	state := &api.Client{}
 
 	// Checks if current session has logged in before
 	loggedIn := false
@@ -51,10 +53,28 @@ func main() {
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux, &loggedIn)
+		Login(w, r, mux, state, &loggedIn)
 	})
 	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
-		Login(w, r, mux, &loggedIn)
+		Login(w, r, mux, state, &loggedIn)
+	})
+	mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request){
+		fmt.Printf("Colony> Stopping server. Logging out\n")
+		io.WriteString(w, "Stopped server. Logged out\n")
+	})
+	mux.HandleFunc("/generateAddress", func(w http.ResponseWriter, r *http.Request){
+		if state.Rpc == nil {
+			http.Error(w, "Server not ready", http.StatusServiceUnavailable)
+			return
+		}
+		state.GenerateWalletAddress(w, r)
+	})
+	mux.HandleFunc("/getData", func(w http.ResponseWriter, r *http.Request){
+		if state.Username == "" {
+			http.Error(w, "No data available", http.StatusServiceUnavailable)
+			return
+		}
+		state.GetAccountData(w, r)
 	})
 
 	PORT := 8000
@@ -83,7 +103,7 @@ func main() {
 	fmt.Printf("%s> All processes terminated. Exiting program.\n", name)
 }
 
-func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn *bool) {
+func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *api.Client, loggedIn *bool) {
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	address := r.PathValue("miningaddr")
@@ -94,27 +114,16 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 
 	go func() {
 		defer cancel()
-		// defer close(started)
-
-		ntfnHandlers := rpcclient.NotificationHandlers{
-			OnFilteredBlockConnected: func(height int32, header *wire.BlockHeader, txns []*btcutil.Tx) {
-				log.Printf("Block connected: %v (%d) %v",
-					header.BlockHash(), height, header.Timestamp)
-			},
-			OnFilteredBlockDisconnected: func(height int32, header *wire.BlockHeader) {
-				log.Printf("Block disconnected: %v (%d) %v",
-					header.BlockHash(), height, header.Timestamp)
-			},
-		}
 
 		pm := &server.ProcessManager{
 			BtcdDone:   make(chan bool),
 			WalletDone: make(chan bool),
+			Ctx: ctx,
 		}
 
 		// Starts btcd process
 		go func(){
-			err := pm.StartBtcd(ctx, address)
+			err := pm.StartBtcd(address)
 			if err != nil{
 				fmt.Printf("Returned from btcd, error: %v\n", err)
 				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
@@ -130,7 +139,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 
 		// Starts btcwallet
 		go func(){
-			err := pm.StartWallet(ctx, username)
+			err := pm.StartWallet(username)
 			if err != nil{
 				cancel()
 				started <- false
@@ -155,7 +164,7 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 			DisableTLS: true,
 		}
 
-		client, err := rpcclient.New(connCfg, &ntfnHandlers)
+		client, err := rpcclient.New(connCfg, nil)
 		if err != nil {
 			fmt.Printf("Colony> Unable to connect to rpcclient: %v\n", err)
 			http.Error(w, "Error logging in. Please try again", http.StatusInternalServerError)
@@ -175,19 +184,15 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 			}
 		}()
 
-		c := api.Client{
-			ProcessManager: pm,
-			Rpc:            client,
-			Username:       username,
-			Password:       password,
-			Address:		address,
-		}
-
-		fmt.Printf("Username: %s\nPassword: %s\nAddress: %s\n", c.Username, c.Password, c.Address)
+		state.ProcessManager = pm
+		state.Rpc = client
+		state.Username = username
+		state.Password = password
+		state.Address = address
 
 		// Unlock Wallet using password
 		time.Sleep(500 * time.Millisecond)
-		err = c.UnlockWallet()
+		err = state.UnlockWallet()
 		if err != nil {
 			fmt.Printf("Colony> Unable to unlock wallet, Incorrect password: %v\n", err)
 			http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
@@ -200,29 +205,8 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, loggedIn 
 		default:
 		}
 
-		// handle
-		if !*loggedIn{
-			mux.HandleFunc("/generateAddress", c.GenerateWalletAddress)
-			mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request){
-				fmt.Printf("Colony> Stopping server. Logging out\n")
-				cancel()
-				started <- false
-				io.WriteString(w, "Stopped server. Logged out\n")
-			})
-			mux.HandleFunc("/getData", c.GetAccountData)
-
-			fmt.Printf("Colony> HTTP handling functions\n")
-		}
-
 		// Signals login complete
 		started <- true
-
-		// Waits for signal to terminate program
-		// <-ctx.Done()
-		// go func() {
-		// 	<-pm.WalletDone
-		// 	fmt.Println("Received walletdone signals")
-		// }()
 
 		// Waits for all other processes to terminate before shutting down main process
 		fmt.Printf("waiting for btcddone\n")
