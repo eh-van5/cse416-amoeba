@@ -42,7 +42,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         const option = options[i]
         if (option.checked){
             const price = parseFloat(option.defaultValue);
-            if (price <= 1000) {
+            if (walletNum && price <= walletNum) {
                 purchaseForm.close();
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
@@ -64,10 +64,10 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         
             console.log(response)
             if (response.ok) {
-                console.log(response)
+                const walletAddress = await response.text()
                 // Handle success
                 // Send payment here
-                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${username}/${password}/${walletNum}/${price}`)
+                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${walletAddress}/${walletNum}`)
                 if(resSend.data != 0){
                     console.error("Failed to send payment")
                 }

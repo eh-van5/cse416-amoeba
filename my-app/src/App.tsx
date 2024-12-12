@@ -18,7 +18,6 @@ export enum Page {
   Proxy,
   UserFiles,
   NetworkFiles,
-  Transactions,
   Wallet,
   Mining,
   Settings,
@@ -84,7 +83,6 @@ function App() {
               [Page.Proxy]: <DashboardPage />,
               [Page.UserFiles]: <UserFilesPage />,
               [Page.NetworkFiles]: <NetworkFilesPage />,
-              [Page.Transactions]: <TransactionsPage />,
               [Page.Wallet]: <WalletPage />,
               [Page.Mining]: <MiningPage />,
               [Page.Settings]: <SettingsPage

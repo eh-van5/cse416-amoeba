@@ -130,7 +130,7 @@ func LoadConfig(filePath string) (*Config, error) {
 func HaveWalletAddress(node host.Host) {
 	node.SetStreamHandler("/want-wallet-address", func(s network.Stream) {
 		defer s.Close()
-		configPath := "../config.json"
+		configPath := "./config.json"
 		config, err := LoadConfig(configPath)
 		if err != nil {
 			log.Printf("Error getting wallet address: %v", err)

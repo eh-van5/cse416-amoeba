@@ -148,6 +148,7 @@ func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
 		walletAddr = strings.TrimSpace(walletAddr)
         w.WriteHeader(http.StatusOK)
         json.NewEncoder(w).Encode(walletAddr)
+		// io.WriteString(w, walletAddr)
 	}
 }
 
