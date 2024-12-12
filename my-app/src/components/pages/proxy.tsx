@@ -27,7 +27,7 @@ export default function ProxyPage(){
         items.push(<span className={`items-table-item${isDarkMode ? '-dark' : ''}`}> </span>);
     }
 
-    const headings1 = ["Client IP", "Data", "Charge", "Date"];
+    const headings1 = ["Total", "Data", "Price", "Date"];
     const headings2 = ["IP Address", "Price per MB", "Location", "Status", "      "];
     const [isViewHistory, setViewHistory] = useState(false);
     const [isViewAvailable, setViewAvailable] = useState(false);
