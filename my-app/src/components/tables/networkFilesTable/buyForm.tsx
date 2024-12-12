@@ -11,9 +11,8 @@ function cancel(e: React.MouseEvent){
 
 async function buy(e : React.FormEvent<HTMLFormElement>){
     e.preventDefault();
-    // should pull from backend
+    // Pull user's balance from backend here
     const walletNum = 20;
-
 
     // submit should send a put request into backend and backend should return error
     // error checking should not be done in the front end here
@@ -23,8 +22,8 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
     for (let i = 0; i < options.length; i++) {
         const option = options[i]
         if (option.checked){
-            const value = parseFloat(option.defaultValue);
-            if (value <= walletNum) {
+            const price = parseFloat(option.defaultValue);
+            if (price <= walletNum) {
                 purchaseForm.close();
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
@@ -33,6 +32,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
             // default value: [price.toString(), owner, hash, filename]
             const formData = new FormData();
             const values = option.defaultValue.split(',')
+            formData.append('fileprice', values[0]);
             formData.append('targetpeerid', values[1]);
             formData.append('hash', values[2])
             formData.append('filename', values[3])
@@ -45,6 +45,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         
             if (response.ok) {
                 // Handle success
+                // Let backend handle automatic payment
                 console.log("uploaded files");
             }  else {
                 // Handle error
