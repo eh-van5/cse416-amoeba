@@ -304,11 +304,15 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		state.Address = address
 
 		// Unlock Wallet using password
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		err = state.UnlockWallet()
 		if err != nil {
 			fmt.Printf("Colony> Unable to unlock wallet, Incorrect password: %v\n", err)
-			http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "Chain RPC is inactive"){
+				http.Error(w, "Chain RPC is inactive. Please try again.", http.StatusInternalServerError)
+			} else {
+				http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
+			}
 			started <- false
 			cancel()
 		}
