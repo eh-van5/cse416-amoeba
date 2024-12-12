@@ -455,26 +455,6 @@ export default function ProxyPage(){
                     </div>
                 </SimpleBox>
             </div> )}
-            {isViewAvailable === false && ( <div className="page-row">
-                <SimpleBox title="Client Usage History" style={{ minHeight: isViewHistory ? '680px' : '0px' }}>
-                    <div style={{position: 'relative', margin: '20px'}}>
-                        <div className="box-header-button" onClick={toggleViewHistory} style={{position: 'absolute', right: '-20px', top: '-60px', cursor: 'pointer'}}>
-                            {isViewHistory? <BackIcon /> : <ViewAllIcon />}
-                        </div>
-                        <ClientUsageTable headings={headings1} items={isViewHistory? clientUsageData : clientUsageData.slice(0, 3)}/>
-                    </div>
-                </SimpleBox>
-                {isViewHistory === false && ( <LineGraph
-                    data={banwidthData}
-                    line1Color="#17BD28"
-                    line2Color="#FF6D6D"
-                    xAxisLabel="Time"
-                    yAxisLabel="MB/s"
-                    line1Name = "Download"
-                    line2Name = "Upload"
-                    title="Bandwidth Over Time"
-                /> )}
-            </div> )}
             {isViewHistory === false && ( <div className="page-row">
             <SimpleBox title="Available Proxy Nodes" style={{ minHeight: isViewAvailable ? '680px' : '0px' }}>
                     <div style={{position: 'relative', margin: '20px'}}>
