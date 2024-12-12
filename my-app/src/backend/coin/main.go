@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -59,24 +61,65 @@ func main() {
 	mux.HandleFunc("/login/{username}/{password}/{miningaddr}", func(w http.ResponseWriter, r *http.Request) {
 		Login(w, r, mux, state, stopServerChan)
 	})
-	mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request){
+	mux.HandleFunc("/stopServer", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Colony> Stopping server. Logging out\n")
 		stopServerChan <- true
 		io.WriteString(w, "Stopped server. Logged out\n")
 	})
-	mux.HandleFunc("/generateAddress", func(w http.ResponseWriter, r *http.Request){
+	mux.HandleFunc("/generateAddress", func(w http.ResponseWriter, r *http.Request) {
 		if state.Rpc == nil {
 			http.Error(w, "Server not ready", http.StatusServiceUnavailable)
 			return
 		}
 		state.GenerateWalletAddress(w, r)
 	})
-	mux.HandleFunc("/getData", func(w http.ResponseWriter, r *http.Request){
+	mux.HandleFunc("/getData", func(w http.ResponseWriter, r *http.Request) {
 		if state.Username == "" {
 			http.Error(w, "No data available", http.StatusServiceUnavailable)
 			return
 		}
 		state.GetAccountData(w, r)
+	})
+
+	mux.HandleFunc("/startMining/{username}/{password}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("---- MineOneBlock 1\n")
+		path := r.URL.Path
+		path = strings.TrimPrefix(path, "/startMining/")
+		parts := strings.Split(path, "/")
+		numcpus := parts[2]
+		numcpu, err := strconv.Atoi(numcpus)
+		if err != nil {
+			fmt.Println("Error converting string to int (Login/MineOneBlock):", err)
+		}
+		state.MineOneBlock(w, r, state.Address, numcpu)
+	})
+	mux.HandleFunc("/stopMining/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("stopMining 1\n")
+		state.StopMining(w, r)
+	})
+	mux.HandleFunc("/getCPUThreads/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Get CPU Threads\n")
+		state.GetCPUThreads(w, r)
+	})
+
+	mux.HandleFunc("/getConnectionCount/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Get Connection Count\n")
+		state.GetConnectionCount(w, r)
+	})
+	mux.HandleFunc("/getWalletValue/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("-GetWalletVal")
+		walletAddr := state.Username
+		state.GetWalletValue(w, r, walletAddr)
+	})
+	mux.HandleFunc("/sendToWallet/{username}/{password}/{walletAddr}/{amount}", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("-send to Wallet")
+		path := r.URL.Path
+		path = strings.TrimPrefix(path, "/sendToWallet/")
+		parts := strings.Split(path, "/")
+
+		walletAddr := parts[2]
+		amount := parts[3]
+		state.SendToWallet(w, r, walletAddr, amount)
 	})
 
 	PORT := 8000
@@ -122,9 +165,9 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		}
 
 		// Starts btcd process
-		go func(){
+		go func() {
 			err := pm.StartBtcd(address)
-			if err != nil{
+			if err != nil {
 				fmt.Printf("Returned from btcd, error: %v\n", err)
 				http.Error(w, "Incorrect credentials. Please try again.", http.StatusInternalServerError)
 				started <- false
@@ -138,9 +181,9 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		}
 
 		// Starts btcwallet
-		go func(){
+		go func() {
 			err := pm.StartWallet(username)
-			if err != nil{
+			if err != nil {
 				cancel()
 				started <- false
 				fmt.Printf("Returned from btcwallet, error: %v\n", err)
@@ -176,8 +219,8 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		}
 
 		// Only defer shutdown if client exists
-		defer func(){
-			if client != nil{
+		defer func() {
+			if client != nil {
 				client.Shutdown()
 			}
 		}()
@@ -212,8 +255,8 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 	}()
 
 	// Waits for server to complete login before returning
-	graceful :=<-started
-	if graceful{
+	graceful := <-started
+	if graceful {
 		io.WriteString(w, "Logged into server!")
 	}
 }
