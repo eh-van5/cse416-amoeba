@@ -122,6 +122,10 @@ export default function ProxyPage(){
 
 
     const handleEnableProxy = async () => {
+        if(isUsingProxy) {
+            setEnableError('Please stop using proxy before enabling as proxy node.');
+            return;
+        }
         const price = parseFloat(pricePerMB);
         if(!pricePerMB || isNaN(price) || price < 0) {
             setEnableError('Please enter a valid positive number or 0.');
@@ -230,6 +234,10 @@ export default function ProxyPage(){
     };
 
     const handleUseProxy = async () => {
+        if(isProxyEnabled) {
+            setUseError('Please disable proxy node before using proxy.');
+            return;
+        }
         if (!selectedProxyNode.peerID) {
             setUseError('Please select a proxy node before using.');
             return;
