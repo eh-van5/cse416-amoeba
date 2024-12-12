@@ -6,28 +6,19 @@ interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
 }
 
-interface AccountData {
-    username: string;
-    password: string;
-    address: string;
-}
-
 function cancel(e: React.MouseEvent){
     const purchaseForm = document.getElementById("purchase-form") as HTMLDialogElement;
     purchaseForm.close();
 }
 
 async function buy(e : React.FormEvent<HTMLFormElement>){
-    const [accountData, setAccountData] = useState<AccountData>({
-        username: "",
-        password: "",
-        address: "",
-      }); 
-
+    let username
+    let password
     const fetchData = async () => {
         const response = await axios.get(`http://localhost:8000/getData`);  // Use your server's endpoint here
         console.log(response)
-        setAccountData(response.data);
+        username = response.data.username
+        password = response.data.password
     }
     await fetchData();
     
@@ -35,7 +26,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
     // Pull user's balance from backend here
     console.log("Retrieving wallet balance for transaction")
     var walletNum = null
-    let res = await axios.get(`http://localhost:8000/getWalletValue/${accountData.username}/${accountData.password}`)
+    let res = await axios.get(`http://localhost:8000/getWalletValue/${username}/${password}`)
     if(res.data != null){
         walletNum = res.data
     }
@@ -74,7 +65,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
                 console.log(response)
                 // Handle success
                 // Send payment here
-                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${accountData.username}/${accountData.password}/${walletNum}/${price}`)
+                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${username}/${password}/${walletNum}/${price}`)
                 if(resSend.data != 0){
                     console.error("Failed to send payment")
                 }
