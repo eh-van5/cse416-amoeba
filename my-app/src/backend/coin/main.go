@@ -21,6 +21,7 @@ import (
 
 func main() {
 	name := "Colony"
+	PORT := 8000
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -39,7 +40,7 @@ func main() {
 	mux := http.NewServeMux()
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET"},
+		AllowedMethods:   []string{"GET", "POST"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 	})
@@ -53,6 +54,8 @@ func main() {
 	mux.HandleFunc("/importWallet", func(w http.ResponseWriter, r *http.Request){
 		fmt.Printf("got /importWallet request\n")
 
+		username := r.FormValue("username")
+		password := r.FormValue("password")
 		// Parse form to ensure correct formData
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Unable to parse form. Please try another file", http.StatusBadRequest)
@@ -110,7 +113,12 @@ func main() {
 		fmt.Printf("Wallet file copied\n")
 
 		// Attempts Login with new wallet
-		Login(w, r, mux, state, stopServerChan)
+		url := fmt.Sprintf("http://localhost:%d/login/%s/%s", PORT, username, password)
+		fmt.Println(url)
+		_, err = http.Get(url)
+		if err != nil{
+			fmt.Printf("Error logging in while importing: %v\n", err)
+		}
 
 		// Signs out
 		fmt.Printf("Colony> Stopping server. Logging out\n")
@@ -145,7 +153,6 @@ func main() {
 		state.GetAccountData(w, r)
 	})
 
-	PORT := 8000
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", PORT),

@@ -49,6 +49,8 @@ export default function Login(props: Props){
 
     const[walletFile, setWalletFile] = useState<File | undefined>(undefined);
 
+    console.log(user)
+
     // Backend Functions *********************************************
     const goToCreateWallet = () => {
         setError("")
@@ -165,6 +167,8 @@ export default function Login(props: Props){
         const formData = new FormData();
         console.log("created formData")
         formData.append('file', walletFile as File);
+        formData.append('username', user.username);
+        formData.append('password', user.password);
 
         console.log("posting formData")
         axios.post(`http://localhost:${PORT}/importWallet`, formData, {
@@ -173,13 +177,13 @@ export default function Login(props: Props){
             }
         })
         .then((response) => {
-            console.log("successfully imported wallet")
+            alert("Successfully imported wallet. You can now login with the username, password, and an existing walletAddress")
             console.log(response.data)
             setLoading(false)
         })
         .catch((error) => {
             console.log(error)
-            console.log("error import walling")
+            console.log("error importing wallet")
             setError("Unable to import wallet. Please try again")
             setLoading(false)
         })
@@ -306,7 +310,7 @@ export default function Login(props: Props){
         return(
             <div className="login-box">
                 <h1 className="login-text" style={{paddingBottom: "2%"}}>Import Wallet</h1>
-                <p>Import wallet.db - this will delete any existing wallet.*</p>
+                <p>Import wallet.db - this will delete any existing wallet.</p>
                 <div id = "file-widget">
                     <div             
                     onDrop={dropHandler} 
