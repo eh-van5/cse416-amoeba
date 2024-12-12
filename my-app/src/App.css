@@ -1273,7 +1273,7 @@ hr {
   #purchase-form-options-container {
     display: grid;
     grid-row: auto;
-    grid-template-columns: .2fr 1fr 1fr 1fr;
+    grid-template-columns: .2fr .2fr 1fr .6fr;
     margin: 1em;
     gap: 10px;
   }
@@ -1293,6 +1293,7 @@ hr {
     }
     .buyFormFilenames{
       align-self: center;
+      margin-left: 15px;
     }
   }
   #purchase-form-header{

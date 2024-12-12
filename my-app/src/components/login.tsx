@@ -144,8 +144,9 @@ export default function Login(props: Props){
         console.log(res.data)
 
         res = await axios.get(`http://localhost:${PORT}/generateAddress`)
-        console.log("Generate address")
         miningAddress = res.data
+
+        res = await axios.get(`http://localhost:${PORT}/stopServer`)
 
         setWalletCreated(true);
         setWalletAddress(
@@ -156,7 +157,40 @@ export default function Login(props: Props){
     }
 
     const importWallet = () => {
-    
+        if (user.username == "" || user.password == ""){
+            setError("There are missing fields. Please try again");
+            return;
+        }
+
+        setLoading(true)
+        const formData = new FormData();
+        console.log("created formData")
+        formData.append('file', walletFile as File);
+        formData.append('username', user.username);
+        formData.append('password', user.password);
+
+        console.log("posting formData")
+        axios.post(`http://localhost:${PORT}/importWallet`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        .then((response) => {
+            alert("Successfully imported wallet. You can now login with the username, password, and an existing walletAddress")
+            console.log(response.data)
+            setLoading(false)
+
+            axios.get(`http://localhost:${PORT}/stopServer`)
+            .then((response) => {
+                console.log(response)
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+            console.log("error importing wallet")
+            setError("Unable to import wallet. Please try again")
+            setLoading(false)
+        })
     }
 
     const downloadTxtFile = () => {
@@ -280,7 +314,7 @@ export default function Login(props: Props){
         return(
             <div className="login-box">
                 <h1 className="login-text" style={{paddingBottom: "2%"}}>Import Wallet</h1>
-                <p>Import wallet.db - this will delete any existing wallet.*</p>
+                <p>Import wallet.db - this will delete any existing wallet.</p>
                 <div id = "file-widget">
                     <div             
                     onDrop={dropHandler} 
@@ -303,7 +337,8 @@ export default function Login(props: Props){
                 <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
                 {inputField("Username", "Enter Username", "username")}
                 {inputField("Password", "Enter Password", "password", true)}
-                <button id='login-button' className="button" type="button">Import</button>
+                <button id='login-button' className="button" type="button" onClick={importWallet}>Import</button>
+                <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
                 <p className="login"><i>Already have an account?</i></p>
                 <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
             </div>
