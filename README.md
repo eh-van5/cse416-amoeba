@@ -44,5 +44,5 @@ go run .
 ```
 cd my-app/src/backend
 go build
-go run.
+go run .
 ```
