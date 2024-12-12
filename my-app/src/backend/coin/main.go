@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 	"path/filepath"
+	"encoding/json"
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/api"
@@ -21,9 +22,30 @@ import (
 	"github.com/rs/cors"
 )
 
+type Config struct {
+	WalletAddress string `json:"wallet_address"`
+	NodeSeed       string `json:"node_seed"`
+}
+
+func SaveConfig(filePath string, config *Config) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+	return fmt.Errorf("failed to create config file: %v", err)
+	}
+	defer file.Close()
+	
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ") // Format the JSON with indentation
+	if err := encoder.Encode(config); err != nil {
+	return fmt.Errorf("failed to encode config file: %v", err)
+	}
+	
+	return nil
+}
 func main() {
 	name := "Colony"
 	PORT := 8000
+
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -224,6 +246,18 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	address := r.PathValue("miningaddr")
+
+	config := &Config{
+		WalletAddress: address,
+		NodeSeed: address,
+	}
+	// Save the configuration to a file
+	configPath := "../config.json"
+	if err := SaveConfig(configPath, config); err != nil {
+		fmt.Printf("Error saving config: %v\n", err)
+	} else {
+		fmt.Println("Config saved successfully.")
+	}
 
 	started := make(chan bool, 1)
 
