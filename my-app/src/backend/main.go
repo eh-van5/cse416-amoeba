@@ -108,6 +108,7 @@ func main() {
 	fshare.HaveFileMetadata(node, filesDB)
 	// protocol /want-all-filemeta
 	fshare.HaveAllFileMetadata(node, filesDB)
+	fshare.HaveWalletAddress(node)
 
 	// Start the HTTP server
 	go func() {

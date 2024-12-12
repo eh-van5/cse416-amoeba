@@ -268,6 +268,44 @@ func WantAllFileMetadata(node host.Host, targetpeerid string) ([]FileInfo, error
 	return filesMetadata, nil
 }
 
+func WantWalletAddress(node host.Host, targetpeerid string) (string, error) {
+	var ctx = context.Background()
+	targetPeerID := strings.TrimSpace(targetpeerid)
+	relayAddr, err := multiaddr.NewMultiaddr(relay_node_addr)
+	if err != nil {
+		log.Printf("Failed to create relay multiaddr: %v", err)
+		return "", err
+	}
+	peerMultiaddr := relayAddr.Encapsulate(multiaddr.StringCast("/p2p-circuit/p2p/" + targetPeerID))
+
+	peerinfo, err := peer.AddrInfoFromP2pAddr(peerMultiaddr)
+	if err != nil {
+		log.Fatalf("Failed to parse peer address: %s", err)
+		return "", err
+	}
+	if err := node.Connect(ctx, *peerinfo); err != nil {
+		log.Printf("Failed to connect to peer %s via relay: %v", peerinfo.ID, err)
+		return "", err
+	}
+	s, err := node.NewStream(network.WithAllowLimitedConn(ctx, "/want-wallet-address"), peerinfo.ID, "/want-wallet-address")
+	if err != nil {
+
+		log.Printf("Failed to open stream to %s: %s", peerinfo.ID, err)
+		return "", err
+	}
+	defer s.Close()
+
+	buf := bufio.NewReader(s)
+	// Read data from the stream
+	walletAddrBytes, err := buf.ReadBytes('\n') // Reads until a newline character
+	if err != nil {
+		log.Fatalf("Failed to receive a reponse: %s", err)
+		return "", err
+	}
+
+	return string(walletAddrBytes), nil
+}
+
 // func openStreamToPeerLocal(client_node host.Host) (net.Conn, error) {
 // 	var ctx = context.Background()
 // 	peerMultiaddr, err := multiaddr.NewMultiaddr(test_addr)
