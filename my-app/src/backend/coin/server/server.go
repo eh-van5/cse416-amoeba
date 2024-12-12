@@ -5,23 +5,23 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
-	"os"
 
 	"github.com/creack/pty"
 )
 
 type ProcessManager struct {
-	btcdCmd    *exec.Cmd
-	walletCmd  *exec.Cmd
-	Ctx  context.Context
+	btcdCmd   *exec.Cmd
+	walletCmd *exec.Cmd
+	Ctx       context.Context
 }
 
 // Starts the btcd process
 // miningAddress is used for mining, obtained by calling GetNewAdrress
-func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
+func (pm *ProcessManager) StartBtcd(miningAddress string) error {
 	name := "btcd"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -32,7 +32,7 @@ func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 		"--rpcpass=password",
 		"--notls",
 		"--debuglevel=info",
-		"--addpeer=130.245.173.221:8333",	// Connects to TA network
+		"--addpeer=130.245.173.221:8333", // Connects to TA network
 	}
 
 	// If a mining address is given
@@ -68,7 +68,7 @@ func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 
-	if err = pm.btcdCmd.Wait(); err != nil{
+	if err = pm.btcdCmd.Wait(); err != nil {
 		return err
 	}
 	return nil
@@ -76,7 +76,7 @@ func (pm *ProcessManager) StartBtcd(miningAddress string) (error){
 
 // Starts the btcwallet process
 // Assumes that wallet already exists
-func (pm *ProcessManager) StartWallet(walletpass string) (error){
+func (pm *ProcessManager) StartWallet(walletpass string) error {
 	name := "btcwallet"
 	fmt.Printf("Starting %s...\n", name)
 
@@ -120,7 +120,7 @@ func (pm *ProcessManager) StartWallet(walletpass string) (error){
 		fmt.Printf("%s> Process killed\n", name)
 	}()
 
-	if err = pm.walletCmd.Wait(); err != nil{
+	if err = pm.walletCmd.Wait(); err != nil {
 		return err
 	}
 
@@ -215,7 +215,7 @@ func CreateWallet(username string, password string) (privateKey string, err erro
 }
 
 // Prints output from stream
-func OutputStream(stream io.ReadCloser, name string){
+func OutputStream(stream io.ReadCloser, name string) {
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
 		text := scanner.Text()

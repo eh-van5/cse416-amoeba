@@ -1,13 +1,18 @@
 import SimpleBox from "../general/simpleBox"
 import LineGraph from "../charts/lineGraph"
 import { generateRandomData } from "../charts/lineGraph"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import DropdownMenu from "../general/dropdownMenu";
 import useChartMenu from "../charts/useChartMenu";
-import { useAppContext } from "../../AppContext";
+import { useTheme } from "../../ThemeContext";
+import { useAppContext } from '../../AppContext';
+import axios from "axios";
 
+const PORT = 8000
 // Note: Consider adding a visible timer somehow in the future
 // WIP code for timer drop down menu is commented out
+
+let timer: ReturnType<typeof setInterval> | null = null;
 
 export default function MiningPage() {
     const { isDarkMode, sendMessage } = useAppContext();
@@ -19,6 +24,25 @@ export default function MiningPage() {
     const [buttonText, setButtonText] = useState<string>("Begin Mining");
     
     const [isMining, setIsMining] = useState<boolean>(false); // Switch for button state
+    const [coinAmount, setCoinAmount] = useState(0.00);
+    const [peerAmount, setPeerAmount] = useState(0);
+    const [peakAmount, setpeakAmount] = useState(0);
+    const updateWalletValues = async() =>{
+        let res = await axios.get(`http://localhost:${PORT}/getWalletValue/username/password`)
+        console.log("Updated Wallet Values")
+        //walletNum = res.data;
+        setCoinAmount(res.data)
+    }
+    const updatePeerValues = async() =>{
+        let res = await axios.get(`http://localhost:${PORT}/getConnectionCount/username/password`)
+        console.log("Updated Peer Amt Values")
+        console.log(res)
+        if(res.data > peakAmount){
+            setpeakAmount(res.data)
+        }
+        //walletNum = res.data;
+        setPeerAmount(res.data)
+    }
 
     const handleSlider = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSliderValue(Number(event.target.value)); // Update state with the slider value
@@ -44,6 +68,67 @@ export default function MiningPage() {
             setSeconds(value);
         }
     };
+    const startTimer = ()=> {
+        const totalSeconds = (parseInt(hours)) * 3600 + (parseInt (minutes)) * 60 + (parseInt(seconds))
+        if (totalSeconds > 0) {
+            const targetEnd = Date.now() + totalSeconds * 1000;
+            if(timer){
+                clearInterval(timer)
+            }
+
+            //const interval = setInterval(()=>{
+            timer = setInterval(()=>{
+                const remainingTime = targetEnd-Date.now()
+                if(remainingTime <=0){
+                    clearInterval(timer as unknown as number)
+                    stopMining()
+                    setIsMining(false);
+                    setHours('0');
+                    setMinutes('0');
+                    setSeconds('0');
+                    setButtonText("Begin Mining");
+                }
+                else{
+                    setTimerValue(Math.floor(remainingTime / 1000))
+                }
+            });
+        }
+
+    };
+
+    const startMining = async() => { 
+        //get numCores
+        let numCores = 0
+        try {
+            const res = await axios.get(`http://localhost:${PORT}/getCPUThreads/username/password`)
+            console.log(res.data)
+            numCores = res.data
+        }
+        catch (error) {
+            console.error("Error getting number of cores:", error)
+        }
+        console.log("numCores", numCores)
+        //will not allow 0 core mining!
+        const numCoresPass = Math.max(1,Math.round(sliderValue * 0.01 * numCores))
+        console.log("NumCores to mine: ", numCoresPass)
+        //calculate cores it should pass
+        try {
+            const res = await axios.get(`http://localhost:${PORT}/startMining/username/password/${numCoresPass}`)
+            console.log(res.data)
+        }
+        catch (error) {
+            console.error("Error starting mining:", error)
+        }
+    }
+    const stopMining = async() => { 
+        try {
+            const res = await axios.get(`http://localhost:${PORT}/stopMining/username/password`)
+            console.log(res.data)
+        }
+        catch (error) {
+            console.error("Error stopping mining:", error)
+        }
+    }
 
     const handleButtonClick = () => {
         setTimerValue(0);
@@ -54,14 +139,22 @@ export default function MiningPage() {
             // setMinutes('0');
             // setHours('0');
             setTimerValue(totalSeconds);
+            //delay for 5 seconds to prevent problems
+            setTimeout(()=>{startTimer()}, 5)
+            
         }
         if (isMining) {
             setButtonText('Begin Mining');
-            sendMessage('Stop Mining Request')
+            //sendMessage('Stop Mining Request')
+            //call to start mining
+            stopMining()
+            setTimerValue(0)
         }
         else {
             setButtonText('Stop Mining');
-            sendMessage('Begin Mining Request')
+            //sendMessage('Begin Mining Request')
+            //call to stop mining
+            startMining()
         }
         setIsMining((isMining) => !isMining);
     }
@@ -74,12 +167,24 @@ export default function MiningPage() {
 
     const handleMouseOut = () => {
         if(isMining) {
-            setButtonText(`${0} Units Mined`);
+            //setButtonText(`${0} Units Mined`);
+            setButtonText(`Please stay on this page`);
         }
         else {
             setButtonText("Begin Mining");
         }
     }
+    useEffect(() => {
+        updateWalletValues();
+        updatePeerValues();
+        const updateData = setInterval(() => {
+            updateWalletValues();
+            updatePeerValues();
+        },10000);
+
+        return () => clearInterval (updateData)
+        
+    }, []);
 
 
     return (
@@ -87,7 +192,7 @@ export default function MiningPage() {
             <h1 style={{ color: isDarkMode ? 'white' : 'black' }}>Mining</h1>
             <div style={{ display: 'flex' }}>
                 <SimpleBox title='Balance' style={{ maxWidth: '50%' }}>
-                    <h2 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px' }}>(Insert Balance Here) AMB</h2>
+                    <h2 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px' }}>{coinAmount.toFixed(3)} AMB</h2>
                 </SimpleBox>
                 <SimpleBox title="Units Mined This Month" style={{ maxWidth: '50%' }}>
                     <h2 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px' }}>(Insert Profit Here) AMB</h2>
@@ -95,8 +200,8 @@ export default function MiningPage() {
             </div>
             <SimpleBox title="Mining Network" style={{ display: 'block', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: "space-between", maxWidth: '60%' }}>
-                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>(Insert Number) Active Colonists</h3>
-                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>(Insert Number) Peak Colonists</h3>
+                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>{peerAmount.toFixed(0)} Active Colonists</h3>
+                    <h3 style={{ color: isDarkMode ? 'white' : 'black', margin: '20px', display: "inline-block" }}>{peakAmount.toFixed(0)} Peak Colonists</h3>
                 </div>
                 {/*RESOLVED: Drop down menu does not appear next to the button like on other pages */}
                 <LineGraph
@@ -167,6 +272,7 @@ export default function MiningPage() {
                         value={sliderValue}
                         onChange={handleSlider}
                         style={{ width: '95%', marginLeft: '10px', marginRight: '10px' }}
+                        disabled={isMining}
                     />
                     <h6 style={{ color: isDarkMode ? 'white' : 'black', display: 'inline-block', marginTop: '0px' }}>Low</h6>
                     <h6 style={{ color: isDarkMode ? 'white' : 'black', display: 'inline-block', float: 'right', marginTop: '0px' }}>High</h6>
