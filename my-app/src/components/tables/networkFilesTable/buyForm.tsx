@@ -1,7 +1,15 @@
 import { FileInfo } from "../../types";
+import { useState } from "react";
+import axios from "axios";
 
 interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
+}
+
+interface AccountData {
+    username: string;
+    password: string;
+    address: string;
 }
 
 function cancel(e: React.MouseEvent){
@@ -10,19 +18,28 @@ function cancel(e: React.MouseEvent){
 }
 
 async function buy(e : React.FormEvent<HTMLFormElement>){
+    const [accountData, setAccountData] = useState<AccountData>({
+        username: "",
+        password: "",
+        address: "",
+      }); 
+
+    const fetchData = async () => {
+        const response = await axios.get(`http://localhost:8000/getData`);  // Use your server's endpoint here
+        console.log(response)
+        setAccountData(response.data);
+    }
+    await fetchData();
+    
     e.preventDefault();
     // Pull user's balance from backend here
     console.log("Retrieving wallet balance for transaction")
     var walletNum = null
-    await fetch(`http://localhost:8000/getWalletValue/username/password`,{
-        method: 'GET'
-    }).then(res => {
-        if (!res.ok) {
-            throw new Error('Unexpected Response')
-        }
-        walletNum = res.json()
-    }).catch(err => console.log("Failed to retrieve wallet balance", err))
-    console.log(`Walllet Balance: ${walletNum}`);
+    let res = await axios.get(`http://localhost:8000/getWalletValue/${accountData.username}/${accountData.password}`)
+    if(res.data != null){
+        walletNum = res.data
+    }
+    console.log(`Walllet Balance: ${walletNum}`)
     
 
     // submit should send a put request into backend and backend should return error
@@ -56,13 +73,10 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
             if (response.ok) {
                 // Handle success
                 // Send payment here
-                await fetch(`http://localhost:8000/sendToWallet/username/password/${walletNum}/${price}`,{
-                    method:'GET'
-                }).then(res => {
-                    if(!res.ok){
-                        console.log("Unexpected Response");
-                    }
-                }).catch(err => console.log)
+                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${accountData.username}/${accountData.password}/${walletNum}/${price}`)
+                if(resSend.data != 0){
+                    console.error("Failed to send payment")
+                }
                 console.log("uploaded files");
             }  else {
                 // Handle error
