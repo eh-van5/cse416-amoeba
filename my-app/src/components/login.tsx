@@ -144,8 +144,9 @@ export default function Login(props: Props){
         console.log(res.data)
 
         res = await axios.get(`http://localhost:${PORT}/generateAddress`)
-        console.log("Generate address")
         miningAddress = res.data
+
+        res = await axios.get(`http://localhost:${PORT}/stopServer`)
 
         setWalletCreated(true);
         setWalletAddress(
@@ -178,6 +179,11 @@ export default function Login(props: Props){
             alert("Successfully imported wallet. You can now login with the username, password, and an existing walletAddress")
             console.log(response.data)
             setLoading(false)
+
+            axios.get(`http://localhost:${PORT}/stopServer`)
+            .then((response) => {
+                console.log(response)
+            })
         })
         .catch((error) => {
             console.log(error)
