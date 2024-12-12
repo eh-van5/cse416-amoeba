@@ -269,6 +269,11 @@ func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr
 		io.WriteString(w, fmt.Sprintf("%d\n", -1))
 		return
 	}
+	if walletAddr == c.Address {
+		fmt.Printf("Same wallet!\n")
+		io.WriteString(w, fmt.Sprintf("%d\n", -4))
+		return
+	}
 
 	walletAddr_btc, err := btcutil.DecodeAddress(walletAddr, &chaincfg.MainNetParams)
 	if err != nil {

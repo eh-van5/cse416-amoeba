@@ -84,6 +84,9 @@ export default function WalletPage(){
             else if (generalError && resSend.data == -3){
                 generalError.innerHTML = 'Error: Wallet Address is not correct.';
             }
+            else if (generalError && resSend.data == -4){
+                generalError.innerHTML = 'Error: Cannot send to yourself!';
+            }
             else if (generalError){
                 generalError.innerHTML = 'Unknown error occured. Please try again.';
             }
