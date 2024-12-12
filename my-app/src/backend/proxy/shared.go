@@ -21,6 +21,7 @@ type ProxyInfo struct {
 	Status     string    `json:"status"`
 	LastActive time.Time `json:"lastActive"`
 	PeerID     string    `json:"peerID"`
+	WalletAddr string    `json:"walletAddr"`
 }
 
 // ProxyStatusCache holds the shared status for proxies.
