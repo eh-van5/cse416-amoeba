@@ -8,8 +8,17 @@ import ProxyNodesTable from '../tables/proxyNodesTable/proxyNodesTable';
 import { proxyNodeStructure } from '../tables/proxyNodesTable/proxyNodes';
 import ClientUsageTable, { clientUsageData } from '../tables/clientUsageTable/clientUsageTable';
 import { startHeartbeat, stopHeartbeat } from '../general/Heartbeat';
+import axios from 'axios';
+
+
+interface AccountData {
+    username: string;
+    password: string;
+    address: string;
+  }
 
 export default function ProxyPage(){
+    const PORT = 8000;
     const {isDarkMode} = useAppContext();
     const generateRandomBanwidthData = () => {
         const data = [];
@@ -44,11 +53,19 @@ export default function ProxyPage(){
         ipAddress: '',
         location: '',
         pricePerMB: 0,
-        peerID: ''
+        peerID: '',
+        walletAddr: ''
     });
     const [proxyNodes, setProxyNodes] = useState<proxyNodeStructure[]>([]);
     const [dataUsed, setDataUsed] = useState('0');
     const [totalCost, setTotalCost] = useState(0);
+    const [accountData, setAccountData] = useState<AccountData>({
+        username: "",
+        password: "",
+        address: "",
+    });
+    const [coinAmount, setCoinAmount] = useState(0.00);
+    const [currencyAmount, setCurrencyAmount] = useState(0.00);
 
     const toggleViewHistory = () => setViewHistory(!isViewHistory);
     const toggleViewAvailable = () => setViewAvailable(!isViewAvailable);
@@ -81,7 +98,8 @@ export default function ProxyPage(){
                             ipAddress: '',
                             location: '',
                             pricePerMB: 0,
-                            peerID: ''
+                            peerID: '',
+                            walletAddr: ''
                         });
                     }
                 }
@@ -101,7 +119,8 @@ export default function ProxyPage(){
                 ipAddress: '',
                 location: '',
                 pricePerMB: 0,
-                peerID: ''
+                peerID: '',
+                walletAddr: ''
             });
         }
 
@@ -120,6 +139,29 @@ export default function ProxyPage(){
         };
     }, []);
 
+    const fetchAccountData = async () => {
+        const response = await axios.get(`http://localhost:${PORT}/getData`);  // Use your server's endpoint here
+        console.log(response)
+        setAccountData(response.data);
+    }
+
+    const updateWalletValues = async() =>{
+        let res = await axios.get(`http://localhost:${PORT}/getWalletValue/username/password`)
+        console.log("Updated Wallet Values")
+        //walletNum = res.data;
+        console.log(res.data)
+        if(res.data!= null){
+            setCoinAmount(res.data)
+            setCurrencyAmount(res.data * 10000)//the currency amount shall be 10,000 * coin amount
+        }
+        
+
+    }
+    //updates the page when loading
+    useEffect(() => {
+        updateWalletValues();
+        fetchAccountData();
+    }, []);
 
     const handleEnableProxy = async () => {
         if(isUsingProxy) {
@@ -140,7 +182,7 @@ export default function ProxyPage(){
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ pricePerMB: price }),
+                    body: JSON.stringify({ pricePerMB: price, walletAddr: accountData.address }),
                 });
     
                 const result = await response.json();
@@ -272,7 +314,8 @@ export default function ProxyPage(){
             ipAddress: '',
             location: '',
             pricePerMB: 0,
-            peerID: ''
+            peerID: '',
+            walletAddr: ''
         });
         try {
             const response = await fetch('http://localhost:8088/stop-using-proxy', {
@@ -287,6 +330,7 @@ export default function ProxyPage(){
                 setTotalCost(calculatedCost);
                 console.log(`Total cost: ${totalCost.toFixed(4)}`);
                 setIsUsingProxy(false);
+                send();
             }else {
                 //console.error('Failed to stop using proxy.');
             }
@@ -302,10 +346,68 @@ export default function ProxyPage(){
             ipAddress: node.ipAddress,
             location: node.location,
             pricePerMB: node.pricePerMB,
-            peerID: node.peerID
+            peerID: node.peerID,
+            walletAddr: node.walletAddr
         });
         setDataUsed('0');
     };
+
+    const send = async() => {
+        let numberErrors = 0;
+        const generalError = (document.getElementById('general_error'));
+        
+        if(totalCost>coinAmount){
+            if(generalError){
+                generalError.innerHTML = 'Error: Coin sent is more than coins in wallet';
+            }
+            numberErrors += 1;
+        }
+        if(totalCost<=0){
+            if(generalError){
+                generalError.innerHTML = 'Error: Coin sent cannot be 0 or less';
+            }
+            numberErrors += 1;
+        }
+
+        if(!selectedProxyNode.walletAddr|| isNaN(totalCost)){
+            if(generalError){
+                generalError.innerHTML = 'An error occured. Please try again.';
+            }
+            numberErrors += 1;
+
+        }
+        let resSend = await axios.get(`http://localhost:${PORT}/sendToWallet/username/password/${selectedProxyNode.walletAddr}/${totalCost}`)
+        console.log("send result", resSend.data)
+        if(resSend.data != 0){
+            numberErrors += 1;
+        }
+        if(numberErrors===0){
+            if(generalError){
+                generalError.innerHTML = 'Successfully sent to wallet!';
+            }
+            const conversionAmb= currencyAmount / coinAmount;
+            //coinAmount = coinAmount-ambAmount;
+            setCoinAmount(coinAmount => coinAmount - totalCost);
+            //might change this
+            //setCurrencyAmount (currencyAmount => currencyAmount-(ambAmount/currencyAmount));
+            //setTimeout(()=>{startTimer()}, 5)
+            updateWalletValues();
+        }
+        else{
+            if (generalError && resSend.data == -2){
+                generalError.innerHTML = 'Error: Transaction Limits reached. Mine more coins before trying again.';
+            }
+            else if (generalError && resSend.data == -3){
+                generalError.innerHTML = 'Error: Wallet Address is not correct.';
+            }
+            else if (generalError && resSend.data == -4){
+                generalError.innerHTML = 'Error: Cannot send to yourself!';
+            }
+            else if (generalError){
+                generalError.innerHTML = 'Unknown error occured. Please try again.';
+            }
+        }
+    }
 
     /*  Enable proxy node
         Use proxy node

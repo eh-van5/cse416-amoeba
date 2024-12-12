@@ -4,4 +4,5 @@ export interface proxyNodeStructure {
     location: string;
     status: string;
     peerID: string;
+    walletAddr: string;
 }
