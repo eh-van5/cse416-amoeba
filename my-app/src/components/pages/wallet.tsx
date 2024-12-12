@@ -60,11 +60,11 @@ export default function WalletPage(){
             numberErrors += 1;
 
         }
-        let res = await axios.get(`http://localhost:${PORT}/sendToWallet/username/password/${walletNum}/${ambAmount}`)
-        if(res.data != 0){
+        let resSend = await axios.get(`http://localhost:${PORT}/sendToWallet/username/password/${walletNum}/${ambAmount}`)
+        console.log("send result", resSend.data)
+        if(resSend.data != 0){
             numberErrors += 1;
         }
-
         if(numberErrors===0){
             if(generalError){
                 generalError.innerHTML = 'Successfully sent to wallet!';
@@ -73,12 +73,18 @@ export default function WalletPage(){
             //coinAmount = coinAmount-ambAmount;
             setCoinAmount(coinAmount => coinAmount - ambAmount);
             //might change this
-            setCurrencyAmount (currencyAmount => currencyAmount-(ambAmount/currencyAmount));
-            setTimeout(()=>{startTimer()}, 5)
+            //setCurrencyAmount (currencyAmount => currencyAmount-(ambAmount/currencyAmount));
+            //setTimeout(()=>{startTimer()}, 5)
             updateWalletValues();
         }
         else{
-            if(generalError){
+            if (generalError && resSend.data == -2){
+                generalError.innerHTML = 'Error: Transaction Limits reached. Mine more coins before trying again.';
+            }
+            else if (generalError && resSend.data == -3){
+                generalError.innerHTML = 'Error: Wallet Address is not correct.';
+            }
+            else if (generalError){
                 generalError.innerHTML = 'Unknown error occured. Please try again.';
             }
         }

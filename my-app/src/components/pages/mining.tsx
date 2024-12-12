@@ -177,6 +177,13 @@ export default function MiningPage() {
     useEffect(() => {
         updateWalletValues();
         updatePeerValues();
+        const updateData = setInterval(() => {
+            updateWalletValues();
+            updatePeerValues();
+        },10000);
+
+        return () => clearInterval (updateData)
+        
     }, []);
 
 

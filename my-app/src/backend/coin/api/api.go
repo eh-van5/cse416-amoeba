@@ -115,50 +115,6 @@ func (c *Client) GetBlockCount(w http.ResponseWriter, r *http.Request) (int64, e
 
 var stopMining bool
 
-// starts mining blocks , possibly forever until stop
-// GIVEN mining address and the number of cpus (this does not use numcpus)
-// this is an unused function, use MineOneBlock instead
-func (c *Client) MineOneBlockOld(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
-	fmt.Printf("Mining starting")
-	c.UnlockWallet()
-	stopMining = false
-
-	address, err := btcutil.DecodeAddress(miningaddr, &chaincfg.MainNetParams)
-
-	fmt.Printf("Decoded Address: %s", address)
-	if err != nil {
-		fmt.Printf("Error decoding Mining address (StartMining): %v\n", err)
-		c.LockWallet()
-		io.WriteString(w, "Mining stopped\n")
-		return
-	}
-	//var tryAmt int64 = 10
-	for {
-		//blockHashes, err := c.Rpc.GenerateToAddress(1, address, &tryAmt) //this does not work (idk why)
-		//breaks out of the infinite loop
-		if stopMining {
-			fmt.Println("Mining stopped")
-			c.LockWallet()
-			io.WriteString(w, "Mining stopped\n")
-			break
-		}
-		blockHashes, err := c.Rpc.Generate(1)
-		if err != nil {
-			fmt.Printf("Error generating to address (StartMining): %v\n", err)
-			io.WriteString(w, "Error mining block. Retrying...\n")
-		}
-
-		if len(blockHashes) > 0 {
-			fmt.Printf("Successfully mined block: %s\n", blockHashes[0])
-		} else {
-			fmt.Printf("Mining attempt failed (no block hashes returned)\n")
-			io.WriteString(w, "Mining attempt failed. Retrying...\n")
-		}
-		fmt.Printf("--Back to Mining another block--\n")
-	}
-
-}
-
 // modified version of Mine, this allows you to specify the cpu rate
 func (c *Client) MineOneBlock(w http.ResponseWriter, r *http.Request, miningaddr string, numcpu int) {
 	fmt.Printf("Mining starting")
@@ -277,12 +233,12 @@ func (c *Client) GetWalletValue(w http.ResponseWriter, r *http.Request, walletAd
 // sends to this walletAddr (????)
 func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr string, amt string) {
 	fmt.Printf("Sending %s coin to wallet %s", amt, walletAddr)
-
-	if !stopMining {
-		fmt.Printf("Cannot send while mining\n")
-		io.WriteString(w, fmt.Sprintf("%d\n", -1))
-
-	}
+	/*
+		if !stopMining {
+			fmt.Printf("Cannot send while mining\n")
+			io.WriteString(w, fmt.Sprintf("%d\n", -3))
+			return
+		}*/
 	amtFloat, err := strconv.ParseFloat(amt, 64)
 	if err != nil {
 		fmt.Printf("Error converting amount value to Float (sendToWallet): %v\n", err)
@@ -318,14 +274,14 @@ func (c *Client) SendToWallet(w http.ResponseWriter, r *http.Request, walletAddr
 	if err != nil {
 		fmt.Printf("Error decoding recipient address (sendToWallet): %v\n", err)
 		//io.WriteString(w, "Error decoding recipient address\n")
-		io.WriteString(w, fmt.Sprintf("%d\n", -1))
+		io.WriteString(w, fmt.Sprintf("%d\n", -3))
 		return
 	}
 	hash, err := c.Rpc.SendFrom(c.Username, walletAddr_btc, amt_btc)
 	if err != nil {
 		fmt.Printf("Error sending to wallet (sendToWallet): %v\n", err)
 		//io.WriteString(w, "Error sending to wallet\n")
-		io.WriteString(w, fmt.Sprintf("%d\n", -1))
+		io.WriteString(w, fmt.Sprintf("%d\n", -2))
 		c.LockWallet()
 		return
 	}
