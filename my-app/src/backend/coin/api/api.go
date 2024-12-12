@@ -37,6 +37,10 @@ func GetTest(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "This is my message!\n")
 }
 
+func (c *Client)GetWalletAddress() (string){
+	return c.Address
+}
+
 func (c *Client) UnlockWallet() error {
 	err := c.Rpc.WalletPassphrase(c.Password, 0)
 
