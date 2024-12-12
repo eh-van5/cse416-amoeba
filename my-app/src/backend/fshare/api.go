@@ -144,7 +144,9 @@ func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
 		}
 		// Probably send payment here and post the transaction data to the dht
 
-		w.WriteHeader(http.StatusOK)
+		walletAddr, err := WantWalletAddress(node, targetpeerid)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode([]byte(walletAddr))
 	}
 }
 

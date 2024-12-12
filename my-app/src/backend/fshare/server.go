@@ -137,6 +137,7 @@ func HaveWalletAddress(node host.Host) {
 			return
 		}
 
+		fmt.Printf("%s\n", config.WalletAddress)
 		walletAddrBytes := []byte(config.WalletAddress)
 
 		_, err = s.Write(walletAddrBytes)

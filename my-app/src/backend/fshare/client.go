@@ -18,7 +18,6 @@ import (
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/eh-van5/cse416-amoeba/server"
 )
 
 var (

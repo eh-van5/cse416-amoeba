@@ -71,6 +71,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
             })
         
             if (response.ok) {
+                console.log(response)
                 // Handle success
                 // Send payment here
                 let resSend = await axios.get(`http://localhost:8000/sendToWallet/${accountData.username}/${accountData.password}/${walletNum}/${price}`)
