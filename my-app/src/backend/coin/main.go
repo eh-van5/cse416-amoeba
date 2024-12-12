@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"path/filepath"
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/api"
@@ -51,7 +52,72 @@ func main() {
 	mux.HandleFunc("/getWalletPath", api.GetWalletPath)
 	mux.HandleFunc("/importWallet", func(w http.ResponseWriter, r *http.Request){
 		fmt.Printf("got /importWallet request\n")
-		io.WriteString(w, "importing wallet")
+
+		// Parse form to ensure correct formData
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Unable to parse form. Please try another file", http.StatusBadRequest)
+			fmt.Printf("ParseForm() err: %v", err)
+			return
+		}
+
+		// Retrieves file from form data
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "Unable to retrieve file. Please try another file", http.StatusBadRequest)
+			fmt.Println("Error retrieving file:", err)
+			return
+		}
+		defer file.Close()
+		fmt.Printf("File retrieved\n")
+
+		walletPath, err := api.GetWalletPathInternal()
+		if err != nil {
+			http.Error(w, "Unable to get wallet path", http.StatusBadRequest)
+			fmt.Println("Error getting path:", err)
+			return
+		}
+		destPath := filepath.Join(walletPath, "wallet.db")
+
+		// Deletes any existing wallet.db file in ~/.btcwallet directory
+		if _, err := os.Stat(destPath); err == nil {
+			fmt.Printf("Existing wallet exists, deleting...\n")
+			err := os.Remove(destPath)
+			if err != nil {
+				http.Error(w, "Error deleting existing wallet. Please try again", http.StatusInternalServerError)
+				fmt.Println("Error deleting existing wallet:", err)
+				return
+			}
+		}
+		fmt.Printf("Existing wallet deleted\n")
+
+		// Creates wallet.db file in ~/.btcwallet directory
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			http.Error(w, "Error creating file. Please try another file", http.StatusInternalServerError)
+			fmt.Println("Error creating file:", err)
+			return
+		}
+		defer destFile.Close()
+		fmt.Printf("Wallet file created\n")
+
+		// Copies imported wallet.db onto the new file
+		_, err = io.Copy(destFile, file)
+		if err != nil {
+			http.Error(w, "Unable to save file. Please try another file", http.StatusInternalServerError)
+			fmt.Println("Error saving file:", err)
+			return
+		}
+		fmt.Printf("Wallet file copied\n")
+
+		// Attempts Login with new wallet
+		Login(w, r, mux, state, stopServerChan)
+
+		// Signs out
+		fmt.Printf("Colony> Stopping server. Logging out\n")
+		stopServerChan <- true
+
+		fmt.Printf("Colony> Successfully import wallet\n")
+		io.WriteString(w, "Imported Wallet")
 	})
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 		Login(w, r, mux, state, stopServerChan)

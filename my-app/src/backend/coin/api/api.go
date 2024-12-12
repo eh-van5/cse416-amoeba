@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"runtime"
 	"path/filepath"
+	"errors"
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/server"
@@ -44,13 +45,11 @@ func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
 }
 
-func GetWalletPath(w http.ResponseWriter, r *http.Request){
-	fmt.Printf("got /getWalletPath request\n")
-
+func GetWalletPathInternal() (string, error){
 	// Get user directory
 	user, err := user.Current()
 	if err != nil {
-		http.Error(w, "Error getting user directory", http.StatusInternalServerError)
+		return "", errors.New("Error getting user directory")
 	}
 
 	path := ""
@@ -62,7 +61,19 @@ func GetWalletPath(w http.ResponseWriter, r *http.Request){
 	case "darwin": // macOS
 		path = filepath.Join(user.HomeDir, "Library", "Application Support", "Btcwallet", "mainnet")
 	default:
-		http.Error(w, "OS is not supported", http.StatusInternalServerError)
+		return "", errors.New("OS is not supported")
+	}
+
+	return path, nil
+}
+
+func GetWalletPath(w http.ResponseWriter, r *http.Request){
+	fmt.Printf("got /getWalletPath request\n")
+
+	path, err := GetWalletPathInternal()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+		return
 	}
 
 	io.WriteString(w, path)

@@ -156,7 +156,33 @@ export default function Login(props: Props){
     }
 
     const importWallet = () => {
-    
+        if (user.username == "" || user.password == ""){
+            setError("There are missing fields. Please try again");
+            return;
+        }
+
+        setLoading(true)
+        const formData = new FormData();
+        console.log("created formData")
+        formData.append('file', walletFile as File);
+
+        console.log("posting formData")
+        axios.post(`http://localhost:${PORT}/importWallet`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        .then((response) => {
+            console.log("successfully imported wallet")
+            console.log(response.data)
+            setLoading(false)
+        })
+        .catch((error) => {
+            console.log(error)
+            console.log("error import walling")
+            setError("Unable to import wallet. Please try again")
+            setLoading(false)
+        })
     }
 
     const downloadTxtFile = () => {
@@ -303,7 +329,8 @@ export default function Login(props: Props){
                 <span className="error-message" style={{visibility: error==="" ? "hidden" : "visible"}}>{error}</span>
                 {inputField("Username", "Enter Username", "username")}
                 {inputField("Password", "Enter Password", "password", true)}
-                <button id='login-button' className="button" type="button">Import</button>
+                <button id='login-button' className="button" type="button" onClick={importWallet}>Import</button>
+                <TailSpin visible={loading} width={50} color="#4470ff" radius={1}/>
                 <p className="login"><i>Already have an account?</i></p>
                 <a className="login login-link" onClick={goToLogin}><i><u>Login</u></i></a>
             </div>
