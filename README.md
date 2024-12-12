@@ -40,3 +40,9 @@ cd my-app/src/backend/coin
 go build
 go run .
 ```
+
+```
+cd my-app/src/backend
+go build
+go run.
+```
