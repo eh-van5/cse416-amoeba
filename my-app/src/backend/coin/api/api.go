@@ -7,9 +7,12 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"runtime"
 	"strconv"
 	"time"
+	"os/user"
+	"runtime"
+	"path/filepath"
+
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
@@ -46,6 +49,30 @@ func (c *Client) UnlockWallet() error {
 
 func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
+}
+
+func GetWalletPath(w http.ResponseWriter, r *http.Request){
+	fmt.Printf("got /getWalletPath request\n")
+
+	// Get user directory
+	user, err := user.Current()
+	if err != nil {
+		http.Error(w, "Error getting user directory", http.StatusInternalServerError)
+	}
+
+	path := ""
+	switch runtime.GOOS {
+	case "linux":
+		path = filepath.Join(user.HomeDir, ".btcwallet", "mainnet")
+	case "windows": 
+		path = filepath.Join(user.HomeDir, "AppData", "Roaming", "Btcwallet", "mainnet")
+	case "darwin": // macOS
+		path = filepath.Join(user.HomeDir, "Library", "Application Support", "Btcwallet", "mainnet")
+	default:
+		http.Error(w, "OS is not supported", http.StatusInternalServerError)
+	}
+
+	io.WriteString(w, path)
 }
 
 // Creates a new wallet

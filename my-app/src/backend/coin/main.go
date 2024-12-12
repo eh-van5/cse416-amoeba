@@ -50,6 +50,11 @@ func main() {
 	// Handle functions
 	mux.HandleFunc("/", api.GetTest)
 	mux.HandleFunc("/createWallet/{username}/{password}", api.CreateWallet)
+	mux.HandleFunc("/getWalletPath", api.GetWalletPath)
+	mux.HandleFunc("/importWallet", func(w http.ResponseWriter, r *http.Request){
+		fmt.Printf("got /importWallet request\n")
+		io.WriteString(w, "importing wallet")
+	})
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 		Login(w, r, mux, state, stopServerChan)
 	})

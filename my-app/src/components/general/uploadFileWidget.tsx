@@ -1,10 +1,10 @@
 import { UploadFileIcon } from "../../images/icons/icons";
 import { useAppContext } from "../../AppContext";
-import { UserFileData } from "../pages/userFiles";
+import { FileData } from "../pages/userFiles";
 
 interface UploadFileWidgetProps{
-    files: Map<string, UserFileData>
-    setItems: React.Dispatch<React.SetStateAction<Map<string, UserFileData>>>
+    files: Map<string, FileData>
+    setItems: React.Dispatch<React.SetStateAction<Map<string, FileData>>>
 }
 export default function UploadFileWidget({files, setItems}: UploadFileWidgetProps){
     const {isDarkMode} = useAppContext();
@@ -41,7 +41,7 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
                 if (file === null){
                     throw Error("Parsing something that isn't a file");
                 }
-                files.set(file.name, {file: file, price: 0, shared: false});
+                files.set(file.name, {file: file, price: 0});
             }
         })
         setItems(new Map(files));
@@ -57,7 +57,7 @@ export default function UploadFileWidget({files, setItems}: UploadFileWidgetProp
             throw Error;
         }
         Object.values(filesList).forEach(file => {
-            files.set(file.name, {file: file, price: 0, shared: false});
+            files.set(file.name, {file: file, price: 0});
         })
         setItems(new Map(files));
     }

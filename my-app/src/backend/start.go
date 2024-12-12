@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"main/fshare"
 	"strings"
 	"time"
 
@@ -276,6 +277,34 @@ func RefreshReservation(node host.Host, interval time.Duration) {
 			MakeReservation(node)
 		case <-globalCtx.Done():
 			fmt.Println("Context done, stopping reservation refresh.")
+			return
+		}
+	}
+}
+
+func MakeProviderRecords(ctx context.Context, dht *dht.IpfsDHT, filesDB *fshare.KV) error {
+	err := fshare.RefreshProviderRecordsHelper(ctx, dht, filesDB)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nil
+}
+
+func RefreshProviderRecords(ctx context.Context, dht *dht.IpfsDHT, filesDB *fshare.KV, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Println("RECEIVED TICKER INTERRUPT")
+			err := fshare.RefreshProviderRecordsHelper(ctx, dht, filesDB)
+			if err != nil {
+				fmt.Println(err)
+			}
+			return
+		case <-globalCtx.Done():
+			fmt.Println("Context done, stopping provider record refresh.")
 			return
 		}
 	}
