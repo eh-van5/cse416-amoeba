@@ -154,7 +154,7 @@ func StartHttpClient(
 		fmt.Println("Error saving file:", err)
 		return err
 	}
-
+	// Ask whether file finishes downloading before returning
 	return nil
 }
 
