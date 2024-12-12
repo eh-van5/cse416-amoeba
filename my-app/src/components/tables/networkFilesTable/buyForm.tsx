@@ -1,7 +1,15 @@
 import { FileInfo } from "../../types";
+import { useState } from "react";
+import axios from "axios";
 
 interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
+}
+
+interface AccountData {
+    username: string;
+    password: string;
+    address: string;
 }
 
 function cancel(e: React.MouseEvent){
@@ -10,9 +18,29 @@ function cancel(e: React.MouseEvent){
 }
 
 async function buy(e : React.FormEvent<HTMLFormElement>){
+    const [accountData, setAccountData] = useState<AccountData>({
+        username: "",
+        password: "",
+        address: "",
+      }); 
+
+    const fetchData = async () => {
+        const response = await axios.get(`http://localhost:8000/getData`);  // Use your server's endpoint here
+        console.log(response)
+        setAccountData(response.data);
+    }
+    await fetchData();
+    
     e.preventDefault();
     // Pull user's balance from backend here
-    const walletNum = 20;
+    console.log("Retrieving wallet balance for transaction")
+    var walletNum = null
+    let res = await axios.get(`http://localhost:8000/getWalletValue/${accountData.username}/${accountData.password}`)
+    if(res.data != null){
+        walletNum = res.data
+    }
+    console.log(`Walllet Balance: ${walletNum}`)
+    
 
     // submit should send a put request into backend and backend should return error
     // error checking should not be done in the front end here
@@ -23,7 +51,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         const option = options[i]
         if (option.checked){
             const price = parseFloat(option.defaultValue);
-            if (price <= walletNum) {
+            if (walletNum && price <= walletNum) {
                 purchaseForm.close();
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
@@ -32,7 +60,6 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
             // default value: [price.toString(), owner, hash, filename]
             const formData = new FormData();
             const values = option.defaultValue.split(',')
-            formData.append('fileprice', values[0]);
             formData.append('targetpeerid', values[1]);
             formData.append('hash', values[2])
             formData.append('filename', values[3])
@@ -45,7 +72,11 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         
             if (response.ok) {
                 // Handle success
-                // Let backend handle automatic payment
+                // Send payment here
+                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${accountData.username}/${accountData.password}/${walletNum}/${price}`)
+                if(resSend.data != 0){
+                    console.error("Failed to send payment")
+                }
                 console.log("uploaded files");
             }  else {
                 // Handle error

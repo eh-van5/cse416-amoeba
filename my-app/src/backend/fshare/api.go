@@ -130,10 +130,10 @@ func GetUserFiles(filesdb *KV) http.HandlerFunc {
 
 func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fileprice, priceerr := strconv.ParseFloat(r.FormValue("fileprice"), 64)
-		if priceerr != nil {
-			http.Error(w, "Invalid price", http.StatusBadRequest)
-		}
+		// fileprice, priceerr := strconv.ParseFloat(r.FormValue("fileprice"), 64)
+		// if priceerr != nil {
+		// 	http.Error(w, "Invalid price", http.StatusBadRequest)
+		// }
 		targetpeerid := r.FormValue("targetpeerid")
 		hash := r.FormValue("hash")
 		filename := r.FormValue("filename")

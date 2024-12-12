@@ -9,8 +9,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
-	github.com/libp2p/go-libp2p-pubsub v0.12.0 // indirect
 )
 
 require github.com/elazarl/goproxy v0.0.0-20240909085733-6741dbfc16a1
