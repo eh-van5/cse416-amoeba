@@ -40,7 +40,7 @@ function App() {
   const PORT = 8000;
 
   // REMEMBER TO CAHNE THIS 
-  const [loggedIn, setLoggedIn] = useState<boolean>(true);
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<Page>(Page.Proxy);
   const { isDarkMode, sendMessage } = useAppContext();
 
