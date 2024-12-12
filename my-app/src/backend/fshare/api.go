@@ -72,7 +72,7 @@ func ProvideFile(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 		}
 
 		filename := r.FormValue("filename")
-		filesize, err := strconv.Atoi(r.FormValue("filesize"))
+		filesize, err := strconv.ParseUint(r.FormValue("filesize"), 10, 64)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -84,7 +84,7 @@ func ProvideFile(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		price, err := strconv.Atoi(r.FormValue("price"))
+		price, err := strconv.ParseFloat(r.FormValue("price"), 64)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
