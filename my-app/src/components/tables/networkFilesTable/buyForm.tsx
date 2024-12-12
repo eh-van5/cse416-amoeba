@@ -1,4 +1,6 @@
 import { FileInfo } from "../../types";
+import { useState } from "react";
+import axios from "axios";
 
 interface BuyFormProps {
     hostToFile: Record<string, FileInfo>;
@@ -10,10 +12,26 @@ function cancel(e: React.MouseEvent){
 }
 
 async function buy(e : React.FormEvent<HTMLFormElement>){
+    let username
+    let password
+    const fetchData = async () => {
+        const response = await axios.get(`http://localhost:8000/getData`);  // Use your server's endpoint here
+        console.log(response)
+        username = response.data.username
+        password = response.data.password
+    }
+    await fetchData();
+    
     e.preventDefault();
-    // should pull from backend
-    const walletNum = 20;
-
+    // Pull user's balance from backend here
+    console.log("Retrieving wallet balance for transaction")
+    var walletNum = null
+    let res = await axios.get(`http://localhost:8000/getWalletValue/${username}/${password}`)
+    if(res.data != null){
+        walletNum = res.data
+    }
+    console.log(`Walllet Balance: ${walletNum}`)
+    
 
     // submit should send a put request into backend and backend should return error
     // error checking should not be done in the front end here
@@ -23,11 +41,12 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
     for (let i = 0; i < options.length; i++) {
         const option = options[i]
         if (option.checked){
-            const value = parseFloat(option.defaultValue);
-            if (value <= walletNum) {
+            const price = parseFloat(option.defaultValue);
+            if (price <= 1000) {
                 purchaseForm.close();
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
+                break
             }
 
             // default value: [price.toString(), owner, hash, filename]
@@ -43,8 +62,15 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
                 body: formData,
             })
         
+            console.log(response)
             if (response.ok) {
+                console.log(response)
                 // Handle success
+                // Send payment here
+                let resSend = await axios.get(`http://localhost:8000/sendToWallet/${username}/${password}/${walletNum}/${price}`)
+                if(resSend.data != 0){
+                    console.error("Failed to send payment")
+                }
                 console.log("uploaded files");
             }  else {
                 // Handle error

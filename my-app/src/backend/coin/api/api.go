@@ -3,6 +3,7 @@ package api
 import (
 	//"encoding/json"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,6 +36,10 @@ func GetTest(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "This is my message!\n")
 }
 
+func (c *Client) GetWalletAddress() string {
+	return c.Address
+}
+
 func (c *Client) UnlockWallet() error {
 	err := c.Rpc.WalletPassphrase(c.Password, 0)
 
@@ -50,13 +55,11 @@ func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
 }
 
-func GetWalletPath(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /getWalletPath request\n")
-
+func GetWalletPathInternal() (string, error) {
 	// Get user directory
 	user, err := user.Current()
 	if err != nil {
-		http.Error(w, "Error getting user directory", http.StatusInternalServerError)
+		return "", errors.New("Error getting user directory")
 	}
 
 	path := ""
@@ -68,7 +71,19 @@ func GetWalletPath(w http.ResponseWriter, r *http.Request) {
 	case "darwin": // macOS
 		path = filepath.Join(user.HomeDir, "Library", "Application Support", "Btcwallet", "mainnet")
 	default:
-		http.Error(w, "OS is not supported", http.StatusInternalServerError)
+		return "", errors.New("OS is not supported")
+	}
+
+	return path, nil
+}
+
+func GetWalletPath(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("got /getWalletPath request\n")
+
+	path, err := GetWalletPathInternal()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+		return
 	}
 
 	io.WriteString(w, path)

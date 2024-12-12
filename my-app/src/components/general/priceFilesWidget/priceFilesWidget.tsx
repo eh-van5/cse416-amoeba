@@ -24,7 +24,7 @@ function FormatPriceTable({files}: formatPriceTableProps): JSX.Element[] {
                 <label htmlFor = {file.file.name} className={`items-table-item${isDarkMode ? '-dark' : ''}`}>
                     {file.file.size}
                 </label>
-                <input required id = {file.file.name + "-price"} name = {file.file.name} type="number" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
+                <input required id = {file.file.name + "-price"} name = {file.file.name} type="number" step = "0.01" className={`items-table-item${isDarkMode ? '-dark' : ''}`} />
             </div>
         );
     });

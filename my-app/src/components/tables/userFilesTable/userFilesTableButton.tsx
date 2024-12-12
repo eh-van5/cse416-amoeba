@@ -1,4 +1,3 @@
-import { PauseIcon, PlayIcon } from "../../../images/icons/icons";
 import { useAppContext } from "../../../AppContext";
 import { FileInfo } from "../../types";
 

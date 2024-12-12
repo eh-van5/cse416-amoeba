@@ -13,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"path/filepath"
+	"encoding/json"
 
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/eh-van5/cse416-amoeba/api"
@@ -20,8 +22,30 @@ import (
 	"github.com/rs/cors"
 )
 
+type Config struct {
+    WalletAddress string `json:"wallet_address"` // Matches "wallet_address" in JSON
+    NodeSeed       string `json:"node_seed"`      // Matches "node_url" in JSON
+}
+
+func SaveConfig(filePath string, config *Config) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+	return fmt.Errorf("failed to create config file: %v", err)
+	}
+	defer file.Close()
+	
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ") // Format the JSON with indentation
+	if err := encoder.Encode(config); err != nil {
+	return fmt.Errorf("failed to encode config file: %v", err)
+	}
+	
+	return nil
+}
 func main() {
 	name := "Colony"
+	PORT := 8000
+
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -40,7 +64,7 @@ func main() {
 	mux := http.NewServeMux()
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET"},
+		AllowedMethods:   []string{"GET", "POST"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 	})
@@ -53,7 +77,75 @@ func main() {
 	mux.HandleFunc("/getWalletPath", api.GetWalletPath)
 	mux.HandleFunc("/importWallet", func(w http.ResponseWriter, r *http.Request){
 		fmt.Printf("got /importWallet request\n")
-		io.WriteString(w, "importing wallet")
+
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		// Parse form to ensure correct formData
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Unable to parse form. Please try another file", http.StatusBadRequest)
+			fmt.Printf("ParseForm() err: %v", err)
+			return
+		}
+
+		// Retrieves file from form data
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "Unable to retrieve file. Please try another file", http.StatusBadRequest)
+			fmt.Println("Error retrieving file:", err)
+			return
+		}
+		defer file.Close()
+		fmt.Printf("File retrieved\n")
+
+		walletPath, err := api.GetWalletPathInternal()
+		if err != nil {
+			http.Error(w, "Unable to get wallet path", http.StatusBadRequest)
+			fmt.Println("Error getting path:", err)
+			return
+		}
+		destPath := filepath.Join(walletPath, "wallet.db")
+
+		// Deletes any existing wallet.db file in ~/.btcwallet directory
+		if _, err := os.Stat(destPath); err == nil {
+			fmt.Printf("Existing wallet exists, deleting...\n")
+			err := os.Remove(destPath)
+			if err != nil {
+				http.Error(w, "Error deleting existing wallet. Please try again", http.StatusInternalServerError)
+				fmt.Println("Error deleting existing wallet:", err)
+				return
+			}
+		}
+		fmt.Printf("Existing wallet deleted\n")
+
+		// Creates wallet.db file in ~/.btcwallet directory
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			http.Error(w, "Error creating file. Please try another file", http.StatusInternalServerError)
+			fmt.Println("Error creating file:", err)
+			return
+		}
+		defer destFile.Close()
+		fmt.Printf("Wallet file created\n")
+
+		// Copies imported wallet.db onto the new file
+		_, err = io.Copy(destFile, file)
+		if err != nil {
+			http.Error(w, "Unable to save file. Please try another file", http.StatusInternalServerError)
+			fmt.Println("Error saving file:", err)
+			return
+		}
+		fmt.Printf("Wallet file copied\n")
+
+		// Attempts Login with new wallet
+		url := fmt.Sprintf("http://localhost:%d/login/%s/%s", PORT, username, password)
+		fmt.Println(url)
+		_, err = http.Get(url)
+		if err != nil{
+			fmt.Printf("Error logging in while importing: %v\n", err)
+		}
+
+		fmt.Printf("Colony> Successfully import wallet\n")
+		io.WriteString(w, "Imported Wallet")
 	})
 	mux.HandleFunc("/login/{username}/{password}", func(w http.ResponseWriter, r *http.Request) {
 		Login(w, r, mux, state, stopServerChan)
@@ -80,7 +172,6 @@ func main() {
 		}
 		state.GetAccountData(w, r)
 	})
-
 	mux.HandleFunc("/startMining/{username}/{password}/{numcpu}", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("---- MineOneBlock 1\n")
 		path := r.URL.Path
@@ -122,7 +213,6 @@ func main() {
 		state.SendToWallet(w, r, walletAddr, amount)
 	})
 
-	PORT := 8000
 	fmt.Printf("%s> created http server on port %d\n", name, PORT)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", PORT),
@@ -149,9 +239,25 @@ func main() {
 }
 
 func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *api.Client, stopServerChan chan bool) {
+	for len(stopServerChan) > 0 {
+		<-stopServerChan
+	}
+
 	username := r.PathValue("username")
 	password := r.PathValue("password")
 	address := r.PathValue("miningaddr")
+
+	config := &Config{
+		WalletAddress: address,
+		NodeSeed: address,
+	}
+	// Save the configuration to a file
+	configPath := "../config.json"
+	if err := SaveConfig(configPath, config); err != nil {
+		fmt.Printf("Error saving config: %v\n", err)
+	} else {
+		fmt.Println("Config saved successfully.")
+	}
 
 	started := make(chan bool, 1)
 
@@ -232,11 +338,15 @@ func Login(w http.ResponseWriter, r *http.Request, mux *http.ServeMux, state *ap
 		state.Address = address
 
 		// Unlock Wallet using password
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		err = state.UnlockWallet()
 		if err != nil {
 			fmt.Printf("Colony> Unable to unlock wallet, Incorrect password: %v\n", err)
-			http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "Chain RPC is inactive"){
+				http.Error(w, "Chain RPC is inactive. Please try again.", http.StatusInternalServerError)
+			} else {
+				http.Error(w, "Incorrect Credentials. Please try again.", http.StatusInternalServerError)
+			}
 			started <- false
 			cancel()
 		}

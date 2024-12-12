@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -105,4 +106,51 @@ func SetupFileServer(server_node host.Host) error {
 	return nil
 }
 
-// TODO bitcoin transactions
+type Config struct {
+    WalletAddress string `json:"wallet_address"` // Matches "wallet_address" in JSON
+    NodeSeed       string `json:"node_seed"`    // Matches "node_url" in JSON
+}
+
+func LoadConfig(filePath string) (*Config, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %v", err)
+	}
+	defer file.Close()
+
+	var config Config
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
+		return nil, fmt.Errorf("failed to decode config file: %v", err)
+	}
+
+	return &config, nil
+}
+
+func HaveWalletAddress(node host.Host) {
+	node.SetStreamHandler("/want-wallet-address", func(s network.Stream) {
+		defer s.Close()
+		configPath := "../config.json"
+		config, err := LoadConfig(configPath)
+		if err != nil {
+			log.Printf("Error getting wallet address: %v", err)
+			return
+		}
+
+		fmt.Printf("%s\n", config.WalletAddress)
+		walletAddrBytes := []byte(config.WalletAddress)
+
+		_, err = s.Write(walletAddrBytes)
+		if err != nil {
+			log.Printf("Error writing to stream: %v", err)
+			return
+		}
+		_, err = s.Write([]byte("\n"))
+		if err != nil {
+			log.Printf("Error writing to stream: %v", err)
+			return
+		}
+	})
+}
+
+// TODO bitcoin transactions\
