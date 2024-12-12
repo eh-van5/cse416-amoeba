@@ -107,11 +107,11 @@ func SetupFileServer(server_node host.Host) error {
 }
 
 type Config struct {
-	WalletAddress string
-	NodeSeed      string
+    WalletAddress string `json:"wallet_address"` // Matches "wallet_address" in JSON
+    NodeSeed       string `json:"node_seed"`    // Matches "node_url" in JSON
 }
 
-func loadConfig(filePath string) (*Config, error) {
+func LoadConfig(filePath string) (*Config, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %v", err)
@@ -131,7 +131,7 @@ func HaveWalletAddress(node host.Host) {
 	node.SetStreamHandler("/want-wallet-address", func(s network.Stream) {
 		defer s.Close()
 		configPath := "../config.json"
-		config, err := loadConfig(configPath)
+		config, err := LoadConfig(configPath)
 		if err != nil {
 			log.Printf("Error getting wallet address: %v", err)
 			return

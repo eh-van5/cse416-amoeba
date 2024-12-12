@@ -23,8 +23,8 @@ import (
 )
 
 type Config struct {
-	WalletAddress string `json:"wallet_address"`
-	NodeSeed       string `json:"node_seed"`
+    WalletAddress string `json:"wallet_address"` // Matches "wallet_address" in JSON
+    NodeSeed       string `json:"node_seed"`      // Matches "node_url" in JSON
 }
 
 func SaveConfig(filePath string, config *Config) error {

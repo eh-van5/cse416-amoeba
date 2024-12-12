@@ -42,10 +42,11 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
         const option = options[i]
         if (option.checked){
             const price = parseFloat(option.defaultValue);
-            if (walletNum && price <= walletNum) {
+            if (price <= 1000) {
                 purchaseForm.close();
             } else {
                 alert("YOU DO NOT HAVE ENOUGH MONEY TO PURCHASE THE FILE");
+                break
             }
 
             // default value: [price.toString(), owner, hash, filename]
@@ -61,6 +62,7 @@ async function buy(e : React.FormEvent<HTMLFormElement>){
                 body: formData,
             })
         
+            console.log(response)
             if (response.ok) {
                 console.log(response)
                 // Handle success

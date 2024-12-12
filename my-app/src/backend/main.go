@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	node_id             = "113366806" // give your SBU ID
+	node_id             = "" // give your SBU ID
 	relay_node_addr     = "/ip4/130.245.173.221/tcp/4001/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN"
 	bootstrap_node_addr = "/ip4/130.245.173.222/tcp/61020/p2p/12D3KooWM8uovScE5NPihSCKhXe8sbgdJAi88i2aXT2MmwjGWoSX"
 	local_bootstrap     = "/ip4/192.168.1.27/tcp/61000/p2p/12D3KooWFHfjDXXaYMXUigPCe14cwGaZCzodCWrQGKXUjYraoX3t"
@@ -45,6 +45,13 @@ func main() {
 	// 		log.Fatal("Failed to start websocket server")
 	// 	}
 	// }()
+	cfg, err := fshare.LoadConfig("./config.json")
+
+	if err != nil{
+		log.Fatal(err)
+	}
+	node_id = cfg.NodeSeed
+	fmt.Printf("NODEID: %s\n", node_id)
 
 	node, dht, err := CreateNode()
 	if err != nil {
@@ -83,7 +90,7 @@ func main() {
 	// refresh provider records
 	fshare.MakeDiscoverable(ctx, dht)
 	MakeProviderRecords(ctx, dht, filesDB)
-	go RefreshProviderRecords(ctx, dht, filesDB, 1*time.Hour)
+	go RefreshProviderRecords(ctx, dht, filesDB, 5*time.Minute)
 
 	// Configure HTTP routing
 	mux := http.NewServeMux()
