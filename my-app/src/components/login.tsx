@@ -49,8 +49,6 @@ export default function Login(props: Props){
 
     const[walletFile, setWalletFile] = useState<File | undefined>(undefined);
 
-    console.log(user)
-
     // Backend Functions *********************************************
     const goToCreateWallet = () => {
         setError("")
