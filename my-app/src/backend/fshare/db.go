@@ -9,9 +9,9 @@ import (
 
 // FileInfo defines the structure for file information
 type FileInfo struct {
-	Price        int
+	Price        float64
 	Name         string
-	Size         int
+	Size         uint64
 	FileType     string
 	LastModified int
 	Hash         string

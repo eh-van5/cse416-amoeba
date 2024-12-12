@@ -72,7 +72,7 @@ func ProvideFile(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 		}
 
 		filename := r.FormValue("filename")
-		filesize, err := strconv.Atoi(r.FormValue("filesize"))
+		filesize, err := strconv.ParseUint(r.FormValue("filesize"), 10, 64)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -84,7 +84,7 @@ func ProvideFile(ctx context.Context, dht *dht.IpfsDHT, filesdb *KV) http.Handle
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		price, err := strconv.Atoi(r.FormValue("price"))
+		price, err := strconv.ParseFloat(r.FormValue("price"), 64)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -130,10 +130,10 @@ func GetUserFiles(filesdb *KV) http.HandlerFunc {
 
 func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fileprice, priceerr := strconv.ParseFloat(r.FormValue("fileprice"), 64)
-		if priceerr != nil {
-			http.Error(w, "Invalid price", http.StatusBadRequest)
-		}
+		// fileprice, priceerr := strconv.ParseFloat(r.FormValue("fileprice"), 64)
+		// if priceerr != nil {
+		// 	http.Error(w, "Invalid price", http.StatusBadRequest)
+		// }
 		targetpeerid := r.FormValue("targetpeerid")
 		hash := r.FormValue("hash")
 		filename := r.FormValue("filename")
@@ -144,7 +144,10 @@ func BuyFile(ctx context.Context, node host.Host) http.HandlerFunc {
 		}
 		// Probably send payment here and post the transaction data to the dht
 
-		w.WriteHeader(http.StatusOK)
+		walletAddr, err := WantWalletAddress(node, targetpeerid)
+		walletAddr = strings.TrimSpace(walletAddr)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(walletAddr)
 	}
 }
 
