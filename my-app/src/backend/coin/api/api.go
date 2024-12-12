@@ -7,12 +7,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os/user"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
-	"os/user"
-	"runtime"
-	"path/filepath"
-
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
@@ -51,7 +50,7 @@ func (c *Client) LockWallet() {
 	c.Rpc.WalletLock()
 }
 
-func GetWalletPath(w http.ResponseWriter, r *http.Request){
+func GetWalletPath(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /getWalletPath request\n")
 
 	// Get user directory
@@ -64,7 +63,7 @@ func GetWalletPath(w http.ResponseWriter, r *http.Request){
 	switch runtime.GOOS {
 	case "linux":
 		path = filepath.Join(user.HomeDir, ".btcwallet", "mainnet")
-	case "windows": 
+	case "windows":
 		path = filepath.Join(user.HomeDir, "AppData", "Roaming", "Btcwallet", "mainnet")
 	case "darwin": // macOS
 		path = filepath.Join(user.HomeDir, "Library", "Application Support", "Btcwallet", "mainnet")
