@@ -181,6 +181,9 @@ func StopUsingProxyHandler() http.HandlerFunc {
 		log.Printf("Client stopped using proxy. Total data sent: %d bytes, received: %d bytes", sent, received)
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "Stopped Using Proxy"})
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"dataSent": sent,
+			"dataRecv": received,
+		})
 	}
 }
